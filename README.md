@@ -1,8 +1,8 @@
 # Hawk
 
-Use Hawk with **any LLM** — not just Hawk.
+A CLI for **any LLM** — OpenAI, Gemini, DeepSeek, Ollama, Claude, and 200+ models.
 
-Hawk — open to any LLM. Added an OpenAI-compatible provider shim so you can plug in GPT-4o, DeepSeek, Gemini, Llama, Mistral, or any model that speaks the OpenAI chat completions API. It also supports the ChatGPT Codex backend for `codexplan` and `codexspark`.
+Works with all standard tools — bash, file read/write/edit, grep, glob, agents, tasks, MCP.
 
 All of Hawk's tools work — bash, file read/write/edit, grep, glob, agents, tasks, MCP — just powered by whatever model you choose.
 
@@ -337,20 +337,4 @@ src/utils/model/configs.ts       — Added openai model mappings
 src/utils/model/model.ts         — Respects OPENAI_MODEL for defaults
 src/utils/auth.ts                — Recognizes OpenAI as valid 3P provider
 ```
-
-6 files changed. 786 lines added. Zero dependencies added.
-
----
-
-## Origin
-
-This is a fork of the Hawk source (exposed via npm source maps on March 31, 2026).
-
-The original Hawk source is the property of GrayCode. This repository is not affiliated with or endorsed by GrayCode.
-
----
-
-## License
-
-This repository is provided for educational and research purposes. The original source code is subject to GrayCode's terms. The OpenAI shim additions are public domain.
-"# hawk-code_Two" 
+"# hawk 
