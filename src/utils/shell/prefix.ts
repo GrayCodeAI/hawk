@@ -15,7 +15,7 @@ import {
   logEvent,
 } from '../../services/analytics/index.js'
 import { queryHaiku } from '../../services/api/hawk.js'
-import { startsWithApiErrorPrefix } from '../../services/api/errors.js'
+import { startsWithApiErrorPrefix } from '@hawk/eyrie'
 import { memoizeWithLRU } from '../memoize.js'
 import { jsonStringify } from '../slowOperations.js'
 import { asSystemPrompt } from '../systemPromptType.js'

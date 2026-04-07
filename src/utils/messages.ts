@@ -35,7 +35,7 @@ import {
   getPdfPasswordProtectedErrorMessage,
   getPdfTooLargeErrorMessage,
   getRequestTooLargeErrorMessage,
-} from '../services/api/errors.js'
+} from '@hawk/eyrie'
 import type { AnyObject, Progress } from '../Tool.js'
 import { isConnectorTextBlock } from '@hawk/eyrie'
 import type {

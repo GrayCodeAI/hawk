@@ -11,7 +11,7 @@ import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box, Text, useInput } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
 import { queryHaiku } from '../services/api/hawk.js';
-import { startsWithApiErrorPrefix } from '../services/api/errors.js';
+import { startsWithApiErrorPrefix } from '@hawk/eyrie';
 import type { Message } from '../types/message.js';
 import { checkAndRefreshOAuthTokenIfNeeded } from '../utils/auth.js';
 import { openBrowser } from '../utils/browser.js';

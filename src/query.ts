@@ -38,10 +38,8 @@ import type {
   TombstoneMessage,
 } from './types/message.js'
 import { logError } from './utils/log.js'
-import {
-  PROMPT_TOO_LONG_ERROR_MESSAGE,
-  isPromptTooLongMessage,
-} from './services/api/errors.js'
+import { PROMPT_TOO_LONG_ERROR_MESSAGE } from '@hawk/eyrie'
+import { isPromptTooLongMessage } from './services/api/errors.js'
 import { logAntError, logForDebugging } from './utils/debug.js'
 import {
   createUserMessage,

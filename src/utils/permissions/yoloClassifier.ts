@@ -14,7 +14,7 @@ import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/gr
 import { logEvent } from '../../services/analytics/index.js'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../../services/analytics/metadata.js'
 import { getCacheControl } from '../../services/api/hawk.js'
-import { parsePromptTooLongTokenCounts } from '../../services/api/errors.js'
+import { parsePromptTooLongTokenCounts } from '@hawk/eyrie'
 import { getDefaultMaxRetries } from '../../services/api/withRetry.js'
 import type { Tool, ToolPermissionContext, Tools } from '../../Tool.js'
 import type { Message } from '../../types/message.js'
