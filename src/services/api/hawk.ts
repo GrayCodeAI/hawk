@@ -41,7 +41,7 @@ import {
   type ConnectorTextBlock,
   type ConnectorTextDelta,
   isConnectorTextBlock,
-} from '../../types/connectorText.js'
+} from '@hawk/eyrie'
 import type {
   AssistantMessage,
   Message,
@@ -145,7 +145,7 @@ import type { QuerySource } from 'src/constants/querySource.js'
 import type { Notification } from 'src/context/notifications.js'
 import { addToTotalSessionCost } from 'src/cost-tracker.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from 'src/services/analytics/growthbook.js'
-import type { AgentId } from 'src/types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import {
   ADVISOR_TOOL_INSTRUCTIONS,
   getExperimentAdvisorModels,

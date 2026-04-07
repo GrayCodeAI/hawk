@@ -26,7 +26,7 @@ import { createSignal } from 'src/utils/signal.js'
 // Union type for registered hooks - can be SDK callbacks or native plugin hooks
 type RegisteredHookMatcher = HookCallbackMatcher | PluginHookMatcher
 
-import type { SessionId } from 'src/types/ids.js'
+import type { SessionId } from '@hawk/eyrie'
 
 // DO NOT ADD MORE STATE HERE - BE JUDICIOUS WITH GLOBAL STATE
 

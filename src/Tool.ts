@@ -81,7 +81,7 @@ import type {
   PromptRequest,
   PromptResponse,
 } from './types/hooks.js'
-import type { AgentId } from './types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import type { DeepImmutable } from './types/utils.js'
 import type { AttributionState } from './utils/commitAttribution.js'
 import type { FileHistoryState } from './utils/fileHistory.js'
