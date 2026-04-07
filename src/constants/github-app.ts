@@ -1,7 +1,7 @@
 export const PR_TITLE = 'Add Hawk GitHub Workflow'
 
 export const GITHUB_ACTION_SETUP_DOCS_URL =
-  'https://github.com/anthropics/hawk-code-action/blob/main/docs/setup.md'
+  'https://github.com/graycodes/hawk-code-action/blob/main/docs/setup.md'
 
 export const WORKFLOW_CONTENT = `name: Hawk
 
@@ -37,9 +37,9 @@ jobs:
 
       - name: Run Hawk
         id: hawk
-        uses: anthropics/hawk-code-action@v1
+        uses: graycodes/hawk-code-action@v1
         with:
-          anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
+          graycode_api_key: \${{ secrets.GRAYCODE_API_KEY }}
 
           # This is an optional setting that allows Hawk to read CI results on PRs
           additional_permissions: |
@@ -49,7 +49,7 @@ jobs:
           # prompt: 'Update the pull request description to include a summary of changes.'
 
           # Optional: Add hawk_args to customize behavior and configuration
-          # See https://github.com/anthropics/hawk-code-action/blob/main/docs/usage.md
+          # See https://github.com/graycodes/hawk-code-action/blob/main/docs/usage.md
           # or https://code.hawk.com/docs/en/cli-reference for available options
           # hawk_args: '--allowed-tools Bash(gh pr:*)'
 
@@ -93,7 +93,7 @@ Once the workflow is triggered, Hawk will analyze the comment and surrounding co
 allowed_tools: Bash(npm install),Bash(npm run build),Bash(npm run lint),Bash(npm run test)
 \`\`\`
 
-There's more information in the [Hawk action repo](https://github.com/anthropics/hawk-code-action).
+There's more information in the [Hawk action repo](https://github.com/graycodes/hawk-code-action).
 
 After merging this PR, let's try mentioning @hawk in a comment on any PR to get started!`
 
@@ -132,13 +132,13 @@ jobs:
 
       - name: Run Hawk Review
         id: hawk-review
-        uses: anthropics/hawk-code-action@v1
+        uses: graycodes/hawk-code-action@v1
         with:
-          anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
-          plugin_marketplaces: 'https://github.com/anthropics/hawk-code.git'
+          graycode_api_key: \${{ secrets.GRAYCODE_API_KEY }}
+          plugin_marketplaces: 'https://github.com/graycodes/hawk-code.git'
           plugins: 'code-review@hawk-code-plugins'
           prompt: '/code-review:code-review \${{ github.repository }}/pull/\${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/hawk-code-action/blob/main/docs/usage.md
+          # See https://github.com/graycodes/hawk-code-action/blob/main/docs/usage.md
           # or https://code.hawk.com/docs/en/cli-reference for available options
 
 `

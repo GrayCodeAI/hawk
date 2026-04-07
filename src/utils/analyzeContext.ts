@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { Anthropic } from '@anthropic-ai/sdk'
+import type { GrayCode } from '@graycode-ai/sdk'
 import {
   getSystemPrompt,
   SYSTEM_PROMPT_DYNAMIC_BOUNDARY,
@@ -75,8 +75,8 @@ const MANUAL_COMPACT_BUFFER_NAME = 'Compact buffer'
 export const TOOL_TOKEN_COUNT_OVERHEAD = 500
 
 async function countTokensWithFallback(
-  messages: Anthropic.Beta.Messages.BetaMessageParam[],
-  tools: Anthropic.Beta.Messages.BetaToolUnion[],
+  messages: GrayCode.Beta.Messages.BetaMessageParam[],
+  tools: GrayCode.Beta.Messages.BetaToolUnion[],
 ): Promise<number | null> {
   try {
     const result = await countMessagesTokensWithAPI(messages, tools)

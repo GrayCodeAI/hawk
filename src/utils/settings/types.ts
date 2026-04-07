@@ -563,7 +563,7 @@ export const SettingsSchema = lazySchema(() =>
         )
         .optional()
         .describe(
-          'Enabled plugins using plugin-id@marketplace-id format. Example: { "formatter@anthropic-tools": true }. Also supports extended format with version constraints.',
+          'Enabled plugins using plugin-id@marketplace-id format. Example: { "formatter@graycode-tools": true }. Also supports extended format with version constraints.',
         ),
       // Extra marketplaces for this repository (usually for project settings)
       extraKnownMarketplaces: z

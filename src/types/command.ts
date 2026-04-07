@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/index.mjs'
 import type { UUID } from 'crypto'
 import type { CanUseToolFn } from '../hooks/useCanUseTool.js'
 import type { CompactionResult } from '../services/compact/compact.js'
@@ -163,13 +163,13 @@ type LocalJSXCommand = {
  * of the listed auth types. See meetsAvailabilityRequirement() in commands.ts.
  *
  * Example: `availability: ['hawk-ai', 'console']` shows the command to
- * hawkai subscribers and direct Console API key users (api.anthropic.com),
+ * hawkai subscribers and direct Console API key users (api.graycode.com),
  * but hides it from Bedrock/Vertex/Foundry users and custom base URL users.
  */
 export type CommandAvailability =
   // hawkai OAuth subscriber (Pro/Max/Team/Enterprise via hawkai)
   | 'hawk-ai'
-  // Console API key user (direct api.anthropic.com, not via hawkai OAuth)
+  // Console API key user (direct api.graycode.com, not via hawkai OAuth)
   | 'console'
 
 export type CommandBase = {

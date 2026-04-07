@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle';
-import type { ContentBlockParam, TextBlockParam } from '@anthropic-ai/sdk/resources';
+import type { ContentBlockParam, TextBlockParam } from '@graycode-ai/sdk/resources';
 import { randomUUID } from 'crypto';
 import { setPromptId } from 'src/bootstrap/state.js';
 import { builtInCommandNames, type Command, type CommandBase, findCommand, getCommand, getCommandName, hasCommand, type PromptCommand } from 'src/commands.js';

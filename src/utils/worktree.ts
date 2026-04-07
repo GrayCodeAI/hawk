@@ -1254,7 +1254,7 @@ export async function execIntoTmuxWorktree(args: string[]): Promise<{
 
   // Mirror createWorktreeForSession(): hook takes precedence over git so the
   // WorktreeCreate hook substitutes the VCS backend for this fast-path too
-  // (anthropics/hawk-code#39281). Git path below runs only when no hook.
+  // (graycodes/hawk-code#39281). Git path below runs only when no hook.
   let worktreeDir: string
   let repoName: string
   if (hasWorktreeCreateHook()) {

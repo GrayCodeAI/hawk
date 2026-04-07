@@ -67,21 +67,21 @@ function GracePeriodContentBody() {
   }
   let t6;
   if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
-    t6 = <Link url="https://www.anthropic.com/news/updates-to-our-consumer-terms" />;
+    t6 = <Link url="https://www.graycode.com/news/updates-to-our-consumer-terms" />;
     $[6] = t6;
   } else {
     t6 = $[6];
   }
   let t7;
   if ($[7] === Symbol.for("react.memo_cache_sentinel")) {
-    t7 = <Link url="https://anthropic.com/legal/terms" />;
+    t7 = <Link url="https://graycode.com/legal/terms" />;
     $[7] = t7;
   } else {
     t7 = $[7];
   }
   let t8;
   if ($[8] === Symbol.for("react.memo_cache_sentinel")) {
-    t8 = <>{t0}{t5}<Text>Learn more ({t6}) or read the updated Consumer Terms ({t7}) and Privacy Policy (<Link url="https://anthropic.com/legal/privacy" />)</Text></>;
+    t8 = <>{t0}{t5}<Text>Learn more ({t6}) or read the updated Consumer Terms ({t7}) and Privacy Policy (<Link url="https://graycode.com/legal/privacy" />)</Text></>;
     $[8] = t8;
   } else {
     t8 = $[8];
@@ -120,21 +120,21 @@ function PostGracePeriodContentBody() {
   }
   let t4;
   if ($[4] === Symbol.for("react.memo_cache_sentinel")) {
-    t4 = <Link url="https://www.anthropic.com/news/updates-to-our-consumer-terms" />;
+    t4 = <Link url="https://www.graycode.com/news/updates-to-our-consumer-terms" />;
     $[4] = t4;
   } else {
     t4 = $[4];
   }
   let t5;
   if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = <Link url="https://anthropic.com/legal/terms" />;
+    t5 = <Link url="https://graycode.com/legal/terms" />;
     $[5] = t5;
   } else {
     t5 = $[5];
   }
   let t6;
   if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
-    t6 = <>{t0}{t3}<Text>Learn more ({t4}) or read the updated Consumer Terms ({t5}) and Privacy Policy (<Link url="https://anthropic.com/legal/privacy" />)</Text></>;
+    t6 = <>{t0}{t3}<Text>Learn more ({t4}) or read the updated Consumer Terms ({t5}) and Privacy Policy (<Link url="https://graycode.com/legal/privacy" />)</Text></>;
     $[6] = t6;
   } else {
     t6 = $[6];

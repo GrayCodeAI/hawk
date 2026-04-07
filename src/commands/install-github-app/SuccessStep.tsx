@@ -33,7 +33,7 @@ export function SuccessStep(t0) {
   }
   let t4;
   if ($[3] !== secretExists || $[4] !== useExistingSecret) {
-    t4 = secretExists && useExistingSecret && <Box marginTop={1}><Text color="success">✓ Using existing ANTHROPIC_API_KEY secret</Text></Box>;
+    t4 = secretExists && useExistingSecret && <Box marginTop={1}><Text color="success">✓ Using existing GRAYCODE_API_KEY secret</Text></Box>;
     $[3] = secretExists;
     $[4] = useExistingSecret;
     $[5] = t4;

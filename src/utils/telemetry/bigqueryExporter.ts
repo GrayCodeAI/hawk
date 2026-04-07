@@ -44,7 +44,7 @@ export class BigQueryMetricsExporter implements PushMetricExporter {
   private isShutdown = false
 
   constructor(options: { timeout?: number } = {}) {
-    const defaultEndpoint = 'https://api.anthropic.com/api/hawk_code/metrics'
+    const defaultEndpoint = 'https://api.graycode.com/api/hawk_code/metrics'
 
     if (
       process.env.USER_TYPE === 'ant' &&

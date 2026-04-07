@@ -127,7 +127,7 @@ import type {
   SDKControlMcpSetServersResponse,
   SDKControlReloadPluginsResponse,
 } from 'src/entrypoints/sdk/controlTypes.js'
-import type { PermissionMode } from '@anthropic-ai/hawk-agent-sdk'
+import type { PermissionMode } from '@graycode-ai/hawk-agent-sdk'
 import type { PermissionMode as InternalPermissionMode } from 'src/types/permissions.js'
 import { cwd } from 'process'
 import { getCwd } from 'src/utils/cwd.js'
@@ -297,7 +297,7 @@ import {
 import { runWithWorkload, WORKLOAD_CRON } from 'src/utils/workloadContext.js'
 import type { UUID } from 'crypto'
 import { randomUUID } from 'crypto'
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
 import type { AppState } from 'src/state/AppStateStore.js'
 import {
   fileHistoryRewind,

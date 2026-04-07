@@ -59,7 +59,7 @@ const result = await Bun.build({
     'MACRO.DISPLAY_VERSION': JSON.stringify(version),
     'MACRO.BUILD_TIME': JSON.stringify(new Date().toISOString()),
     'MACRO.ISSUES_EXPLAINER':
-      JSON.stringify('report the issue at https://github.com/anthropics/hawk-code/issues'),
+      JSON.stringify('report the issue at https://github.com/graycodes/hawk-code/issues'),
     '__BUDDY_ENABLED__': 'true',
   },
   plugins: [
@@ -159,9 +159,9 @@ export async function handleBgFlag() { throw new Error("Background sessions are 
           'url-handler-napi',
           'color-diff-napi',
           'sharp',
-          '@anthropic-ai/mcpb',
+          '@graycode-ai/mcpb',
           '@ant/hawk-for-chrome-mcp',
-          '@anthropic-ai/sandbox-runtime',
+          '@graycode-ai/sandbox-runtime',
           'asciichart',
           'plist',
           'cacache',

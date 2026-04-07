@@ -73,7 +73,7 @@ export function PackageManagerAutoUpdater(t0) {
   if (!updateAvailable) {
     return null;
   }
-  const updateCommand = packageManager === "homebrew" ? "brew upgrade hawk-code" : packageManager === "winget" ? "winget upgrade Anthropic.HawkCode" : packageManager === "apk" ? "apk upgrade hawk-code" : "your package manager update command";
+  const updateCommand = packageManager === "homebrew" ? "brew upgrade hawk-code" : packageManager === "winget" ? "winget upgrade GrayCode.HawkCode" : packageManager === "apk" ? "apk upgrade hawk-code" : "your package manager update command";
   let t4;
   if ($[3] !== verbose) {
     t4 = verbose && <Text dimColor={true} wrap="truncate">currentVersion: {MACRO.VERSION}</Text>;

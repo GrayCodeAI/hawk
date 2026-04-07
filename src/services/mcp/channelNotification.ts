@@ -257,8 +257,8 @@ export function gateChannelServer(
   }
 
   if (entry.kind === 'plugin') {
-    // Marketplace verification: the tag is intent (plugin:slack@anthropic),
-    // the runtime name is just plugin:slack:X — could be slack@anthropic or
+    // Marketplace verification: the tag is intent (plugin:slack@graycode),
+    // the runtime name is just plugin:slack:X — could be slack@graycode or
     // slack@evil depending on what's installed. Verify they match before
     // trusting the tag for the allowlist check below. Source is stashed on
     // the config at addPluginScopeToServers — undefined (non-plugin server,

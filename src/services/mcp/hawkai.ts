@@ -69,9 +69,9 @@ export const fetchHawkAIMcpConfigsIfEligible = memoize(
       }
 
       // Check for user:mcp_servers scope directly instead of isHawkAISubscriber().
-      // In non-interactive mode, isHawkAISubscriber() returns false when ANTHROPIC_API_KEY
+      // In non-interactive mode, isHawkAISubscriber() returns false when GRAYCODE_API_KEY
       // is set (even with valid OAuth tokens) because preferThirdPartyAuthentication() causes
-      // isAnthropicAuthEnabled() to return false. Checking the scope directly allows users
+      // isGrayCodeAuthEnabled() to return false. Checking the scope directly allows users
       // with both API keys and OAuth tokens to access hawkai MCPs in print mode.
       if (!tokens.scopes?.includes('user:mcp_servers')) {
         logForDebugging(
@@ -93,8 +93,8 @@ export const fetchHawkAIMcpConfigsIfEligible = memoize(
         headers: {
           Authorization: `Bearer ${tokens.accessToken}`,
           'Content-Type': 'application/json',
-          'anthropic-beta': MCP_SERVERS_BETA_HEADER,
-          'anthropic-version': '2023-06-01',
+          'graycode-beta': MCP_SERVERS_BETA_HEADER,
+          'graycode-version': '2023-06-01',
         },
         timeout: FETCH_TIMEOUT_MS,
       })

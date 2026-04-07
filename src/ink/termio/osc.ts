@@ -120,7 +120,7 @@ export async function tmuxLoadBuffer(text: string): Promise<boolean> {
  * With `allow-passthrough on` + an OSC-52-capable outer terminal, selection
  * reaches the system clipboard; with either off, tmux silently drops the
  * DCS and prefix+] still works. See Greg Smith's "free pony" in
- * https://anthropic.slack.com/archives/C07VBSHV7EV/p1773177228548119.
+ * https://graycode.slack.com/archives/C07VBSHV7EV/p1773177228548119.
  *
  * If load-buffer fails entirely, fall through to raw OSC 52.
  *
@@ -143,7 +143,7 @@ export async function setClipboard(text: string): Promise<string> {
   // focus-switch after selecting doesn't race pbcopy. Previously this ran
   // AFTER awaiting tmux load-buffer, adding ~50-100ms of subprocess latency
   // before pbcopy even started — fast cmd+tab → paste would beat it
-  // (https://anthropic.slack.com/archives/C07VBSHV7EV/p1773943921788829).
+  // (https://graycode.slack.com/archives/C07VBSHV7EV/p1773943921788829).
   // Gated on SSH_CONNECTION (not SSH_TTY) since tmux panes inherit SSH_TTY
   // forever but SSH_CONNECTION is in tmux's default update-environment and
   // clears on local attach. Fire-and-forget.

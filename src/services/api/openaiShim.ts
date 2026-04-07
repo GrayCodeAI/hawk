@@ -1,7 +1,7 @@
 /**
  * OpenAI-compatible API shim for Hawk.
  *
- * Translates GrayCode SDK calls (anthropic.beta.messages.create) into
+ * Translates GrayCode SDK calls (graycode.beta.messages.create) into
  * OpenAI-compatible chat completion requests and streams back events
  * in the GrayCode streaming format so the rest of the codebase is unaware.
  *
@@ -17,11 +17,11 @@
  */
 
 import {
-  codexStreamToAnthropic,
+  codexStreamToGrayCode,
   collectCodexCompletedResponse,
-  convertCodexResponseToAnthropicMessage,
+  convertCodexResponseToGrayCodeMessage,
   performCodexRequest,
-  type AnthropicStreamEvent,
+  type GrayCodeStreamEvent,
   type ShimCreateParams,
 } from './codexShim.js'
 import {
@@ -267,7 +267,7 @@ function makeMessageId(): string {
 
 function convertChunkUsage(
   usage: OpenAIStreamChunk['usage'] | undefined,
-): Partial<AnthropicUsage> | undefined {
+): Partial<GrayCodeUsage> | undefined {
   if (!usage) return undefined
 
   return {
@@ -282,10 +282,10 @@ function convertChunkUsage(
  * Async generator that transforms an OpenAI SSE stream into
  * GrayCode-format BetaRawMessageStreamEvent objects.
  */
-async function* openaiStreamToAnthropic(
+async function* openaiStreamToGrayCode(
   response: Response,
   model: string,
-): AsyncGenerator<AnthropicStreamEvent> {
+): AsyncGenerator<GrayCodeStreamEvent> {
   const messageId = makeMessageId()
   let contentBlockIndex = 0
   const activeToolCalls = new Map<number, { id: string; name: string; index: number }>()
@@ -482,11 +482,11 @@ async function* openaiStreamToAnthropic(
 // ---------------------------------------------------------------------------
 
 class OpenAIShimStream {
-  private generator: AsyncGenerator<AnthropicStreamEvent>
+  private generator: AsyncGenerator<GrayCodeStreamEvent>
   // The controller property is checked by hawk.ts to distinguish streams from error messages
   controller = new AbortController()
 
-  constructor(generator: AsyncGenerator<AnthropicStreamEvent>) {
+  constructor(generator: AsyncGenerator<GrayCodeStreamEvent>) {
     this.generator = generator
   }
 
@@ -515,14 +515,14 @@ class OpenAIShimMessages {
       if (params.stream) {
         return new OpenAIShimStream(
           request.transport === 'codex_responses'
-            ? codexStreamToAnthropic(response, request.resolvedModel)
-            : openaiStreamToAnthropic(response, request.resolvedModel),
+            ? codexStreamToGrayCode(response, request.resolvedModel)
+            : openaiStreamToGrayCode(response, request.resolvedModel),
         )
       }
 
       if (request.transport === 'codex_responses') {
         const data = await collectCodexCompletedResponse(response)
-        return convertCodexResponseToAnthropicMessage(
+        return convertCodexResponseToGrayCodeMessage(
           data,
           request.resolvedModel,
         )

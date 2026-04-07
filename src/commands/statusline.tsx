@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
 import type { Command } from '../commands.js';
 import { AGENT_TOOL_NAME } from '../tools/AgentTool/constants.js';
 const statusline = {

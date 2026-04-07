@@ -71,11 +71,11 @@ const SECRET_RULES: SecretRule[] = [
 
   // — AI APIs —
   {
-    id: 'anthropic-api-key',
+    id: 'graycode-api-key',
     source: `\\b(${ANT_KEY_PFX}03-[a-zA-Z0-9_\\-]{93}AA)(?:[\\x60'"\\s;]|\\\\[nr]|$)`,
   },
   {
-    id: 'anthropic-admin-api-key',
+    id: 'graycode-admin-api-key',
     source:
       '\\b(sk-ant-admin01-[a-zA-Z0-9_\\-]{93}AA)(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },

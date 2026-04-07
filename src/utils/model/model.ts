@@ -34,7 +34,7 @@ export type ModelName = string
 export type ModelSetting = ModelName | ModelAlias | null
 
 export function getSmallFastModel(): ModelName {
-  if (process.env.ANTHROPIC_SMALL_FAST_MODEL) return process.env.ANTHROPIC_SMALL_FAST_MODEL
+  if (process.env.GRAYCODE_SMALL_FAST_MODEL) return process.env.GRAYCODE_SMALL_FAST_MODEL
   // For Gemini provider, use a fast model
   if (getAPIProvider() === 'gemini') {
     return process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite'
@@ -64,7 +64,7 @@ export function isNonCustomOpusModel(model: ModelName): boolean {
  * Priority order within this function:
  * 1. Model override during session (from /model command) - highest priority
  * 2. Model override at startup (from --model flag)
- * 3. ANTHROPIC_MODEL environment variable
+ * 3. GRAYCODE_MODEL environment variable
  * 4. Settings (from user's saved settings)
  */
 export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
@@ -75,7 +75,7 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
     specifiedModel = modelOverride
   } else {
     const settings = getSettings_DEPRECATED() || {}
-    specifiedModel = process.env.ANTHROPIC_MODEL || process.env.GEMINI_MODEL || process.env.OPENAI_MODEL || settings.model || undefined
+    specifiedModel = process.env.GRAYCODE_MODEL || process.env.GEMINI_MODEL || process.env.OPENAI_MODEL || settings.model || undefined
   }
 
   // Ignore the user-specified model if it's not in the availableModels allowlist.
@@ -92,7 +92,7 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
  * Model Selection Priority Order:
  * 1. Model override during session (from /model command) - highest priority
  * 2. Model override at startup (from --model flag)
- * 3. ANTHROPIC_MODEL environment variable
+ * 3. GRAYCODE_MODEL environment variable
  * 4. Settings (from user's saved settings)
  * 5. Built-in default
  *
@@ -112,8 +112,8 @@ export function getBestModel(): ModelName {
 
 // @[MODEL LAUNCH]: Update the default Opus model (3P providers may lag so keep defaults unchanged).
 export function getDefaultOpusModel(): ModelName {
-  if (process.env.ANTHROPIC_DEFAULT_OPUS_MODEL) {
-    return process.env.ANTHROPIC_DEFAULT_OPUS_MODEL
+  if (process.env.GRAYCODE_DEFAULT_OPUS_MODEL) {
+    return process.env.GRAYCODE_DEFAULT_OPUS_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
@@ -134,8 +134,8 @@ export function getDefaultOpusModel(): ModelName {
 
 // @[MODEL LAUNCH]: Update the default Sonnet model (3P providers may lag so keep defaults unchanged).
 export function getDefaultSonnetModel(): ModelName {
-  if (process.env.ANTHROPIC_DEFAULT_SONNET_MODEL) {
-    return process.env.ANTHROPIC_DEFAULT_SONNET_MODEL
+  if (process.env.GRAYCODE_DEFAULT_SONNET_MODEL) {
+    return process.env.GRAYCODE_DEFAULT_SONNET_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
@@ -154,8 +154,8 @@ export function getDefaultSonnetModel(): ModelName {
 
 // @[MODEL LAUNCH]: Update the default Haiku model (3P providers may lag so keep defaults unchanged).
 export function getDefaultHaikuModel(): ModelName {
-  if (process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL) {
-    return process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+  if (process.env.GRAYCODE_DEFAULT_HAIKU_MODEL) {
+    return process.env.GRAYCODE_DEFAULT_HAIKU_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
@@ -253,7 +253,7 @@ export function getDefaultMainLoopModel(): ModelName {
 /**
  * Pure string-match that strips date/provider suffixes from a first-party model
  * name. Input must already be a 1P-format ID (e.g. 'hawk-3-7-sonnet-20250219',
- * 'us.anthropic.hawk-opus-4-6-v1:0'). Does not touch settings, so safe at
+ * 'us.graycode.hawk-opus-4-6-v1:0'). Does not touch settings, so safe at
  * module top-level (see MODEL_COSTS in modelCost.ts).
  */
 export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
@@ -313,7 +313,7 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
 
 /**
  * Maps a full model string to a shorter canonical version that's unified across 1P and 3P providers.
- * For example, 'hawk-3-5-haiku-20241022' and 'us.anthropic.hawk-3-5-haiku-20241022-v1:0'
+ * For example, 'hawk-3-5-haiku-20241022' and 'us.graycode.hawk-3-5-haiku-20241022-v1:0'
  * would both be mapped to 'hawk-3-5-haiku'.
  * @param fullModelName The full model name (e.g., 'hawk-3-5-haiku-20241022')
  * @returns The short name (e.g., 'hawk-3-5-haiku') if found, or the original name if no mapping exists

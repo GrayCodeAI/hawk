@@ -10,7 +10,7 @@ export const COMPUTER_USE_MCP_SERVER_NAME = 'computer-use'
  * keyboard safety-net) is dead code for us. `prepareForAction`'s "exempt our
  * own window" is likewise a no-op — there is no window to exempt.
  */
-export const CLI_HOST_BUNDLE_ID = 'com.anthropic.hawk-code.cli-no-window'
+export const CLI_HOST_BUNDLE_ID = 'com.graycode.hawk-code.cli-no-window'
 
 /**
  * Fallback `env.terminal` → bundleId map for when `__CFBundleIdentifier` is

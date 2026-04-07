@@ -52,7 +52,7 @@ export function getAgentModel(
   // Helper to apply parent region prefix for Bedrock models.
   // `originalSpec` is the raw model string before resolution (alias or full ID).
   // If the user explicitly specified a full model ID that already carries its own
-  // region prefix (e.g., "eu.anthropic.…"), we preserve it instead of overwriting
+  // region prefix (e.g., "eu.graycode.…"), we preserve it instead of overwriting
   // with the parent's prefix. This prevents silent data-residency violations when
   // an agent config intentionally pins to a different region than the parent.
   const applyParentRegionPrefix = (
@@ -102,7 +102,7 @@ export function getAgentModel(
  * Prevents surprising downgrades: a Vertex user on Opus 4.6 (via /model) who
  * spawns a subagent with `model: opus` should get Opus 4.6, not whatever
  * getDefaultOpusModel() returns for 3P.
- * See https://github.com/anthropics/hawk-code/issues/30815.
+ * See https://github.com/graycodes/hawk-code/issues/30815.
  *
  * Only bare family aliases match. `opus[1m]`, `best`, `opusplan` fall through
  * since they carry semantics beyond "same tier as parent".

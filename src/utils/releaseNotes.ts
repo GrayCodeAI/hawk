@@ -26,9 +26,9 @@ const MAX_RELEASE_NOTES_SHOWN = 5
  * 3. Next time the user starts Hawk, the cached changelog is available immediately
  */
 export const CHANGELOG_URL =
-  'https://github.com/anthropics/hawk-code/blob/main/CHANGELOG.md'
+  'https://github.com/graycodes/hawk-code/blob/main/CHANGELOG.md'
 const RAW_CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/hawk-code/refs/heads/main/CHANGELOG.md'
+  'https://raw.githubusercontent.com/graycodes/hawk-code/refs/heads/main/CHANGELOG.md'
 
 /**
  * Get the path for the cached changelog file.

@@ -87,7 +87,7 @@ Set \`commit\` or \`pr\` to empty string \`""\` to hide that attribution.
 \`\`\`json
 {
   "enabledPlugins": {
-    "formatter@anthropic-tools": true
+    "formatter@graycode-tools": true
   }
 }
 \`\`\`

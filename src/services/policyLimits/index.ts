@@ -24,7 +24,7 @@ import {
 } from '../../constants/oauth.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
-  getAnthropicApiKeyWithSource,
+  getGrayCodeApiKeyWithSource,
   getHawkAIOAuthTokens,
 } from '../../utils/auth.js'
 import { registerCleanup } from '../../utils/cleanupRegistry.js'
@@ -34,7 +34,7 @@ import { classifyAxiosError } from '../../utils/errors.js'
 import { safeParseJSON } from '../../utils/json.js'
 import {
   getAPIProvider,
-  isFirstPartyAnthropicBaseUrl,
+  isFirstPartyGrayCodeBaseUrl,
 } from '../../utils/model/providers.js'
 import { isEssentialTrafficOnly } from '../../utils/privacyLevel.js'
 import { sleep } from '../../utils/sleep.js'
@@ -171,13 +171,13 @@ export function isPolicyLimitsEligible(): boolean {
   }
 
   // Custom base URL users should not hit the policy limits endpoint
-  if (!isFirstPartyAnthropicBaseUrl()) {
+  if (!isFirstPartyGrayCodeBaseUrl()) {
     return false
   }
 
   // Console users (API key) are eligible if we can get the actual key
   try {
-    const { key: apiKey } = getAnthropicApiKeyWithSource({
+    const { key: apiKey } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true,
     })
     if (apiKey) {
@@ -230,7 +230,7 @@ function getAuthHeaders(): {
 } {
   // Try API key first (for Console users)
   try {
-    const { key: apiKey } = getAnthropicApiKeyWithSource({
+    const { key: apiKey } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true,
     })
     if (apiKey) {
@@ -250,7 +250,7 @@ function getAuthHeaders(): {
     return {
       headers: {
         Authorization: `Bearer ${oauthTokens.accessToken}`,
-        'anthropic-beta': OAUTH_BETA_HEADER,
+        'graycode-beta': OAUTH_BETA_HEADER,
       },
     }
   }

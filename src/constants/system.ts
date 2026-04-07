@@ -65,7 +65,7 @@ function isAttributionHeaderEnabled(): boolean {
  * Before the request is sent, Bun's native HTTP stack finds this placeholder
  * in the request body and overwrites the zeros with a computed hash. The
  * server verifies this token to confirm the request came from a real Hawk
- * Code client. See bun-anthropic/src/http/Attestation.zig for implementation.
+ * Code client. See bun-graycode/src/http/Attestation.zig for implementation.
  *
  * We use a placeholder (instead of injecting from Zig) because same-length
  * replacement avoids Content-Length changes and buffer reallocation.
@@ -88,7 +88,7 @@ export function getAttributionHeader(fingerprint: string): string {
   // fields so old API deploys silently ignore this.
   const workload = getWorkload()
   const workloadPair = workload ? ` cc_workload=${workload};` : ''
-  const header = `x-anthropic-billing-header: cc_version=${version}; cc_entrypoint=${entrypoint};${cch}${workloadPair}`
+  const header = `x-graycode-billing-header: cc_version=${version}; cc_entrypoint=${entrypoint};${cch}${workloadPair}`
 
   logForDebugging(`attribution header ${header}`)
   return header

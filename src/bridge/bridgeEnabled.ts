@@ -20,7 +20,7 @@ import { lt } from '../utils/semver.js'
  * with the hawkai OAuth token). isHawkAISubscriber() excludes
  * Bedrock/Vertex/Foundry, apiKeyHelper/gateway deployments, env-var API keys,
  * and Console API logins — none of which have the OAuth token CCR needs.
- * See github.com/deshaw/anthropic-issues/issues/24.
+ * See github.com/deshaw/graycode-issues/issues/24.
  *
  * The `feature('BRIDGE_MODE')` guard ensures the GrowthBook string literal
  * is only referenced when bridge mode is enabled at build time.

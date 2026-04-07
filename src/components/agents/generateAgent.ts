@@ -1,4 +1,4 @@
-import type { ContentBlock } from '@anthropic-ai/sdk/resources/index.mjs'
+import type { ContentBlock } from '@graycode-ai/sdk/resources/index.mjs'
 import { getUserContext } from 'src/context.js'
 import { queryModelWithoutStreaming } from 'src/services/api/hawk.js'
 import { getEmptyToolPermissionContext } from 'src/Tool.js'

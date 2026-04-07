@@ -3,7 +3,7 @@ import type {
   Base64ImageSource,
   ContentBlockParam,
   MessageParam,
-} from '@anthropic-ai/sdk/resources/index.mjs'
+} from '@graycode-ai/sdk/resources/index.mjs'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import {
   SSEClientTransport,
@@ -480,7 +480,7 @@ const MCP_STREAMABLE_HTTP_ACCEPT = 'application/json, text/event-stream'
  * present on POSTs. The MCP SDK sets this inside StreamableHTTPClientTransport.send(),
  * but it is attached to a Headers instance that passes through an object spread here,
  * and some runtimes/agents have been observed dropping it before it reaches the wire.
- * See https://github.com/anthropics/hawk-agent-sdk-typescript/issues/202.
+ * See https://github.com/graycodes/hawk-agent-sdk-typescript/issues/202.
  * Normalizing here (the last wrapper before fetch()) guarantees it is sent.
  *
  * GET requests are excluded from the timeout since, for MCP transports, they are
@@ -1777,12 +1777,12 @@ export const fetchToolsForClient = memoizeWithLRU(
             // a newline here would inject orphan lines into the deferred-tool
             // list (formatDeferredToolLine joins on '\n').
             searchHint:
-              typeof tool._meta?.['anthropic/searchHint'] === 'string'
-                ? tool._meta['anthropic/searchHint']
+              typeof tool._meta?.['graycode/searchHint'] === 'string'
+                ? tool._meta['graycode/searchHint']
                     .replace(/\s+/g, ' ')
                     .trim() || undefined
                 : undefined,
-            alwaysLoad: tool._meta?.['anthropic/alwaysLoad'] === true,
+            alwaysLoad: tool._meta?.['graycode/alwaysLoad'] === true,
             async description() {
               return tool.description ?? ''
             },

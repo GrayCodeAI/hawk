@@ -211,7 +211,7 @@ export async function fetchCodeSessionsFromSessionsAPI(): Promise<
   try {
     const headers = {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'graycode-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID,
     }
 
@@ -271,13 +271,13 @@ export async function fetchCodeSessionsFromSessionsAPI(): Promise<
 /**
  * Creates OAuth headers for API requests
  * @param accessToken The OAuth access token
- * @returns Headers object with Authorization, Content-Type, and anthropic-version
+ * @returns Headers object with Authorization, Content-Type, and graycode-version
  */
 export function getOAuthHeaders(accessToken: string): Record<string, string> {
   return {
     Authorization: `Bearer ${accessToken}`,
     'Content-Type': 'application/json',
-    'anthropic-version': '2023-06-01',
+    'graycode-version': '2023-06-01',
   }
 }
 
@@ -294,7 +294,7 @@ export async function fetchSession(
   const url = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}`
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID,
   }
 
@@ -369,7 +369,7 @@ export async function sendEventToRemoteSession(
     const url = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/events`
     const headers = {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'graycode-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID,
     }
 
@@ -432,7 +432,7 @@ export async function updateSessionTitle(
     const url = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}`
     const headers = {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'graycode-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID,
     }
 

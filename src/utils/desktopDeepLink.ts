@@ -105,7 +105,7 @@ async function getDesktopVersion(): Promise<string | null> {
     if (!localAppData) {
       return null
     }
-    const installDirs = ['GrayCodeHawk', 'AnthropicHawk']
+    const installDirs = ['GrayCodeHawk', 'GrayCodeHawk']
 
     for (const dirName of installDirs) {
       const installDir = join(localAppData, dirName)

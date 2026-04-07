@@ -2,7 +2,7 @@
 import type {
   ToolResultBlockParam,
   ToolUseBlock,
-} from '@anthropic-ai/sdk/resources/index.mjs'
+} from '@graycode-ai/sdk/resources/index.mjs'
 import type { CanUseToolFn } from './hooks/useCanUseTool.js'
 import { FallbackTriggeredError } from './services/api/withRetry.js'
 import {

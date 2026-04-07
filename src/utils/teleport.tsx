@@ -643,7 +643,7 @@ export async function pollRemoteSessionEvents(sessionId: string, afterId: string
   }
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID
   };
   const eventsUrl = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/events`;
@@ -725,7 +725,7 @@ export async function pollRemoteSessionEvents(sessionId: string, afterId: string
  *   API, passes file_id as seed_bundle_file_id on the session context. CCR
  *   downloads it and clones from the bundle. No GitHub dependency — works for
  *   local-only repos. Reach: 54% of CLI sessions (anything with .git/).
- *   Backend: anthropic#303856.
+ *   Backend: graycode#303856.
  */
 export async function teleportToRemote(options: {
   initialMessage: string | null;
@@ -822,7 +822,7 @@ export async function teleportToRemote(options: {
       const url = `${getOauthConfig().BASE_API_URL}/v1/sessions`;
       const headers = {
         ...getOAuthHeaders(accessToken),
-        'anthropic-beta': 'ccr-byoc-2025-07-29',
+        'graycode-beta': 'ccr-byoc-2025-07-29',
         'x-organization-uuid': orgUUID
       };
       const envVars = {
@@ -1059,23 +1059,23 @@ export async function teleportToRemote(options: {
     }
     logForDebugging(`Available environments: ${environments.map(e => `${e.environment_id} (${e.name}, ${e.kind})`).join(', ')}`);
 
-    // Select environment based on settings, then anthropic_cloud preference, then first available.
-    // Prefer anthropic_cloud environments over byoc: anthropic_cloud environments (e.g. "Default")
+    // Select environment based on settings, then graycode_cloud preference, then first available.
+    // Prefer graycode_cloud environments over byoc: graycode_cloud environments (e.g. "Default")
     // are the standard compute environments with full repo access, whereas byoc environments
     // (e.g. "monorepo") are user-owned compute that may not support the current repository.
     const settings = getSettings_DEPRECATED();
     const defaultEnvironmentId = options.useDefaultEnvironment ? undefined : settings?.remote?.defaultEnvironmentId;
-    let cloudEnv = environments.find(env => env.kind === 'anthropic_cloud');
+    let cloudEnv = environments.find(env => env.kind === 'graycode_cloud');
     // When the caller opts out of their configured default, do not fall
     // through to a BYOC env that may not support the current repo or the
     // requested permission mode. Retry once for eventual consistency,
     // then fail loudly.
     if (options.useDefaultEnvironment && !cloudEnv) {
-      logForDebugging(`No anthropic_cloud in env list (${environments.length} envs); retrying fetchEnvironments`);
+      logForDebugging(`No graycode_cloud in env list (${environments.length} envs); retrying fetchEnvironments`);
       const retried = await fetchEnvironments();
-      cloudEnv = retried?.find(env => env.kind === 'anthropic_cloud');
+      cloudEnv = retried?.find(env => env.kind === 'graycode_cloud');
       if (!cloudEnv) {
-        logError(new Error(`No anthropic_cloud environment available after retry (got: ${(retried ?? environments).map(e => `${e.name} (${e.kind})`).join(', ')}). Silent byoc fallthrough would launch into a dead env — fail fast instead.`));
+        logError(new Error(`No graycode_cloud environment available after retry (got: ${(retried ?? environments).map(e => `${e.name} (${e.kind})`).join(', ')}). Silent byoc fallthrough would launch into a dead env — fail fast instead.`));
         return null;
       }
       if (retried) environments = retried;
@@ -1096,7 +1096,7 @@ export async function teleportToRemote(options: {
     const url = `${getOauthConfig().BASE_API_URL}/v1/sessions`;
     const headers = {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'graycode-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID
     };
     const sessionContext = {
@@ -1204,7 +1204,7 @@ export async function archiveRemoteSession(sessionId: string): Promise<void> {
   if (!orgUUID) return;
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID
   };
   const url = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/archive`;

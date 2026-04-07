@@ -1,7 +1,7 @@
 import type {
   McpbManifest,
   McpbUserConfigurationOption,
-} from '@anthropic-ai/mcpb'
+} from '@graycode-ai/mcpb'
 import axios from 'axios'
 import { createHash } from 'crypto'
 import { chmod, writeFile } from 'fs/promises'
@@ -415,9 +415,9 @@ async function generateMcpConfig(
   extractedPath: string,
   userConfig: UserConfigValues = {},
 ): Promise<McpServerConfig> {
-  // Lazy import: @anthropic-ai/mcpb barrel pulls in zod v3 schemas (~700KB of
+  // Lazy import: @graycode-ai/mcpb barrel pulls in zod v3 schemas (~700KB of
   // bound closures). See dxt/helpers.ts for details.
-  const { getMcpConfigForManifest } = await import('@anthropic-ai/mcpb')
+  const { getMcpConfigForManifest } = await import('@graycode-ai/mcpb')
   const mcpConfig = await getMcpConfigForManifest({
     manifest,
     extensionPath: extractedPath,

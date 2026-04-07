@@ -2,7 +2,7 @@ import type {
   ImageBlockParam,
   TextBlockParam,
   ToolResultBlockParam,
-} from '@anthropic-ai/sdk/resources/index.mjs'
+} from '@graycode-ai/sdk/resources/index.mjs'
 import { BASH_TOOL_NAME } from '../tools/BashTool/toolName.js'
 import { formatOutput } from '../tools/BashTool/utils.js'
 import type {

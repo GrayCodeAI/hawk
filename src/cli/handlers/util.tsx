@@ -16,10 +16,10 @@ import { logEvent } from '../../services/analytics/index.js';
 import { MCPConnectionManager } from '../../services/mcp/MCPConnectionManager.js';
 import { AppStateProvider } from '../../state/AppState.js';
 import { onChangeAppState } from '../../state/onChangeAppState.js';
-import { isAnthropicAuthEnabled } from '../../utils/auth.js';
+import { isGrayCodeAuthEnabled } from '../../utils/auth.js';
 export async function setupTokenHandler(root: Root): Promise<void> {
   logEvent('tengu_setup_token_command', {});
-  const showAuthWarning = !isAnthropicAuthEnabled();
+  const showAuthWarning = !isGrayCodeAuthEnabled();
   const {
     ConsoleOAuthFlow
   } = await import('../../components/ConsoleOAuthFlow.js');

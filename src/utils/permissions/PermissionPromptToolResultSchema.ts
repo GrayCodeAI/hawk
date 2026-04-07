@@ -46,7 +46,7 @@ const PermissionAllowResultSchema = lazySchema(() =>
     behavior: z.literal('allow'),
     updatedInput: z.record(z.string(), z.unknown()),
     // SDK hosts may send malformed entries; fall back to undefined rather
-    // than rejecting the entire allow decision (anthropics/hawk-code#29440)
+    // than rejecting the entire allow decision (graycodes/hawk-code#29440)
     updatedPermissions: z
       .array(permissionUpdateSchema())
       .optional()

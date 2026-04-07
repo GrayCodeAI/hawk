@@ -15,10 +15,10 @@ const PLATFORMS: Record<Platform, {
   url: string;
 }> = {
   ios: {
-    url: 'https://apps.apple.com/app/hawk-by-anthropic/id6473753684'
+    url: 'https://apps.apple.com/app/hawk-by-graycode/id6473753684'
   },
   android: {
-    url: 'https://play.google.com/store/apps/details?id=com.anthropic.hawk'
+    url: 'https://play.google.com/store/apps/details?id=com.graycode.hawk'
   }
 };
 function MobileQRCode(t0) {

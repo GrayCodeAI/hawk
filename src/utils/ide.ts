@@ -846,8 +846,8 @@ export function hasAccessToIDEExtensionDiffFeature(
 
 const EXTENSION_ID =
   process.env.USER_TYPE === 'ant'
-    ? 'anthropic.hawk-code-internal'
-    : 'anthropic.hawk-code'
+    ? 'graycode.hawk-code-internal'
+    : 'graycode.hawk-code'
 
 export async function isIDEExtensionInstalled(
   ideType: IdeType,
@@ -891,7 +891,7 @@ async function installIDEExtension(ideType: IdeType): Promise<string | null> {
         await sleep(500)
         const result = await execFileNoThrowWithCwd(
           command,
-          ['--force', '--install-extension', 'anthropic.hawk-code'],
+          ['--force', '--install-extension', 'graycode.hawk-code'],
           {
             env: getInstallationEnv(),
           },
@@ -941,7 +941,7 @@ async function getInstalledVSCodeExtensionVersion(
   const lines = stdout?.split('\n') || []
   for (const line of lines) {
     const [extensionId, version] = line.split('@')
-    if (extensionId === 'anthropic.hawk-code' && version) {
+    if (extensionId === 'graycode.hawk-code' && version) {
       return version
     }
   }
@@ -1033,7 +1033,7 @@ async function getVSCodeIDECommand(ideType: IdeType): Promise<string | null> {
   // then resolves to Code.exe via PATHEXT which opens a new editor window
   // instead of running the CLI. Asking for 'code.cmd' forces cross-spawn/which
   // to skip Code.exe. See microsoft/vscode#299416 (fixed in Insiders) and
-  // anthropics/hawk-code#30975.
+  // graycodes/hawk-code#30975.
   const ext = getPlatform() === 'windows' ? '.cmd' : ''
   switch (ideType) {
     case 'vscode':

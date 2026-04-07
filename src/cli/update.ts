@@ -138,7 +138,7 @@ export async function update() {
         writeToStdout('\n')
         writeToStdout('To update, run:\n')
         writeToStdout(
-          chalk.bold('  winget upgrade Anthropic.HawkCode') + '\n',
+          chalk.bold('  winget upgrade GrayCode.HawkCode') + '\n',
         )
       } else {
         writeToStdout('Hawk is up to date!\n')
@@ -283,7 +283,7 @@ export async function update() {
     process.stderr.write('  • Network connectivity issues\n')
     process.stderr.write('  • npm registry is unreachable\n')
     process.stderr.write('  • Corporate proxy/firewall blocking npm\n')
-    if (MACRO.PACKAGE_URL && !MACRO.PACKAGE_URL.startsWith('@anthropic')) {
+    if (MACRO.PACKAGE_URL && !MACRO.PACKAGE_URL.startsWith('@graycode')) {
       process.stderr.write(
         '  • Internal/development build not published to npm\n',
       )
@@ -295,8 +295,8 @@ export async function update() {
     const packageName =
       MACRO.PACKAGE_URL ||
       (process.env.USER_TYPE === 'ant'
-        ? '@anthropic-ai/hawk-cli'
-        : '@anthropic-ai/hawk-code')
+        ? '@graycode-ai/hawk-cli'
+        : '@graycode-ai/hawk-code')
     process.stderr.write(
       `  • Manually check: npm view ${packageName} version\n`,
     )

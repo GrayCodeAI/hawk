@@ -331,7 +331,7 @@ async function installVersionFromPackage(
 ) {
   try {
     // Extract binary from npm package structure in staging
-    const nodeModulesDir = join(stagingPath, 'node_modules', '@anthropic-ai')
+    const nodeModulesDir = join(stagingPath, 'node_modules', '@graycode-ai')
     const entries = await readdir(nodeModulesDir)
     const nativePackage = entries.find((entry: string) =>
       entry.startsWith('hawk-cli-native-'),
@@ -1662,9 +1662,9 @@ export async function cleanupNpmInstallations(): Promise<{
   const warnings: string[] = []
   let removed = 0
 
-  // Always attempt to remove @anthropic-ai/hawk-code
+  // Always attempt to remove @graycode-ai/hawk-code
   const codePackageResult = await attemptNpmUninstall(
-    '@anthropic-ai/hawk-code',
+    '@graycode-ai/hawk-code',
   )
   if (codePackageResult.success) {
     removed++
@@ -1676,7 +1676,7 @@ export async function cleanupNpmInstallations(): Promise<{
   }
 
   // Also attempt to remove MACRO.PACKAGE_URL if it's defined and different
-  if (MACRO.PACKAGE_URL && MACRO.PACKAGE_URL !== '@anthropic-ai/hawk-code') {
+  if (MACRO.PACKAGE_URL && MACRO.PACKAGE_URL !== '@graycode-ai/hawk-code') {
     const macroPackageResult = await attemptNpmUninstall(MACRO.PACKAGE_URL)
     if (macroPackageResult.success) {
       removed++

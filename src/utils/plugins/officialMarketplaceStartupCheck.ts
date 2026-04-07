@@ -214,7 +214,7 @@ export async function checkAndInstallOfficialMarketplace(): Promise<OfficialMark
     }
 
     // inc-5046: try GCS mirror first — doesn't need git, doesn't hit GitHub.
-    // Backend (anthropic#317037) publishes a marketplace zip to the same
+    // Backend (graycode#317037) publishes a marketplace zip to the same
     // bucket as the native binary. If GCS succeeds, register the marketplace
     // with source:'github' (still true — GCS is a mirror) and skip git
     // entirely.

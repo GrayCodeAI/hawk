@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/index.mjs'
 import { constants as fsConstants } from 'fs'
 import { mkdir, open } from 'fs/promises'
 import { dirname, isAbsolute, join, normalize, sep as pathSep } from 'path'

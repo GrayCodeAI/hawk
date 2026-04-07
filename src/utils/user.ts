@@ -152,7 +152,7 @@ function getEmail(): string | undefined {
   }
 
   if (process.env.COO_CREATOR) {
-    return `${process.env.COO_CREATOR}@anthropic.com`
+    return `${process.env.COO_CREATOR}@graycode.com`
   }
 
   // If initUser() wasn't called, we return undefined instead of blocking
@@ -172,7 +172,7 @@ async function getEmailAsync(): Promise<string | undefined> {
   }
 
   if (process.env.COO_CREATOR) {
-    return `${process.env.COO_CREATOR}@anthropic.com`
+    return `${process.env.COO_CREATOR}@graycode.com`
   }
 
   return getGitEmail()

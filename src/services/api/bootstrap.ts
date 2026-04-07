@@ -1,7 +1,7 @@
 import axios from 'axios'
 import isEqual from 'lodash-es/isEqual.js'
 import {
-  getAnthropicApiKey,
+  getGrayCodeApiKey,
   getHawkAIOAuthTokens,
   hasProfileScope,
 } from 'src/utils/auth.js'
@@ -52,7 +52,7 @@ async function fetchBootstrapAPI(): Promise<BootstrapResponse | null> {
 
   // OAuth preferred (requires user:profile scope — service-key OAuth tokens
   // lack it and would 403). Fall back to API key auth for console users.
-  const apiKey = getAnthropicApiKey()
+  const apiKey = getGrayCodeApiKey()
   const hasUsableOAuth =
     getHawkAIOAuthTokens()?.accessToken && hasProfileScope()
   if (!hasUsableOAuth && !apiKey) {
@@ -72,7 +72,7 @@ async function fetchBootstrapAPI(): Promise<BootstrapResponse | null> {
       if (token && hasProfileScope()) {
         authHeaders = {
           Authorization: `Bearer ${token}`,
-          'anthropic-beta': OAUTH_BETA_HEADER,
+          'graycode-beta': OAUTH_BETA_HEADER,
         }
       } else if (apiKey) {
         authHeaders = { 'x-api-key': apiKey }

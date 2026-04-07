@@ -238,11 +238,11 @@ export const ConfigTool = buildTool({
         '../../voice/voiceModeEnabled.js'
       )
       if (!isVoiceModeEnabled()) {
-        const { isAnthropicAuthEnabled } = await import('../../utils/auth.js')
+        const { isGrayCodeAuthEnabled } = await import('../../utils/auth.js')
         return {
           data: {
             success: false,
-            error: !isAnthropicAuthEnabled()
+            error: !isGrayCodeAuthEnabled()
               ? 'Voice mode requires a Hawk.ai account. Please run /login to sign in.'
               : 'Voice mode is not available.',
           },

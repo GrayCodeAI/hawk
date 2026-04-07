@@ -6,7 +6,7 @@
  * - yoloClassifier.ts (YOLO mode security classification)
  */
 
-import type { BetaContentBlock } from '@anthropic-ai/sdk/resources/beta/messages.js'
+import type { BetaContentBlock } from '@graycode-ai/sdk/resources/beta/messages.js'
 import type { z } from 'zod/v4'
 
 /**

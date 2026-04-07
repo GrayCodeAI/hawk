@@ -144,7 +144,7 @@ export function buildPluginTelemetryFields(
   const scope = getTelemetryPluginScope(name, marketplace, managedNames)
   // Both official marketplaces and builtin plugins are GrayCode-controlled
   // — safe to expose real names in the redacted columns.
-  const isAnthropicControlled =
+  const isGrayCodeControlled =
     scope === 'official' || scope === 'default-bundle'
   return {
     plugin_id_hash: hashPluginId(
@@ -153,13 +153,13 @@ export function buildPluginTelemetryFields(
     ) as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     plugin_scope:
       scope as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-    plugin_name_redacted: (isAnthropicControlled
+    plugin_name_redacted: (isGrayCodeControlled
       ? name
       : 'third-party') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-    marketplace_name_redacted: (isAnthropicControlled && marketplace
+    marketplace_name_redacted: (isGrayCodeControlled && marketplace
       ? marketplace
       : 'third-party') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-    is_official_plugin: isAnthropicControlled,
+    is_official_plugin: isGrayCodeControlled,
   }
 }
 

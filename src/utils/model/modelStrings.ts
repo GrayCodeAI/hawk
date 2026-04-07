@@ -44,7 +44,7 @@ async function getBedrockModelStrings(): Promise<ModelStrings> {
   }
   // Each config's firstParty ID is the canonical substring we search for in the
   // user's inference profile list (e.g. "hawk-opus-4-6" matches
-  // "eu.anthropic.hawk-opus-4-6-v1"). Fall back to the hardcoded bedrock ID
+  // "eu.graycode.hawk-opus-4-6-v1"). Fall back to the hardcoded bedrock ID
   // when no matching profile is found.
   const out = {} as ModelStrings
   for (const key of MODEL_KEYS) {

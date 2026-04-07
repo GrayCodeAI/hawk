@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.js'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js'
 import type { Command } from '../commands.js'
 import type { ToolUseContext } from '../Tool.js'
 
@@ -52,7 +52,7 @@ export function createMovedToPluginCommand({
 
 2. After installation, use /${pluginName}:${pluginCommand} to run this command
 
-3. For more information, see: https://github.com/anthropics/hawk-code-marketplace/blob/main/${pluginName}/README.md
+3. For more information, see: https://github.com/graycodes/hawk-code-marketplace/blob/main/${pluginName}/README.md
 
 Do not attempt to run the command. Simply inform the user about the plugin installation.`,
           },

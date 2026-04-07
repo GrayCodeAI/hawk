@@ -2,7 +2,7 @@
  * MDM (Mobile Device Management) profile enforcement for Hawk managed settings.
  *
  * Reads enterprise settings from OS-level MDM configuration:
- * - macOS: `com.anthropic.hawkcode` preference domain
+ * - macOS: `com.graycode.hawkcode` preference domain
  *   (MDM profiles at /Library/Managed Preferences/ only — not user-writable ~/Library/Preferences/)
  * - Windows: `HKLM\SOFTWARE\Policies\HawkCode` (admin-only)
  *   and `HKCU\SOFTWARE\Policies\HawkCode` (user-writable, lowest priority)

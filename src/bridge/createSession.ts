@@ -137,7 +137,7 @@ branches: [`hawk/${branch || 'task'}`],
 
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID,
   }
 
@@ -212,7 +212,7 @@ export async function getBridgeSession(
 
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID,
   }
 
@@ -289,7 +289,7 @@ export async function archiveBridgeSession(
 
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID,
   }
 
@@ -350,7 +350,7 @@ export async function updateBridgeSessionTitle(
 
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
+    'graycode-beta': 'ccr-byoc-2025-07-29',
     'x-organization-uuid': orgUUID,
   }
 

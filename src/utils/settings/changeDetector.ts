@@ -190,7 +190,7 @@ async function getWatchTargets(): Promise<{
     // Skip flagSettings - they're provided via CLI and won't change during the session.
     // Additionally, they may be temp files in $TMPDIR which can contain special files
     // (FIFOs, sockets) that cause the file watcher to hang or error.
-    // See: https://github.com/anthropics/hawk-code/issues/16469
+    // See: https://github.com/graycodes/hawk-code/issues/16469
     if (source === 'flagSettings') {
       continue
     }

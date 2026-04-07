@@ -101,7 +101,7 @@ export function CheckExistingSecretStep(t0) {
   }
   let t9;
   if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-    t9 = <Box marginBottom={1}><Text color="warning">ANTHROPIC_API_KEY already exists in repository secrets!</Text></Box>;
+    t9 = <Box marginBottom={1}><Text color="warning">GRAYCODE_API_KEY already exists in repository secrets!</Text></Box>;
     $[16] = t9;
   } else {
     t9 = $[16];

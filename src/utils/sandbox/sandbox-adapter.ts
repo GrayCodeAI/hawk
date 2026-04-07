@@ -1,5 +1,5 @@
 /**
- * Adapter layer that wraps @anthropic-ai/sandbox-runtime with Hawk CLI-specific integrations.
+ * Adapter layer that wraps @graycode-ai/sandbox-runtime with Hawk CLI-specific integrations.
  * This file provides the bridge between the external sandbox-runtime package and Hawk CLI's
  * settings system, tool integration, and additional features.
  */
@@ -14,12 +14,12 @@ import type {
   SandboxDependencyCheck,
   SandboxRuntimeConfig,
   SandboxViolationEvent,
-} from '@anthropic-ai/sandbox-runtime'
+} from '@graycode-ai/sandbox-runtime'
 import {
   SandboxManager as BaseSandboxManager,
   SandboxRuntimeConfigSchema,
   SandboxViolationStore,
-} from '@anthropic-ai/sandbox-runtime'
+} from '@graycode-ai/sandbox-runtime'
 import { rmSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { memoize } from 'lodash-es'
@@ -393,13 +393,13 @@ let settingsSubscriptionCleanup: (() => void) | undefined
 let worktreeMainRepoPath: string | null | undefined
 
 // Bare-repo files at cwd that didn't exist at config time and should be
-// scrubbed if they appear after a sandboxed command. See anthropics/hawk-code#29316.
+// scrubbed if they appear after a sandboxed command. See graycodes/hawk-code#29316.
 const bareGitRepoScrubPaths: string[] = []
 
 /**
  * Delete bare-repo files planted at cwd during a sandboxed command, before
  * Hawk's unsandboxed git calls can see them. See the SECURITY block above
- * bareGitRepoFiles. anthropics/hawk-code#29316.
+ * bareGitRepoFiles. graycodes/hawk-code#29316.
  */
 function scrubBareGitRepoFiles(): void {
   for (const p of bareGitRepoScrubPaths) {

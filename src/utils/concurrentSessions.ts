@@ -182,7 +182,7 @@ export async function countConcurrentSessions(): Promise<number> {
     // Strict filename guard: only `<pid>.json` is a candidate. parseInt's
     // lenient prefix-parsing means `2026-03-14_notes.md` would otherwise
     // parse as PID 2026 and get swept as stale — silent user data loss.
-    // See anthropics/hawk-code#34210.
+    // See graycodes/hawk-code#34210.
     if (!/^\d+\.json$/.test(file)) continue
     const pid = parseInt(file.slice(0, -5), 10)
     if (pid === process.pid) {

@@ -1,5 +1,5 @@
-import { APIError } from '@anthropic-ai/sdk'
-import type { MessageParam } from '@anthropic-ai/sdk/resources/index.mjs'
+import { APIError } from '@graycode-ai/sdk'
+import type { MessageParam } from '@graycode-ai/sdk/resources/index.mjs'
 import isEqual from 'lodash-es/isEqual.js'
 import { getIsNonInteractiveSession } from '../bootstrap/state.js'
 import { isHawkAISubscriber } from '../utils/auth.js'
@@ -12,7 +12,7 @@ import { isEssentialTrafficOnly } from '../utils/privacyLevel.js'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from './analytics/index.js'
 import { logEvent } from './analytics/index.js'
 import { getAPIMetadata } from './api/hawk.js'
-import { getAnthropicClient } from './api/client.js'
+import { getGrayCodeClient } from './api/client.js'
 import {
   processRateLimitHeaders,
   shouldProcessRateLimits,
@@ -169,9 +169,9 @@ function extractRawUtilization(headers: globalThis.Headers): RawUtilization {
     ['seven_day', '7d'],
   ] as const) {
     const util = headers.get(
-      `anthropic-ratelimit-unified-${abbrev}-utilization`,
+      `graycode-ratelimit-unified-${abbrev}-utilization`,
     )
-    const reset = headers.get(`anthropic-ratelimit-unified-${abbrev}-reset`)
+    const reset = headers.get(`graycode-ratelimit-unified-${abbrev}-reset`)
     if (util !== null && reset !== null) {
       result[key] = { utilization: Number(util), resets_at: Number(reset) }
     }
@@ -199,7 +199,7 @@ export function emitStatusChange(limits: HawkAILimits) {
 
 async function makeTestQuery() {
   const model = getSmallFastModel()
-  const anthropic = await getAnthropicClient({
+  const graycode = await getGrayCodeClient({
     maxRetries: 0,
     model,
     source: 'quota_check',
@@ -207,7 +207,7 @@ async function makeTestQuery() {
   const messages: MessageParam[] = [{ role: 'user', content: 'quota' }]
   const betas = getModelBetas(model)
   // biome-ignore lint/plugin: quota check needs raw response access via asResponse()
-  return anthropic.beta.messages
+  return graycode.beta.messages
     .create({
       model,
       max_tokens: 1,
@@ -266,16 +266,16 @@ function getHeaderBasedEarlyWarning(
     EARLY_WARNING_CLAIM_MAP,
   )) {
     const surpassedThreshold = headers.get(
-      `anthropic-ratelimit-unified-${claimAbbrev}-surpassed-threshold`,
+      `graycode-ratelimit-unified-${claimAbbrev}-surpassed-threshold`,
     )
 
     // If threshold header is present, user has crossed a warning threshold
     if (surpassedThreshold !== null) {
       const utilizationHeader = headers.get(
-        `anthropic-ratelimit-unified-${claimAbbrev}-utilization`,
+        `graycode-ratelimit-unified-${claimAbbrev}-utilization`,
       )
       const resetHeader = headers.get(
-        `anthropic-ratelimit-unified-${claimAbbrev}-reset`,
+        `graycode-ratelimit-unified-${claimAbbrev}-reset`,
       )
 
       const utilization = utilizationHeader
@@ -311,10 +311,10 @@ function getTimeRelativeEarlyWarning(
   const { rateLimitType, claimAbbrev, windowSeconds, thresholds } = config
 
   const utilizationHeader = headers.get(
-    `anthropic-ratelimit-unified-${claimAbbrev}-utilization`,
+    `graycode-ratelimit-unified-${claimAbbrev}-utilization`,
   )
   const resetHeader = headers.get(
-    `anthropic-ratelimit-unified-${claimAbbrev}-reset`,
+    `graycode-ratelimit-unified-${claimAbbrev}-reset`,
   )
 
   if (utilizationHeader === null || resetHeader === null) {
@@ -382,22 +382,22 @@ function computeNewLimitsFromHeaders(
   headers: globalThis.Headers,
 ): HawkAILimits {
   const status =
-    (headers.get('anthropic-ratelimit-unified-status') as QuotaStatus) ||
+    (headers.get('graycode-ratelimit-unified-status') as QuotaStatus) ||
     'allowed'
-  const resetsAtHeader = headers.get('anthropic-ratelimit-unified-reset')
+  const resetsAtHeader = headers.get('graycode-ratelimit-unified-reset')
   const resetsAt = resetsAtHeader ? Number(resetsAtHeader) : undefined
   const unifiedRateLimitFallbackAvailable =
-    headers.get('anthropic-ratelimit-unified-fallback') === 'available'
+    headers.get('graycode-ratelimit-unified-fallback') === 'available'
 
   // Headers for rate limit type and overage support
   const rateLimitType = headers.get(
-    'anthropic-ratelimit-unified-representative-claim',
+    'graycode-ratelimit-unified-representative-claim',
   ) as RateLimitType | null
   const overageStatus = headers.get(
-    'anthropic-ratelimit-unified-overage-status',
+    'graycode-ratelimit-unified-overage-status',
   ) as QuotaStatus | null
   const overageResetsAtHeader = headers.get(
-    'anthropic-ratelimit-unified-overage-reset',
+    'graycode-ratelimit-unified-overage-reset',
   )
   const overageResetsAt = overageResetsAtHeader
     ? Number(overageResetsAtHeader)
@@ -405,7 +405,7 @@ function computeNewLimitsFromHeaders(
 
   // Reason why overage is disabled (spending cap or wallet empty)
   const overageDisabledReason = headers.get(
-    'anthropic-ratelimit-unified-overage-disabled-reason',
+    'graycode-ratelimit-unified-overage-disabled-reason',
   ) as OverageDisabledReason | null
 
   // Determine if we're using overage (standard limits rejected but overage allowed)
@@ -446,7 +446,7 @@ function computeNewLimitsFromHeaders(
 function cacheExtraUsageDisabledReason(headers: globalThis.Headers): void {
   // A null reason means extra usage is enabled (no disabled reason header)
   const reason =
-    headers.get('anthropic-ratelimit-unified-overage-disabled-reason') ?? null
+    headers.get('graycode-ratelimit-unified-overage-disabled-reason') ?? null
   const cached = getGlobalConfig().cachedExtraUsageDisabledReason
   if (cached !== reason) {
     saveGlobalConfig(current => ({

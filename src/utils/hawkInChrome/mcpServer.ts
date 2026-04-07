@@ -23,7 +23,7 @@ import { getAllSocketPaths, getSecureSocketPath } from './common.js'
 
 const EXTENSION_DOWNLOAD_URL = 'https://hawkai/chrome'
 const BUG_REPORT_URL =
-  'https://github.com/anthropics/hawk-code/issues/new?labels=bug,hawk-in-chrome'
+  'https://github.com/graycodes/hawk-code/issues/new?labels=bug,hawk-in-chrome'
 
 // String metadata keys safe to forward to analytics. Keys like error_message
 // are excluded because they could contain page content or user data.
@@ -160,15 +160,15 @@ export function createChromeContext(
     // ListTools also filters browser_task + lightning_turn out, so external
     // users never see the tools advertised. Three independent gates.
     //
-    // Types inlined: AnthropicMessagesRequest/Response live in
+    // Types inlined: GrayCodeMessagesRequest/Response live in
     // @ant/hawk-for-chrome-mcp@0.4.0 which isn't published yet. CI installs
-    // 0.3.0. The callAnthropicMessages field is also 0.4.0-only, but spreading
+    // 0.3.0. The callGrayCodeMessages field is also 0.4.0-only, but spreading
     // an extra property into HawkForChromeContext is fine against either
     // version — 0.3.0 sees an unknown field (allowed in spread), 0.4.0 sees a
     // structurally-matching one. Once 0.4.0 is published, this can switch to
     // the package's exported types and the dep can be bumped.
     ...(process.env.USER_TYPE === 'ant' && {
-      callAnthropicMessages: async (req: {
+      callGrayCodeMessages: async (req: {
         model: string
         max_tokens: number
         system: string

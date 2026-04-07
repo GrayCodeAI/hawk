@@ -151,7 +151,7 @@ export function parseSlashCommandToolsFromFrontmatter(
  * Uses bigint: true to handle filesystems with large inodes (e.g., ExFAT)
  * that exceed JavaScript's Number precision (53 bits). Without bigint, different
  * large inodes can round to the same Number, causing false duplicate detection.
- * See: https://github.com/anthropics/hawk-code/issues/13893
+ * See: https://github.com/graycodes/hawk-code/issues/13893
  *
  * @param filePath - Path to the file
  * @returns A string identifier "device:inode" or null if file can't be identified
@@ -313,7 +313,7 @@ export const loadMarkdownFilesForSubdir = memoize(
     // is absent. A standard `git worktree add` checks out the full tree, so the
     // worktree already has identical .hawk/<subdir> content — loading the main
     // repo's copy too would duplicate every command/agent/skill
-    // (anthropics/hawk-code#29599, #28182, #26992).
+    // (graycodes/hawk-code#29599, #28182, #26992).
     //
     // projectDirs already reflects existence (getProjectDirsUpToHome checked
     // each dir), so we compare against that instead of stat'ing again.
@@ -463,7 +463,7 @@ async function findMarkdownFilesNative(
     // Cycle detection: track visited directories by device+inode
     // Uses bigint: true to handle filesystems with large inodes (e.g., ExFAT)
     // that exceed JavaScript's Number precision (53 bits).
-    // See: https://github.com/anthropics/hawk-code/issues/13893
+    // See: https://github.com/graycodes/hawk-code/issues/13893
     try {
       const stats = await stat(currentDir, { bigint: true })
       if (stats.isDirectory()) {

@@ -1,6 +1,6 @@
 import { feature } from 'bun:bundle'
-import type Anthropic from '@anthropic-ai/sdk'
-import type { BetaToolUnion } from '@anthropic-ai/sdk/resources/beta/messages.js'
+import type GrayCode from '@graycode-ai/sdk'
+import type { BetaToolUnion } from '@graycode-ai/sdk/resources/beta/messages.js'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join } from 'path'
 import { z } from 'zod/v4'
@@ -57,14 +57,14 @@ const BASE_PROMPT: string = feature('TRANSCRIPT_CLASSIFIER')
 
 // External template is loaded separately so it's available for
 // `hawk auto-mode defaults` even in ant builds. Ant builds use
-// permissions_anthropic.txt at runtime but should dump external defaults.
+// permissions_graycode.txt at runtime but should dump external defaults.
 const EXTERNAL_PERMISSIONS_TEMPLATE: string = feature('TRANSCRIPT_CLASSIFIER')
   ? txtRequire(require('./yolo-classifier-prompts/permissions_external.txt'))
   : ''
 
-const ANTHROPIC_PERMISSIONS_TEMPLATE: string =
+const GRAYCODE_PERMISSIONS_TEMPLATE: string =
   feature('TRANSCRIPT_CLASSIFIER') && process.env.USER_TYPE === 'ant'
-    ? txtRequire(require('./yolo-classifier-prompts/permissions_anthropic.txt'))
+    ? txtRequire(require('./yolo-classifier-prompts/permissions_graycode.txt'))
     : ''
 /* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 
@@ -457,7 +457,7 @@ export function buildTranscriptForClassifier(
  * getUserContext), the classifier proceeds without HAWK.md — same as
  * pre-PR behavior.
  */
-function buildHawkMdMessage(): Anthropic.MessageParam | null {
+function buildHawkMdMessage(): GrayCode.MessageParam | null {
   const hawkMd = getCachedHawkMdContent()
   if (hawkMd === null) return null
   return {
@@ -488,7 +488,7 @@ export async function buildYoloSystemPrompt(
   const systemPrompt = BASE_PROMPT.replace('<permissions_template>', () =>
     usingExternal
       ? EXTERNAL_PERMISSIONS_TEMPLATE
-      : ANTHROPIC_PERMISSIONS_TEMPLATE,
+      : GRAYCODE_PERMISSIONS_TEMPLATE,
   )
 
   const autoMode = getAutoModeConfig()
@@ -511,7 +511,7 @@ export async function buildYoloSystemPrompt(
   // All three sections use the same <foo_to_replace>...</foo_to_replace>
   // delimiter pattern. The external template wraps its defaults inside the
   // tags, so user-provided values REPLACE the defaults entirely. The
-  // anthropic template keeps its defaults outside the tags and uses an empty
+  // graycode template keeps its defaults outside the tags and uses an empty
   // tag pair at the end of each section, so user-provided values are
   // strictly ADDITIVE.
   const userAllow = allowDescriptions.length
@@ -607,7 +607,7 @@ function parseXmlThinking(text: string): string | null {
  * Extract usage stats from an API response.
  */
 function extractUsage(
-  result: Anthropic.Beta.Messages.BetaMessage,
+  result: GrayCode.Beta.Messages.BetaMessage,
 ): ClassifierUsage {
   return {
     inputTokens: result.usage.input_tokens,
@@ -622,7 +622,7 @@ function extractUsage(
  * non-enumerable `_request_id` property on response objects.
  */
 function extractRequestId(
-  result: Anthropic.Beta.Messages.BetaMessage,
+  result: GrayCode.Beta.Messages.BetaMessage,
 ): string | undefined {
   return (result as { _request_id?: string | null })._request_id ?? undefined
 }
@@ -709,11 +709,11 @@ function getClassifierThinkingConfig(
  * prompt caching (1h TTL) across calls.
  */
 async function classifyYoloActionXml(
-  prefixMessages: Anthropic.MessageParam[],
+  prefixMessages: GrayCode.MessageParam[],
   systemPrompt: string,
   userPrompt: string,
   userContentBlocks: Array<
-    Anthropic.TextBlockParam | Anthropic.ImageBlockParam
+    GrayCode.TextBlockParam | GrayCode.ImageBlockParam
   >,
   model: string,
   promptLengths: {
@@ -739,7 +739,7 @@ async function classifyYoloActionXml(
         ? 'xml_fast'
         : 'xml_thinking'
   const xmlSystemPrompt = replaceOutputFormatWithXml(systemPrompt)
-  const systemBlocks: Anthropic.TextBlockParam[] = [
+  const systemBlocks: GrayCode.TextBlockParam[] = [
     {
       type: 'text' as const,
       text: xmlSystemPrompt,
@@ -758,7 +758,7 @@ async function classifyYoloActionXml(
   // Wrap all content (transcript + action) in <transcript> tags.
   // The action is the final tool_use block in the transcript.
   const wrappedContent: Array<
-    Anthropic.TextBlockParam | Anthropic.ImageBlockParam
+    GrayCode.TextBlockParam | GrayCode.ImageBlockParam
   > = [
     { type: 'text' as const, text: '<transcript>\n' },
     ...userContentBlocks,
@@ -1031,13 +1031,13 @@ export async function classifyYoloAction(
   const systemPrompt = await buildYoloSystemPrompt(context)
   const transcriptEntries = buildTranscriptEntries(messages)
   const hawkMdMessage = buildHawkMdMessage()
-  const prefixMessages: Anthropic.MessageParam[] = hawkMdMessage
+  const prefixMessages: GrayCode.MessageParam[] = hawkMdMessage
     ? [hawkMdMessage]
     : []
 
   let toolCallsLength = actionCompact.length
   let userPromptsLength = 0
-  const userContentBlocks: Anthropic.TextBlockParam[] = []
+  const userContentBlocks: GrayCode.TextBlockParam[] = []
   for (const entry of transcriptEntries) {
     for (const block of entry.content) {
       const serialized = toCompactBlock(block, entry.role, lookup)
@@ -1315,7 +1315,7 @@ type AutoModeConfig = {
    */
   twoStageClassifier?: boolean | 'fast' | 'thinking'
   /**
-   * Ant builds normally use permissions_anthropic.txt; when true, use
+   * Ant builds normally use permissions_graycode.txt; when true, use
    * permissions_external.txt instead (dogfood the external template).
    */
   forceExternalPermissions?: boolean

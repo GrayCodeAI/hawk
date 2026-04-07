@@ -209,10 +209,10 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
   }
 
   // Check for custom API key
-  // On homespace, ANTHROPIC_API_KEY is preserved in process.env for child
+  // On homespace, GRAYCODE_API_KEY is preserved in process.env for child
   // processes but ignored by Hawk itself (see auth.ts).
-  if (process.env.ANTHROPIC_API_KEY && !isRunningOnHomespace()) {
-    const customApiKeyTruncated = normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY);
+  if (process.env.GRAYCODE_API_KEY && !isRunningOnHomespace()) {
+    const customApiKeyTruncated = normalizeApiKeyForConfig(process.env.GRAYCODE_API_KEY);
     const keyStatus = getCustomApiKeyStatus(customApiKeyTruncated);
     if (keyStatus === 'new') {
       const {

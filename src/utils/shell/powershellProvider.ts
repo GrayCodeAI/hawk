@@ -16,7 +16,7 @@ export function buildPowerShellArgs(cmd: string): string[] {
  * Base64-encode a string as UTF-16LE for PowerShell's -EncodedCommand.
  * Same encoding the parser uses (parser.ts toUtf16LeBase64). The output
  * is [A-Za-z0-9+/=] only — survives ANY shell-quoting layer, including
- * @anthropic-ai/sandbox-runtime's shellquote.quote() which would otherwise
+ * @graycode-ai/sandbox-runtime's shellquote.quote() which would otherwise
  * corrupt !$? to \!$? when re-wrapping a single-quoted string in double
  * quotes. Review 2964609818.
  */

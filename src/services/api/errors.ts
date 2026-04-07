@@ -2,11 +2,11 @@ import {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIError,
-} from '@anthropic-ai/sdk'
+} from '@graycode-ai/sdk'
 import type {
   BetaMessage,
   BetaStopReason,
-} from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
 import { AFK_MODE_BETA_HEADER } from 'src/constants/betas.js'
 import type { SDKAssistantMessageError } from 'src/entrypoints/agentSdkTypes.js'
 import type {
@@ -15,7 +15,7 @@ import type {
   UserMessage,
 } from 'src/types/message.js'
 import {
-  getAnthropicApiKeyWithSource,
+  getGrayCodeApiKeyWithSource,
   getHawkAIOAuthTokens,
   getOauthAccountInfo,
   isHawkAISubscriber,
@@ -156,9 +156,9 @@ export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Please run /login
 export const INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL =
   'Invalid API key · Fix external API key'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH =
-  'Your GRAYCODE_API_KEY (legacy ANTHROPIC_API_KEY) belongs to a disabled organization · Unset the environment variable to use your subscription instead'
+  'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Unset the environment variable to use your subscription instead'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY =
-  'Your GRAYCODE_API_KEY (legacy ANTHROPIC_API_KEY) belongs to a disabled organization · Update or unset the environment variable'
+  'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Update or unset the environment variable'
 export const TOKEN_REVOKED_ERROR_MESSAGE =
   'OAuth token revoked · Please run /login'
 export const CCR_AUTH_ERROR_MESSAGE =
@@ -469,11 +469,11 @@ export function getAssistantMessageFromError(
   ) {
     // Check if this is the new API with multiple rate limit headers
     const rateLimitType = error.headers?.get?.(
-      'anthropic-ratelimit-unified-representative-claim',
+      'graycode-ratelimit-unified-representative-claim',
     ) as 'five_hour' | 'seven_day' | 'seven_day_opus' | null
 
     const overageStatus = error.headers?.get?.(
-      'anthropic-ratelimit-unified-overage-status',
+      'graycode-ratelimit-unified-overage-status',
     ) as 'allowed' | 'allowed_warning' | 'rejected' | null
 
     // If we have the new headers, use the new message generation
@@ -487,7 +487,7 @@ export function getAssistantMessageFromError(
 
       // Extract rate limit information from headers
       const resetHeader = error.headers?.get?.(
-        'anthropic-ratelimit-unified-reset',
+        'graycode-ratelimit-unified-reset',
       )
       if (resetHeader) {
         limits.resetsAt = Number(resetHeader)
@@ -502,14 +502,14 @@ export function getAssistantMessageFromError(
       }
 
       const overageResetHeader = error.headers?.get?.(
-        'anthropic-ratelimit-unified-overage-reset',
+        'graycode-ratelimit-unified-overage-reset',
       )
       if (overageResetHeader) {
         limits.overageResetsAt = Number(overageResetHeader)
       }
 
       const overageDisabledReason = error.headers?.get?.(
-        'anthropic-ratelimit-unified-overage-disabled-reason',
+        'graycode-ratelimit-unified-overage-disabled-reason',
       ) as OverageDisabledReason | null
       if (overageDisabledReason) {
         limits.overageDisabledReason = overageDisabledReason
@@ -552,7 +552,7 @@ export function getAssistantMessageFromError(
     const innerMessage = stripped.match(/"message"\s*:\s*"([^"]*)"/)?.[1]
     const detail = innerMessage || stripped
     return createAssistantAPIErrorMessage({
-      content: `${API_ERROR_MESSAGE_PREFIX}: Request rejected (429) · ${detail || 'this may be a temporary capacity issue — check status.anthropic.com'}`,
+      content: `${API_ERROR_MESSAGE_PREFIX}: Request rejected (429) · ${detail || 'this may be a temporary capacity issue — check status.graycode.com'}`,
       error: 'rate_limit',
     })
   }
@@ -646,7 +646,7 @@ export function getAssistantMessageFromError(
     error instanceof APIError &&
     error.status === 400 &&
     error.message.includes(AFK_MODE_BETA_HEADER) &&
-    error.message.includes('anthropic-beta')
+    error.message.includes('graycode-beta')
   ) {
     return createAssistantAPIErrorMessage({
       content: 'Auto mode is unavailable for your plan',
@@ -752,13 +752,13 @@ export function getAssistantMessageFromError(
   // Ants using new or unknown org IDs that haven't been gated in.
   if (
     process.env.USER_TYPE === 'ant' &&
-    !process.env.ANTHROPIC_MODEL &&
+    !process.env.GRAYCODE_MODEL &&
     error instanceof Error &&
     error.message.toLowerCase().includes('invalid model name')
   ) {
     // Get organization ID from config - only use OAuth account data when actively using OAuth
     const orgId = getOauthAccountInfo()?.organizationUuid
-    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`hawk\` with \`GRAYCODE_MODEL=${getDefaultMainLoopModelSetting()}\` (legacy: \`ANTHROPIC_MODEL=${getDefaultMainLoopModelSetting()}\`)`
+    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`hawk\` with \`GRAYCODE_MODEL=${getDefaultMainLoopModelSetting()}\` (legacy: \`GRAYCODE_MODEL=${getDefaultMainLoopModelSetting()}\`)`
     const msg = orgId
       ? `${baseMsg} or share your orgId (${orgId}) in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`
       : `${baseMsg} or reach out in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`
@@ -778,7 +778,7 @@ export function getAssistantMessageFromError(
       error: 'billing_error',
     })
   }
-  // "Organization has been disabled" — commonly a stale ANTHROPIC_API_KEY
+  // "Organization has been disabled" — commonly a stale GRAYCODE_API_KEY
   // from a previous employer/project overriding subscription auth. Only handle
   // the env-var case; apiKeyHelper and /login-managed keys mean the active
   // auth's org is genuinely disabled with no dormant fallback to point at.
@@ -787,14 +787,14 @@ export function getAssistantMessageFromError(
     error.status === 400 &&
     error.message.toLowerCase().includes('organization has been disabled')
   ) {
-    const { source } = getAnthropicApiKeyWithSource()
-    // getAnthropicApiKeyWithSource conflates the env var with FD-passed keys
+    const { source } = getGrayCodeApiKeyWithSource()
+    // getGrayCodeApiKeyWithSource conflates the env var with FD-passed keys
     // under the same source value, and in CCR mode OAuth stays active despite
     // the env var. The three guards ensure we only blame the env var when it's
     // actually set and actually on the wire.
     if (
-      source === 'ANTHROPIC_API_KEY' &&
-      process.env.ANTHROPIC_API_KEY &&
+      source === 'GRAYCODE_API_KEY' &&
+      process.env.GRAYCODE_API_KEY &&
       !isHawkAISubscriber()
     ) {
       const hasStoredOAuth = getHawkAIOAuthTokens()?.accessToken != null
@@ -823,9 +823,9 @@ export function getAssistantMessageFromError(
     }
 
     // Check if the API key is from an external source
-    const { source } = getAnthropicApiKeyWithSource()
+    const { source } = getGrayCodeApiKeyWithSource()
     const isExternalSource =
-      source === 'ANTHROPIC_API_KEY' || source === 'apiKeyHelper'
+      source === 'GRAYCODE_API_KEY' || source === 'apiKeyHelper'
 
     return createAssistantAPIErrorMessage({
       error: 'authentication_failed',
@@ -1192,8 +1192,8 @@ export function getErrorMessageIfRefusal(
   logEvent('tengu_refusal_api_response', {})
 
   const baseMessage = getIsNonInteractiveSession()
-    ? `${API_ERROR_MESSAGE_PREFIX}: Hawk is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Try rephrasing the request or attempting a different approach.`
-    : `${API_ERROR_MESSAGE_PREFIX}: Hawk is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Please double press esc to edit your last message or start a new session for Hawk to assist with a different task.`
+    ? `${API_ERROR_MESSAGE_PREFIX}: Hawk is unable to respond to this request, which appears to violate our Usage Policy (https://www.graycode.com/legal/aup). Try rephrasing the request or attempting a different approach.`
+    : `${API_ERROR_MESSAGE_PREFIX}: Hawk is unable to respond to this request, which appears to violate our Usage Policy (https://www.graycode.com/legal/aup). Please double press esc to edit your last message or start a new session for Hawk to assist with a different task.`
 
   const modelSuggestion =
     model !== 'hawk-sonnet-4-20250514'

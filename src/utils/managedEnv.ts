@@ -15,17 +15,17 @@ import {
 } from './settings/settings.js'
 
 /**
- * `hawk ssh` remote: ANTHROPIC_UNIX_SOCKET routes auth through a -R forwarded
+ * `hawk ssh` remote: GRAYCODE_UNIX_SOCKET routes auth through a -R forwarded
  * socket to a local proxy, and the launcher sets a handful of placeholder auth
  * env vars that the remote's ~/.hawk settings.env MUST NOT clobber (see
- * isAnthropicAuthEnabled). Strip them from any settings-sourced env object.
+ * isGrayCodeAuthEnabled). Strip them from any settings-sourced env object.
  */
 function withoutSSHTunnelVars(
   env: Record<string, string> | undefined,
 ): Record<string, string> {
   if (
     !env ||
-    (!process.env.ANTHROPIC_UNIX_SOCKET && !process.env.GRAYCODE_UNIX_SOCKET)
+    (!process.env.GRAYCODE_UNIX_SOCKET && !process.env.GRAYCODE_UNIX_SOCKET)
   ) {
     return env || {}
   }
@@ -34,10 +34,10 @@ function withoutSSHTunnelVars(
     const upper = key.toUpperCase()
     if (
       upper === 'HAWK_CODE_OAUTH_TOKEN' ||
-      upper === 'ANTHROPIC_UNIX_SOCKET' ||
-      upper === 'ANTHROPIC_BASE_URL' ||
-      upper === 'ANTHROPIC_API_KEY' ||
-      upper === 'ANTHROPIC_AUTH_TOKEN' ||
+      upper === 'GRAYCODE_UNIX_SOCKET' ||
+      upper === 'GRAYCODE_BASE_URL' ||
+      upper === 'GRAYCODE_API_KEY' ||
+      upper === 'GRAYCODE_AUTH_TOKEN' ||
       upper === 'GRAYCODE_UNIX_SOCKET' ||
       upper === 'GRAYCODE_BASE_URL' ||
       upper === 'GRAYCODE_API_KEY' ||
@@ -115,7 +115,7 @@ function filterSettingsEnv(
  *
  * Project-scoped sources (projectSettings, localSettings) are excluded because they live
  * inside the project directory and could be committed by a malicious actor to redirect
- * traffic (e.g., ANTHROPIC_BASE_URL) to an attacker-controlled server.
+ * traffic (e.g., GRAYCODE_BASE_URL) to an attacker-controlled server.
  */
 const TRUSTED_SETTING_SOURCES = [
   'userSettings',
@@ -126,10 +126,10 @@ const TRUSTED_SETTING_SOURCES = [
 /**
  * Apply environment variables from trusted sources to process.env.
  * Called before the trust dialog so that user/enterprise env vars like
- * ANTHROPIC_BASE_URL take effect during first-run/onboarding.
+ * GRAYCODE_BASE_URL take effect during first-run/onboarding.
  *
  * For trusted sources (user settings, managed settings, CLI flags), ALL env vars
- * are applied — including ones like ANTHROPIC_BASE_URL that would be dangerous
+ * are applied — including ones like GRAYCODE_BASE_URL that would be dangerous
  * from project-scoped settings.
  *
  * For project-scoped sources (projectSettings, localSettings), only safe env vars
@@ -165,7 +165,7 @@ export function applySafeConfigEnvironmentVariables(): void {
 
   // Compute remote-managed-settings eligibility now, with userSettings and
   // flagSettings env applied. Eligibility reads HAWK_CODE_USE_BEDROCK,
-  // ANTHROPIC_BASE_URL — both settable via settings.env.
+  // GRAYCODE_BASE_URL — both settable via settings.env.
   // getSettingsForSource('policySettings') below consults the remote cache,
   // which guards on this. The two-phase structure makes the ordering
   // dependency visible: non-policy env → eligibility → policy env.

@@ -1,5 +1,5 @@
-import type { BetaToolUnion } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
-import type { TextBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
+import type { BetaToolUnion } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs'
 import { createPatch } from 'diff'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
@@ -54,10 +54,10 @@ type PreviousState = {
    *  (sticky-on latched in hawk.ts). Tracked to verify the fix. */
   cachedMCEnabled: boolean
   /** Resolved effort (env → options → model default). Goes into output_config
-   *  or anthropic_internal.effort_override. */
+   *  or graycode_internal.effort_override. */
   effortValue: string
   /** Hash of getExtraBodyParams() — catches HAWK_CODE_EXTRA_BODY and
-   *  anthropic_internal changes. */
+   *  graycode_internal changes. */
   extraBodyHash: number
   callCount: number
   pendingChanges: PendingChanges | null

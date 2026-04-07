@@ -7,7 +7,7 @@ import { getCwd } from './cwd.js';
 import { relative } from 'path';
 import { formatNumber } from './format.js';
 import type { getGlobalConfig } from './config.js';
-import { getAnthropicApiKeyWithSource, getApiKeyFromConfigOrMacOSKeychain, getAuthTokenSource, isHawkAISubscriber } from './auth.js';
+import { getGrayCodeApiKeyWithSource, getApiKeyFromConfigOrMacOSKeychain, getAuthTokenSource, isHawkAISubscriber } from './auth.js';
 import type { AgentDefinitionsResult } from '../tools/AgentTool/loadAgentsDir.js';
 import { getAgentDescriptionsTotalTokens, AGENT_DESCRIPTIONS_THRESHOLD } from './statusNoticeHelpers.js';
 import { isSupportedJetBrainsTerminal, toIDEDisplayName, getTerminalIdeType } from './ide.js';
@@ -55,7 +55,7 @@ const hawkAiSubscriberExternalTokenNotice: StatusNoticeDefinition = {
   type: 'warning',
   isActive: () => {
     const authTokenInfo = getAuthTokenSource();
-    return isHawkAISubscriber() && (authTokenInfo.source === 'ANTHROPIC_AUTH_TOKEN' || authTokenInfo.source === 'apiKeyHelper');
+    return isHawkAISubscriber() && (authTokenInfo.source === 'GRAYCODE_AUTH_TOKEN' || authTokenInfo.source === 'apiKeyHelper');
   },
   render: () => {
     const authTokenInfo = getAuthTokenSource();
@@ -75,15 +75,15 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
   isActive: () => {
     const {
       source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
+    } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
     });
-    return !!getApiKeyFromConfigOrMacOSKeychain() && (apiKeySource === 'ANTHROPIC_API_KEY' || apiKeySource === 'apiKeyHelper');
+    return !!getApiKeyFromConfigOrMacOSKeychain() && (apiKeySource === 'GRAYCODE_API_KEY' || apiKeySource === 'apiKeyHelper');
   },
   render: () => {
     const {
       source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
+    } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
     });
     return <Box flexDirection="row" marginTop={1}>
@@ -101,7 +101,7 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
   isActive: () => {
     const {
       source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
+    } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
     });
     const authTokenInfo = getAuthTokenSource();
@@ -110,7 +110,7 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
   render: () => {
     const {
       source: apiKeySource
-    } = getAnthropicApiKeyWithSource({
+    } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
     });
     const authTokenInfo = getAuthTokenSource();
@@ -127,7 +127,7 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
             · Trying to use{' '}
             {authTokenInfo.source === 'hawkai' ? 'hawkai' : authTokenInfo.source}
             ?{' '}
-            {apiKeySource === 'ANTHROPIC_API_KEY' ? 'Unset the GRAYCODE_API_KEY (or ANTHROPIC_API_KEY) environment variable, or hawk /logout then say "No" to the API key approval before login.' : apiKeySource === 'apiKeyHelper' ? 'Unset the apiKeyHelper setting.' : 'hawk /logout'}
+            {apiKeySource === 'GRAYCODE_API_KEY' ? 'Unset the GRAYCODE_API_KEY (or GRAYCODE_API_KEY) environment variable, or hawk /logout then say "No" to the API key approval before login.' : apiKeySource === 'apiKeyHelper' ? 'Unset the apiKeyHelper setting.' : 'hawk /logout'}
           </Text>
           <Text color="warning">
             · Trying to use {apiKeySource}?{' '}

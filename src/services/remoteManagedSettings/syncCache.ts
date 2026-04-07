@@ -9,12 +9,12 @@
 
 import { HAWK_AI_INFERENCE_SCOPE } from '../../constants/oauth.js'
 import {
-  getAnthropicApiKeyWithSource,
+  getGrayCodeApiKeyWithSource,
   getHawkAIOAuthTokens,
 } from '../../utils/auth.js'
 import {
   getAPIProvider,
-  isFirstPartyAnthropicBaseUrl,
+  isFirstPartyGrayCodeBaseUrl,
 } from '../../utils/model/providers.js'
 
 import {
@@ -55,7 +55,7 @@ export function isRemoteManagedSettingsEligible(): boolean {
   }
 
   // Custom base URL users should not hit the settings endpoint
-  if (!isFirstPartyAnthropicBaseUrl()) {
+  if (!isFirstPartyGrayCodeBaseUrl()) {
     return (cached = setEligibility(false))
   }
 
@@ -95,10 +95,10 @@ export function isRemoteManagedSettingsEligible(): boolean {
 
   // Console users (API key) are eligible if we can get the actual key
   // Skip apiKeyHelper to avoid circular dependency with getSettings()
-  // Wrap in try-catch because getAnthropicApiKeyWithSource throws in CI/test environments
+  // Wrap in try-catch because getGrayCodeApiKeyWithSource throws in CI/test environments
   // when no API key is available
   try {
-    const { key: apiKey } = getAnthropicApiKeyWithSource({
+    const { key: apiKey } = getGrayCodeApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true,
     })
     if (apiKey) {

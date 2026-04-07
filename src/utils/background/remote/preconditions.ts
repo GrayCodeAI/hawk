@@ -71,7 +71,7 @@ export async function checkHasGitRemote(): Promise<boolean> {
 
 /**
  * Checks if GitHub app is installed on a specific repository
- * @param owner The repository owner (e.g., "anthropics")
+ * @param owner The repository owner (e.g., "graycodes")
  * @param repo The repository name (e.g., "hawk-cli-internal")
  * @returns true if GitHub app is installed, false otherwise
  */

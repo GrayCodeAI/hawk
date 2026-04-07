@@ -77,7 +77,7 @@ export function getAttributionTexts(): AttributionTexts {
       ? getPublicModelName(model)
       : 'Hawk Opus 4.6'
   const defaultAttribution = `🤖 Generated with [Hawk](${PRODUCT_URL})`
-  const defaultCommit = `Co-Authored-By: ${modelName} <noreply@anthropic.com>`
+  const defaultCommit = `Co-Authored-By: ${modelName} <noreply@graycode.com>`
 
   const settings = getInitialSettings()
 

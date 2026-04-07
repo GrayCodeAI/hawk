@@ -17,7 +17,7 @@ import { getOauthConfig } from '../constants/oauth.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
   getHawkAIOAuthTokens,
-  isAnthropicAuthEnabled,
+  isGrayCodeAuthEnabled,
 } from '../utils/auth.js'
 import { logForDebugging } from '../utils/debug.js'
 import { getUserAgent } from '../utils/http.js'
@@ -56,7 +56,7 @@ export type VoiceStreamCallbacks = {
 }
 
 // How finalize() resolved. `no_data_timeout` means zero server messages
-// after CloseStream — the silent-drop signature (anthropics/anthropic#287008).
+// after CloseStream — the silent-drop signature (graycodes/graycode#287008).
 export type FinalizeSource =
   | 'post_closestream_endpoint'
   | 'no_data_timeout'
@@ -99,7 +99,7 @@ export function isVoiceStreamAvailable(): boolean {
   // voice_stream uses the same OAuth as Hawk — available when the
   // user is authenticated with GrayCode (Hawkai subscriber or has
   // valid OAuth tokens).
-  if (!isAnthropicAuthEnabled()) {
+  if (!isGrayCodeAuthEnabled()) {
     return false
   }
   const tokens = getHawkAIOAuthTokens()
@@ -122,10 +122,10 @@ export async function connectVoiceStream(
   }
 
   // voice_stream is a private_api route, but /api/ws/ is also exposed on
-  // the api.anthropic.com listener (service_definitions.yaml private-api:
+  // the api.graycode.com listener (service_definitions.yaml private-api:
   // visibility.external: true). We target that host instead of hawkai
   // because the hawkai CF zone uses TLS fingerprinting and challenges
-  // non-browser clients (anthropics/hawk-code#34094). Same private-api
+  // non-browser clients (graycodes/hawk-code#34094). Same private-api
   // pod, same OAuth Bearer auth — just a CF zone that doesn't block us.
   // Desktop dictation still uses hawkai (Swift URLSession has a
   // browser-class JA3 fingerprint, so CF lets it through).
@@ -152,7 +152,7 @@ export async function connectVoiceStream(
 
   // Route through conversation-engine with Deepgram Nova 3 (bypassing
   // the server's project_bell_v2_config GrowthBook gate). The server
-  // side is anthropics/anthropic#278327 + #281372; this lets us ramp
+  // side is graycodes/graycode#278327 + #281372; this lets us ramp
   // clients independently.
   const isNova3 = getFeatureValue_CACHED_MAY_BE_STALE(
     'tengu_cobalt_frost',
@@ -511,7 +511,7 @@ export async function connectVoiceStream(
   ws.on('unexpected-response', (req: ClientRequest, res: IncomingMessage) => {
     const status = res.statusCode ?? 0
     // Bun's ws implementation on Windows can fire this event for a
-    // successful 101 Switching Protocols response (anthropics/hawk-code#40510).
+    // successful 101 Switching Protocols response (graycodes/hawk-code#40510).
     // 101 is never a rejection — bail before we destroy a working upgrade.
     if (status === 101) {
       logForDebugging(

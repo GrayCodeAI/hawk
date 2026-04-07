@@ -71,7 +71,7 @@ import type {
 } from '../entrypoints/sdk/controlTypes.js'
 import type { PermissionMode } from '../utils/permissions/PermissionMode.js'
 
-const ANTHROPIC_VERSION = '2023-06-01'
+const GRAYCODE_VERSION = '2023-06-01'
 
 // Telemetry discriminator for ws_connected. 'initial' is the default and
 // never passed to rebuildTransport (which can only be called post-init);
@@ -82,7 +82,7 @@ function oauthHeaders(accessToken: string): Record<string, string> {
   return {
     Authorization: `Bearer ${accessToken}`,
     'Content-Type': 'application/json',
-    'anthropic-version': ANTHROPIC_VERSION,
+    'graycode-version': GRAYCODE_VERSION,
   }
 }
 
@@ -970,7 +970,7 @@ async function archiveSession(
   if (!accessToken) return 'no_token'
   // Archive lives at the compat layer (/v1/sessions/*, not /v1/code/sessions).
   // compat.parseSessionID only accepts TagSession (session_*), so retag cse_*.
-  // anthropic-beta + x-organization-uuid are required — without them the
+  // graycode-beta + x-organization-uuid are required — without them the
   // compat gateway 404s before reaching the handler.
   //
   // Unlike bridgeMain.ts (which caches compatId in sessionCompatIds to keep
@@ -987,7 +987,7 @@ async function archiveSession(
       {
         headers: {
           ...oauthHeaders(accessToken),
-          'anthropic-beta': 'ccr-byoc-2025-07-29',
+          'graycode-beta': 'ccr-byoc-2025-07-29',
           'x-organization-uuid': orgUUID,
         },
         timeout: timeoutMs,

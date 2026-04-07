@@ -26,7 +26,7 @@ import { jsonStringify } from '../utils/slowOperations.js'
  * account_session.created_at < 10min, so it must happen during /login.
  * Token is persistent (90d rolling expiry) and stored in keychain.
  *
- * See anthropics/anthropic#274559 (spec), #310375 (B1b tenant RPCs),
+ * See graycodes/graycode#274559 (spec), #310375 (B1b tenant RPCs),
  * #295987 (B2 Python routes), #307150 (C1' CCR v2 gate).
  */
 

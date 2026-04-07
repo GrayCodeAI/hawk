@@ -5,7 +5,7 @@
 import axios from 'axios'
 import { OAUTH_BETA_HEADER } from '../constants/oauth.js'
 import {
-  getAnthropicApiKey,
+  getGrayCodeApiKey,
   getHawkAIOAuthTokens,
   handleOAuth401Error,
   isHawkAISubscriber,
@@ -27,7 +27,7 @@ export function getUserAgent(): string {
   // Turn-/process-scoped workload tag for cron-initiated requests. 1P-only
   // observability — proxies strip HTTP headers; QoS routing uses cc_workload
   // in the billing-header attribution block instead (see constants/system.ts).
-  // getAnthropicClient (client.ts:98) calls this per-request inside withRetry,
+  // getGrayCodeClient (client.ts:98) calls this per-request inside withRetry,
   // so the read picks up the same setWorkload() value as getAttributionHeader.
   const workload = getWorkload()
   const workloadSuffix = workload ? `, workload/${workload}` : ''
@@ -54,7 +54,7 @@ export function getMCPUserAgent(): string {
 // operators match in robots.txt); the hawk-code suffix lets them distinguish
 // local CLI traffic from hawkai server-side fetches.
 export function getWebFetchUserAgent(): string {
-  return `Hawk-User (${getHawkCodeUserAgent()}; +https://support.anthropic.com/)`
+  return `Hawk-User (${getHawkCodeUserAgent()}; +https://support.graycode.com/)`
 }
 
 export type AuthHeaders = {
@@ -78,13 +78,13 @@ export function getAuthHeaders(): AuthHeaders {
     return {
       headers: {
         Authorization: `Bearer ${oauthTokens.accessToken}`,
-        'anthropic-beta': OAUTH_BETA_HEADER,
+        'graycode-beta': OAUTH_BETA_HEADER,
       },
     }
   }
   // TODO: this will fail if the API key is being set to an LLM Gateway key
   // should we try to query keychain / credentials for a valid GrayCode key?
-  const apiKey = getAnthropicApiKey()
+  const apiKey = getGrayCodeApiKey()
   if (!apiKey) {
     return {
       headers: {},

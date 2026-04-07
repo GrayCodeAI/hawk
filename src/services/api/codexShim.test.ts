@@ -3,9 +3,9 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import {
-  codexStreamToAnthropic,
-  convertAnthropicMessagesToResponsesInput,
-  convertCodexResponseToAnthropicMessage,
+  codexStreamToGrayCode,
+  convertGrayCodeMessagesToResponsesInput,
+  convertCodexResponseToGrayCodeMessage,
   convertToolsToResponsesTools,
 } from './codexShim.js'
 import {
@@ -39,7 +39,7 @@ async function collectStreamEventTypes(responseText: string): Promise<string[]> 
   })
 
   const events: string[] = []
-  for await (const event of codexStreamToAnthropic(new Response(stream), 'gpt-5.4')) {
+  for await (const event of codexStreamToGrayCode(new Response(stream), 'gpt-5.4')) {
     events.push(event.type)
   }
   return events
@@ -144,7 +144,7 @@ describe('Codex request translation', () => {
   })
 
   test('converts assistant tool use and user tool result into Responses items', () => {
-    const items = convertAnthropicMessagesToResponsesInput([
+    const items = convertGrayCodeMessagesToResponsesInput([
       {
         role: 'assistant',
         content: [
@@ -182,7 +182,7 @@ describe('Codex request translation', () => {
   })
 
   test('converts completed Codex tool response into GrayCode message', () => {
-    const message = convertCodexResponseToAnthropicMessage(
+    const message = convertCodexResponseToGrayCodeMessage(
       {
         id: 'resp_1',
         model: 'gpt-5.3-codex-spark',

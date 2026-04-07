@@ -5,7 +5,7 @@ import { setupTerminal, shouldOfferTerminalSetup } from '../commands/terminalSet
 import { useExitOnCtrlCDWithKeybindings } from '../hooks/useExitOnCtrlCDWithKeybindings.js';
 import { Box, Link, Newline, Text, useTheme } from '../ink.js';
 import { useKeybindings } from '../keybindings/useKeybinding.js';
-import { isAnthropicAuthEnabled } from '../utils/auth.js';
+import { isGrayCodeAuthEnabled } from '../utils/auth.js';
 import { normalizeApiKeyForConfig } from '../utils/authPortable.js';
 import { getCustomApiKeyStatus } from '../utils/config.js';
 import { env } from '../utils/env.js';
@@ -32,7 +32,7 @@ export function Onboarding({
 }: Props): React.ReactNode {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [skipOAuth, setSkipOAuth] = useState(false);
-  const [oauthEnabled] = useState(() => isAnthropicAuthEnabled());
+  const [oauthEnabled] = useState(() => isGrayCodeAuthEnabled());
   const [theme, setTheme] = useTheme();
   useEffect(() => {
     logEvent('tengu_began_setup', {
@@ -97,12 +97,12 @@ export function Onboarding({
   // Create the steps array - determine which steps to include based on reAuth and oauthEnabled
   const apiKeyNeedingApproval = useMemo(() => {
     // Add API key step if needed
-    // On homespace, ANTHROPIC_API_KEY is preserved in process.env for child
+    // On homespace, GRAYCODE_API_KEY is preserved in process.env for child
     // processes but ignored by Hawk itself (see auth.ts).
-    if (!process.env.ANTHROPIC_API_KEY || isRunningOnHomespace()) {
+    if (!process.env.GRAYCODE_API_KEY || isRunningOnHomespace()) {
       return '';
     }
-    const customApiKeyTruncated = normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY);
+    const customApiKeyTruncated = normalizeApiKeyForConfig(process.env.GRAYCODE_API_KEY);
     if (getCustomApiKeyStatus(customApiKeyTruncated) === 'new') {
       return customApiKeyTruncated;
     }

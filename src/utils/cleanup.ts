@@ -435,7 +435,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000
  * This helps reduce disk usage since we publish many dev versions per day.
  * Only runs once per day for Ant users.
  */
-export async function cleanupNpmCacheForAnthropicPackages(): Promise<void> {
+export async function cleanupNpmCacheForGrayCodePackages(): Promise<void> {
   const markerPath = join(getHawkConfigHomeDir(), '.npm-cache-cleanup')
 
   try {
@@ -471,19 +471,19 @@ export async function cleanupNpmCacheForAnthropicPackages(): Promise<void> {
     // integrity check + GC of the ENTIRE cache — O(all content blobs).
     // On large caches this took 60+ seconds and blocked the event loop.
     const stream = cacache.ls.stream(npmCachePath)
-    const anthropicEntries: { key: string; time: number }[] = []
+    const graycodeEntries: { key: string; time: number }[] = []
     for await (const entry of stream as AsyncIterable<{
       key: string
       time: number
     }>) {
-      if (entry.key.includes('@anthropic-ai/hawk-')) {
-        anthropicEntries.push({ key: entry.key, time: entry.time })
+      if (entry.key.includes('@graycode-ai/hawk-')) {
+        graycodeEntries.push({ key: entry.key, time: entry.time })
       }
     }
 
     // Group by package name (everything before the last @version separator)
     const byPackage = new Map<string, { key: string; time: number }[]>()
-    for (const entry of anthropicEntries) {
+    for (const entry of graycodeEntries) {
       const atVersionIdx = entry.key.lastIndexOf('@')
       const pkgName =
         atVersionIdx > 0 ? entry.key.slice(0, atVersionIdx) : entry.key
@@ -513,7 +513,7 @@ export async function cleanupNpmCacheForAnthropicPackages(): Promise<void> {
     const durationMs = Date.now() - startTime
     if (keysToRemove.length > 0) {
       logForDebugging(
-        `npm cache cleanup: Removed ${keysToRemove.length} old @anthropic-ai entries in ${durationMs}ms`,
+        `npm cache cleanup: Removed ${keysToRemove.length} old @graycode-ai entries in ${durationMs}ms`,
       )
     } else {
       logForDebugging(`npm cache cleanup: completed in ${durationMs}ms`)
@@ -597,6 +597,6 @@ export async function cleanupOldMessageFilesInBackground(): Promise<void> {
     logEvent('tengu_worktree_cleanup', { removed: removedWorktrees })
   }
   if (process.env.USER_TYPE === 'ant') {
-    await cleanupNpmCacheForAnthropicPackages()
+    await cleanupNpmCacheForGrayCodePackages()
   }
 }

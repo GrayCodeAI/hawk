@@ -168,7 +168,7 @@ import { resolveAgentTools } from '../tools/AgentTool/agentToolUtils.js';
 import { resumeAgentBackground } from '../tools/AgentTool/resumeAgent.js';
 import { useMainLoopModel } from '../hooks/useMainLoopModel.js';
 import { useAppState, useSetAppState, useAppStateStore } from '../state/AppState.js';
-import type { ContentBlockParam, ImageBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs';
+import type { ContentBlockParam, ImageBlockParam } from '@graycode-ai/sdk/resources/messages.mjs';
 import type { ProcessUserInputContext } from '../utils/processUserInput/processUserInput.js';
 import type { PastedContent } from '../utils/config.js';
 import { copyPlanForFork, copyPlanForResume, getPlanSlug, setPlanSlug } from '../utils/plans.js';
@@ -302,7 +302,7 @@ const HISTORY_STUB = {
 // Window after a user-initiated scroll during which type-into-empty does NOT
 // repin to bottom. Josh Rosen's workflow: Hawk emits long output → scroll
 // up to read the start → start typing → before this fix, snapped to bottom.
-// https://anthropic.slack.com/archives/C07VBSHV7EV/p1773545449871739
+// https://graycode.slack.com/archives/C07VBSHV7EV/p1773545449871739
 const RECENT_SCROLL_REPIN_WINDOW_MS = 3000;
 
 // Use LRU cache to prevent unbounded memory growth

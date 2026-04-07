@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
 import type { UUID } from 'crypto'
 import type React from 'react'
 import type { PermissionResult } from '../entrypoints/agentSdkTypes.js'

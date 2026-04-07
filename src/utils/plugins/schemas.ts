@@ -6,7 +6,7 @@ import { lazySchema } from '../lazySchema.js'
 /**
  * First-layer defense against official marketplace impersonation.
  *
- * This validation blocks direct impersonation attempts like "anthropic-official",
+ * This validation blocks direct impersonation attempts like "graycode-official",
  * "hawk-marketplace", etc. Indirect variations (e.g., "my-hawk-marketplace")
  * are not blocked intentionally to avoid false positives on legitimate names.
  * Source org verification provides additional protection at registration/install time.
@@ -20,8 +20,8 @@ export const ALLOWED_OFFICIAL_MARKETPLACE_NAMES = new Set([
   'hawk-code-marketplace',
   'hawk-code-plugins',
   'hawk-plugins-official',
-  'anthropic-marketplace',
-  'anthropic-plugins',
+  'graycode-marketplace',
+  'graycode-plugins',
   'agent-skills',
   'life-sciences',
   'knowledge-work-plugins',
@@ -61,15 +61,15 @@ export function isMarketplaceAutoUpdate(
  * Pattern to detect names that impersonate official GrayCode/Hawk marketplaces.
  *
  * Matches names containing variations like:
- * - "official" combined with "anthropic" or "hawk" (e.g., "official-hawk-plugins")
- * - "anthropic" or "hawk" combined with "official" (e.g., "hawk-official")
- * - Names starting with "anthropic" or "hawk" followed by official-sounding terms
- *   like "marketplace", "plugins" (e.g., "anthropic-marketplace-new", "hawk-plugins-v2")
+ * - "official" combined with "graycode" or "hawk" (e.g., "official-hawk-plugins")
+ * - "graycode" or "hawk" combined with "official" (e.g., "hawk-official")
+ * - Names starting with "graycode" or "hawk" followed by official-sounding terms
+ *   like "marketplace", "plugins" (e.g., "graycode-marketplace-new", "hawk-plugins-v2")
  *
  * The pattern is case-insensitive.
  */
 export const BLOCKED_OFFICIAL_NAME_PATTERN =
-  /(?:official[^a-z0-9]*(anthropic|hawk)|(?:anthropic|hawk)[^a-z0-9]*official|^(?:anthropic|hawk)[^a-z0-9]*(marketplace|plugins|official))/i
+  /(?:official[^a-z0-9]*(graycode|hawk)|(?:graycode|hawk)[^a-z0-9]*official|^(?:graycode|hawk)[^a-z0-9]*(marketplace|plugins|official))/i
 
 /**
  * Pattern to detect non-ASCII characters that could be used for homograph attacks.
@@ -91,7 +91,7 @@ export function isBlockedOfficialName(name: string): boolean {
   }
 
   // Block names with non-ASCII characters to prevent homograph attacks
-  // (e.g., using Cyrillic 'а' to impersonate 'anthropic')
+  // (e.g., using Cyrillic 'а' to impersonate 'graycode')
   if (NON_ASCII_PATTERN.test(name)) {
     return true
   }
@@ -104,7 +104,7 @@ export function isBlockedOfficialName(name: string): boolean {
  * The official GitHub organization for GrayCode marketplaces.
  * Reserved names must come from this org.
  */
-export const OFFICIAL_GITHUB_ORG = 'anthropics'
+export const OFFICIAL_GITHUB_ORG = 'graycodes'
 
 /**
  * Validate that a marketplace with a reserved name comes from the official source.
@@ -140,12 +140,12 @@ export function validateOfficialNameSource(
   // Check for git URL source type
   if (source.source === 'git' && source.url) {
     const url = source.url.toLowerCase()
-    // Check for HTTPS URL format: https://github.com/anthropics/...
-    // or SSH format: git@github.com:anthropics/...
-    const isHttpsAnthropics = url.includes('github.com/anthropics/')
-    const isSshAnthropics = url.includes('git@github.com:anthropics/')
+    // Check for HTTPS URL format: https://github.com/graycodes/...
+    // or SSH format: git@github.com:graycodes/...
+    const isHttpsGrayCodes = url.includes('github.com/graycodes/')
+    const isSshGrayCodes = url.includes('git@github.com:graycodes/')
 
-    if (isHttpsAnthropics || isSshAnthropics) {
+    if (isHttpsGrayCodes || isSshGrayCodes) {
       return null // Valid: reserved name from official git URL
     }
 
@@ -575,7 +575,7 @@ const PluginManifestMcpServerSchema = lazySchema(() =>
  * Schema for a single user-configurable option in plugin manifest userConfig.
  *
  * Shape intentionally matches `McpbUserConfigurationOption` from
- * `@anthropic-ai/mcpb` so the parsed result is structurally assignable to
+ * `@graycode-ai/mcpb` so the parsed result is structurally assignable to
  * `UserConfigSchema` in mcpbHandler.ts — this lets us reuse
  * `validateUserConfig` and the config dialog without modification.
  * `title` and `description` are required (not optional) because the upstream
@@ -1018,7 +1018,7 @@ export const MarketplaceSourceSchema = lazySchema(() =>
             {
               message:
                 'Reserved official marketplace names cannot be used with settings sources. ' +
-                'validateOfficialNameSource only accepts github/git sources from anthropics/* ' +
+                'validateOfficialNameSource only accepts github/git sources from graycodes/* ' +
                 'for these names; a settings source would be rejected after ' +
                 'loadAndCacheMarketplace has already written to disk with cleanupNeeded=false.',
             },
@@ -1332,7 +1332,7 @@ export const PluginMarketplaceSchema = lazySchema(() =>
  * Both parts allow alphanumeric characters, hyphens, dots, and underscores.
  *
  * Examples:
- * - "code-formatter@anthropic-tools"
+ * - "code-formatter@graycode-tools"
  * - "db_assistant@company-internal"
  * - "my.plugin@personal-marketplace"
  */
@@ -1401,7 +1401,7 @@ export const DependencyRefSchema = lazySchema(() =>
  * not in the plugin reference.
  *
  * Examples:
- * - "code-formatter@anthropic-tools"
+ * - "code-formatter@graycode-tools"
  * - "db-assistant@company-internal"
  * - { id: "formatter@tools", version: "^2.0.0", required: true }
  */
@@ -1435,12 +1435,12 @@ export const SettingsPluginEntrySchema = lazySchema(() =>
  * (npm, git, local, etc.). The plugin ID is the key in the plugins record,
  * so it's not duplicated here.
  *
- * Example entry for key "code-formatter@anthropic-tools":
+ * Example entry for key "code-formatter@graycode-tools":
  * {
  *   "version": "1.2.0",
  *   "installedAt": "2024-01-15T10:30:00Z",
- *   "marketplace": "anthropic-tools",
- *   "installPath": "/home/user/.hawk/plugins/installed/anthropic-tools/code-formatter"
+ *   "marketplace": "graycode-tools",
+ *   "installPath": "/home/user/.hawk/plugins/installed/graycode-tools/code-formatter"
  * }
  */
 export const InstalledPluginSchema = lazySchema(() =>
@@ -1474,7 +1474,7 @@ export const InstalledPluginSchema = lazySchema(() =>
  * {
  *   "version": 1,
  *   "plugins": {
- *     "code-formatter@anthropic-tools": { ... },
+ *     "code-formatter@graycode-tools": { ... },
  *     "db-assistant@company-internal": { ... }
  *   }
  * }
@@ -1552,7 +1552,7 @@ export const PluginInstallationEntrySchema = lazySchema(() =>
  * {
  *   "version": 2,
  *   "plugins": {
- *     "code-formatter@anthropic-tools": [
+ *     "code-formatter@graycode-tools": [
  *       { "scope": "user", "installPath": "...", "version": "1.0.0" },
  *       { "scope": "project", "projectPath": "/path/to/project", "installPath": "...", "version": "1.1.0" }
  *     ]
@@ -1584,8 +1584,8 @@ export const InstalledPluginsFileSchema = lazySchema(() =>
  *
  * Example entry:
  * {
- *   "source": { "source": "github", "repo": "anthropic/hawk-plugins" },
- *   "installLocation": "/home/user/.hawk/plugins/cached/marketplaces/anthropic-tools",
+ *   "source": { "source": "github", "repo": "graycode/hawk-plugins" },
+ *   "installLocation": "/home/user/.hawk/plugins/cached/marketplaces/graycode-tools",
  *   "lastUpdated": "2024-01-15T10:30:00Z"
  * }
  */
@@ -1617,7 +1617,7 @@ export const KnownMarketplaceSchema = lazySchema(() =>
  *
  * Example file:
  * {
- *   "anthropic-tools": { "source": { ... }, "installLocation": "...", "lastUpdated": "..." },
+ *   "graycode-tools": { "source": { ... }, "installLocation": "...", "lastUpdated": "..." },
  *   "company-internal": { "source": { ... }, "installLocation": "...", "lastUpdated": "..." }
  * }
  */

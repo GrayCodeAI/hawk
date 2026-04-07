@@ -3,20 +3,20 @@ import type {
   ResolvedProviderRequest,
 } from './providerConfig.js'
 
-export interface AnthropicUsage {
+export interface GrayCodeUsage {
   input_tokens: number
   output_tokens: number
   cache_creation_input_tokens: number
   cache_read_input_tokens: number
 }
 
-export interface AnthropicStreamEvent {
+export interface GrayCodeStreamEvent {
   type: string
   message?: Record<string, unknown>
   index?: number
   content_block?: Record<string, unknown>
   delta?: Record<string, unknown>
-  usage?: Partial<AnthropicUsage>
+  usage?: Partial<GrayCodeUsage>
 }
 
 export interface ShimCreateParams {
@@ -73,7 +73,7 @@ type CodexSseEvent = {
 function makeUsage(usage?: {
   input_tokens?: number
   output_tokens?: number
-}): AnthropicUsage {
+}): GrayCodeUsage {
   return {
     input_tokens: usage?.input_tokens ?? 0,
     output_tokens: usage?.output_tokens ?? 0,
@@ -210,7 +210,7 @@ function convertContentBlocksToResponsesParts(
   return parts
 }
 
-export function convertAnthropicMessagesToResponsesInput(
+export function convertGrayCodeMessagesToResponsesInput(
   messages: Array<{ role?: string; message?: { role?: string; content?: unknown }; content?: unknown }>,
 ): ResponsesInputItem[] {
   const items: ResponsesInputItem[] = []
@@ -392,7 +392,7 @@ export async function performCodexRequest(options: {
   defaultHeaders: Record<string, string>
   signal?: AbortSignal
 }): Promise<Response> {
-  const input = convertAnthropicMessagesToResponsesInput(
+  const input = convertGrayCodeMessagesToResponsesInput(
     options.params.messages as Array<{
       role?: string
       message?: { role?: string; content?: unknown }
@@ -572,10 +572,10 @@ export async function collectCodexCompletedResponse(
   return completedResponse
 }
 
-export async function* codexStreamToAnthropic(
+export async function* codexStreamToGrayCode(
   response: Response,
   model: string,
-): AsyncGenerator<AnthropicStreamEvent> {
+): AsyncGenerator<GrayCodeStreamEvent> {
   const messageId = makeMessageId()
   const toolBlocksByItemId = new Map<
     string,
@@ -752,7 +752,7 @@ export async function* codexStreamToAnthropic(
   yield { type: 'message_stop' }
 }
 
-export function convertCodexResponseToAnthropicMessage(
+export function convertCodexResponseToGrayCodeMessage(
   data: Record<string, any>,
   model: string,
 ): Record<string, unknown> {

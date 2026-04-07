@@ -123,7 +123,7 @@ export async function createBashShellProvider(
       // Defensive rewrite: the model sometimes emits Windows CMD-style `2>nul`
       // redirects. In POSIX bash (including Git Bash on Windows), this creates a
       // literal file named `nul` — a reserved device name that breaks git.
-      // See anthropics/hawk-code#4928.
+      // See graycodes/hawk-code#4928.
       const normalizedCommand = rewriteWindowsNullRedirect(command)
       const addStdinRedirect = shouldAddStdinRedirect(normalizedCommand)
       let quotedCommand = quoteShellCommand(normalizedCommand, addStdinRedirect)

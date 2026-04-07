@@ -36,7 +36,7 @@ export async function createHistoryAuthCtx(
     baseUrl: `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/events`,
     headers: {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'graycode-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID,
     },
   }

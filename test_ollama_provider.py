@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from ollama_provider import (
     normalize_ollama_model,
-    anthropic_to_ollama_messages,
+    graycode_to_ollama_messages,
     ollama_chat,
     list_ollama_models,
     check_ollama_running,
@@ -24,17 +24,17 @@ def test_normalize_empty():
 
 def test_converts_string_content():
     messages = [{"role": "user", "content": "Hello!"}]
-    result = anthropic_to_ollama_messages(messages)
+    result = graycode_to_ollama_messages(messages)
     assert result == [{"role": "user", "content": "Hello!"}]
 
 def test_converts_text_block_list():
     messages = [{"role": "user", "content": [{"type": "text", "text": "What is Python?"}]}]
-    result = anthropic_to_ollama_messages(messages)
+    result = graycode_to_ollama_messages(messages)
     assert result[0]["content"] == "What is Python?"
 
 def test_converts_image_block_to_placeholder():
     messages = [{"role": "user", "content": [{"type": "image", "source": {}}, {"type": "text", "text": "Describe this"}]}]
-    result = anthropic_to_ollama_messages(messages)
+    result = graycode_to_ollama_messages(messages)
     assert "[image]" in result[0]["content"]
     assert "Describe this" in result[0]["content"]
 
@@ -44,7 +44,7 @@ def test_converts_multi_turn():
         {"role": "assistant", "content": "Hello!"},
         {"role": "user", "content": "How are you?"},
     ]
-    result = anthropic_to_ollama_messages(messages)
+    result = graycode_to_ollama_messages(messages)
     assert len(result) == 3
     assert result[1]["role"] == "assistant"
 
@@ -76,7 +76,7 @@ async def test_list_models_returns_names():
     assert "llama3:8b" in models
 
 @pytest.mark.asyncio
-async def test_ollama_chat_returns_anthropic_format():
+async def test_ollama_chat_returns_graycode_format():
     mock_response = MagicMock()
     mock_response.raise_for_status = MagicMock()
     mock_response.json.return_value = {

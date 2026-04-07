@@ -36,7 +36,7 @@ import { logForDebugging } from './debug.js'
 import { isEnvDefinedFalsy, isEnvTruthy } from './envUtils.js'
 import {
   getAPIProvider,
-  isFirstPartyAnthropicBaseUrl,
+  isFirstPartyGrayCodeBaseUrl,
 } from './model/providers.js'
 import { jsonStringify } from './slowOperations.js'
 import { zodToJsonSchema } from './zodToJsonSchema.js'
@@ -177,7 +177,7 @@ export function getToolSearchMode(): ToolSearchMode {
   // reach the wire, even if ENABLE_TOOL_SEARCH is also set. This is the
   // explicit escape hatch for proxy gateways that the heuristic in
   // isToolSearchEnabledOptimistic doesn't cover.
-  // github.com/anthropics/hawk-code/issues/20031
+  // github.com/graycodes/hawk-code/issues/20031
   if (isEnvTruthy(process.env.HAWK_CODE_DISABLE_EXPERIMENTAL_BETAS)) {
     return 'standard'
   }
@@ -280,11 +280,11 @@ export function isToolSearchEnabledOptimistic(): boolean {
   }
 
   // tool_reference is a beta content type that third-party API gateways
-  // (ANTHROPIC_BASE_URL proxies) typically don't support. When the provider
+  // (GRAYCODE_BASE_URL proxies) typically don't support. When the provider
   // is 'firstParty' but the base URL points elsewhere, the proxy will reject
   // tool_reference blocks with a 400. Vertex/Bedrock/Foundry are unaffected —
   // they have their own endpoints and beta headers.
-  // https://github.com/anthropics/hawk-code/issues/30912
+  // https://github.com/graycodes/hawk-code/issues/30912
   //
   // HOWEVER: some proxies DO support tool_reference (LiteLLM passthrough,
   // Cloudflare AI Gateway, corp gateways that forward beta headers). The
@@ -299,12 +299,12 @@ export function isToolSearchEnabledOptimistic(): boolean {
   if (
     !process.env.ENABLE_TOOL_SEARCH &&
     getAPIProvider() === 'firstParty' &&
-    !isFirstPartyAnthropicBaseUrl()
+    !isFirstPartyGrayCodeBaseUrl()
   ) {
     if (!loggedOptimistic) {
       loggedOptimistic = true
       logForDebugging(
-        `[ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=${process.env.ANTHROPIC_BASE_URL} is not a first-party GrayCode host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.`,
+        `[ToolSearch:optimistic] disabled: GRAYCODE_BASE_URL=${process.env.GRAYCODE_BASE_URL} is not a first-party GrayCode host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.`,
       )
     }
     return false

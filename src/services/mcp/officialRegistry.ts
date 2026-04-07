@@ -37,7 +37,7 @@ export async function prefetchOfficialMcpUrls(): Promise<void> {
 
   try {
     const response = await axios.get<RegistryResponse>(
-      'https://api.anthropic.com/mcp-registry/v0/servers?version=latest&visibility=commercial',
+      'https://api.graycode.com/mcp-registry/v0/servers?version=latest&visibility=commercial',
       { timeout: 5000 },
     )
 

@@ -1,4 +1,4 @@
-import { APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIUserAbortError } from '@graycode-ai/sdk'
 import { getEmptyToolPermissionContext } from '../Tool.js'
 import type { Message } from '../types/message.js'
 import { logForDebugging } from '../utils/debug.js'

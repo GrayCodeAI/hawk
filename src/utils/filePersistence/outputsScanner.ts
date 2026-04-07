@@ -24,7 +24,7 @@ export function logDebug(message: string): void {
  */
 export function getEnvironmentKind(): EnvironmentKind | null {
   const kind = process.env.HAWK_CODE_ENVIRONMENT_KIND
-  if (kind === 'byoc' || kind === 'anthropic_cloud') {
+  if (kind === 'byoc' || kind === 'graycode_cloud') {
     return kind
   }
   return null

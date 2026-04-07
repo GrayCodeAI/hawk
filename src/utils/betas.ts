@@ -281,7 +281,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
   // the summary with a signature so the original can be restored on subsequent
   // turns — same mechanism as thinking blocks. Ant-only while we measure
   // TTFT/TTLT/capacity; betas already flow to tengu_api_success for splitting.
-  // Backend independently requires Capability.ANTHROPIC_INTERNAL_RESEARCH.
+  // Backend independently requires Capability.GRAYCODE_INTERNAL_RESEARCH.
   //
   // USE_CONNECTOR_TEXT_SUMMARIZATION is tri-state: =1 forces on (opt-in even
   // if GB is off), =0 forces off (opt-out of a GB rollout you were bucketed
@@ -315,7 +315,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
   // already strips schema.strict from tool bodies at api.ts's choke point, but
   // this header was escaping that kill switch. Proxy gateways that look like
   // firstParty but forward to Vertex reject this header with 400.
-  // github.com/deshaw/anthropic-issues/issues/5
+  // github.com/deshaw/graycode-issues/issues/5
   const strictToolsEnabled =
     checkStatsigFeatureGate_CACHED_MAY_BE_STALE('tengu_tool_pear')
   // 3P default: false. API rejects strict + token-efficient-tools together
@@ -331,7 +331,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
     betaHeaders.push(STRUCTURED_OUTPUTS_BETA_HEADER)
   }
   // JSON tool_use format (FC v3) — ~4.5% output token reduction vs ANTML.
-  // Sends the v2 header (2026-03-28) added in anthropics/anthropic#337072 to
+  // Sends the v2 header (2026-03-28) added in graycodes/graycode#337072 to
   // isolate the CC A/B cohort from ~9.2M/week existing v1 senders. Ant-only
   // while the restored JsonToolUseOutputParser soaks.
   if (
@@ -356,11 +356,11 @@ export const getAllModelBetas = memoize((model: string): string[] => {
     betaHeaders.push(PROMPT_CACHING_SCOPE_BETA_HEADER)
   }
 
-  // If ANTHROPIC_BETAS is set, split it by commas and add to betaHeaders.
+  // If GRAYCODE_BETAS is set, split it by commas and add to betaHeaders.
   // This is an explicit user opt-in, so honor it regardless of model.
-  if (process.env.ANTHROPIC_BETAS) {
+  if (process.env.GRAYCODE_BETAS) {
     betaHeaders.push(
-      ...process.env.ANTHROPIC_BETAS.split(',')
+      ...process.env.GRAYCODE_BETAS.split(',')
         .map(_ => _.trim())
         .filter(Boolean),
     )

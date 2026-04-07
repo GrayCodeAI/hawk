@@ -2,7 +2,7 @@
  * Team Memory Sync Types
  *
  * Zod schemas and types for the repo-scoped team memory sync API.
- * Based on the backend API contract from anthropic/anthropic#250711.
+ * Based on the backend API contract from graycode/graycode#250711.
  */
 
 import { z } from 'zod/v4'
@@ -17,7 +17,7 @@ export const TeamMemoryContentSchema = lazySchema(() =>
   z.object({
     entries: z.record(z.string(), z.string()),
     // Per-key SHA-256 of entry content (`sha256:<hex>`). Added in
-    // anthropic/anthropic#283027. Optional for forward-compat with older
+    // graycode/graycode#283027. Optional for forward-compat with older
     // server deployments; empty map when entries is empty.
     entryChecksums: z.record(z.string(), z.string()).optional(),
   }),
@@ -38,7 +38,7 @@ export const TeamMemoryDataSchema = lazySchema(() =>
 )
 
 /**
- * Structured 413 error body from the server (anthropic/anthropic#293258).
+ * Structured 413 error body from the server (graycode/graycode#293258).
  * The server's RequestTooLargeException serializes error_code and the
  * extra_details dict flattened into error.details. We only model the
  * too-many-entries case; entry-too-large is handled via MAX_FILE_SIZE_BYTES
@@ -135,7 +135,7 @@ export type TeamMemorySyncUploadResult = {
   errorType?: 'auth' | 'timeout' | 'network' | 'unknown'
   httpStatus?: number
   /**
-   * Structured error_code from a parsed 413 body (anthropic/anthropic#293258).
+   * Structured error_code from a parsed 413 body (graycode/graycode#293258).
    * Currently only 'team_memory_too_many_entries' is modelled; if the server
    * adds more (entry_too_large, total_bytes_exceeded) they'd extend this
    * union.  Passed straight through to the tengu_team_mem_sync_push event

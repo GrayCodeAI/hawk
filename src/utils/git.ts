@@ -169,7 +169,7 @@ const resolveCanonicalRoot = memoizeWithLRU(
         return gitRoot
       }
       // Bare-repo worktrees: the common dir isn't inside a working directory.
-      // Use the common dir itself as the stable identity (anthropics/hawk-code#27994).
+      // Use the common dir itself as the stable identity (graycodes/hawk-code#27994).
       if (basename(commonDir) !== '.git') {
         return commonDir.normalize('NFC')
       }

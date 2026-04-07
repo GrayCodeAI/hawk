@@ -1,4 +1,4 @@
-import type { ToolUseBlock } from '@anthropic-ai/sdk/resources';
+import type { ToolUseBlock } from '@graycode-ai/sdk/resources';
 import { getRemoteSessionUrl } from '../../constants/product.js';
 import { OUTPUT_FILE_TAG, REMOTE_REVIEW_PROGRESS_TAG, REMOTE_REVIEW_TAG, STATUS_TAG, SUMMARY_TAG, TASK_ID_TAG, TASK_NOTIFICATION_TAG, TASK_TYPE_TAG, TOOL_USE_ID_TAG, ULTRAPLAN_TAG } from '../../constants/xml.js';
 import type { SDKAssistantMessage, SDKMessage } from '../../entrypoints/agentSdkTypes.js';

@@ -8,7 +8,7 @@ import {
   APIError,
   APIConnectionError,
   AuthenticationError,
-} from '@anthropic-ai/sdk'
+} from '@graycode-ai/sdk'
 import { getModelStrings } from './modelStrings.js'
 
 // Cache valid models to avoid repeated API calls
@@ -41,8 +41,8 @@ export async function validateModel(
     return { valid: true }
   }
 
-  // Check if it matches ANTHROPIC_CUSTOM_MODEL_OPTION (pre-validated by the user)
-  if (normalizedModel === process.env.ANTHROPIC_CUSTOM_MODEL_OPTION) {
+  // Check if it matches GRAYCODE_CUSTOM_MODEL_OPTION (pre-validated by the user)
+  if (normalizedModel === process.env.GRAYCODE_CUSTOM_MODEL_OPTION) {
     return { valid: true }
   }
 

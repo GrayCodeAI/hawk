@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.js'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js'
 import type { Command } from '../commands.js'
 import { isUltrareviewEnabled } from './review/ultrareviewEnabled.js'
 

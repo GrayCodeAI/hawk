@@ -30,7 +30,7 @@ import { which } from '../which.js'
 import { getUserBinDir, getXDGDataHome } from '../xdg.js'
 import { DEEP_LINK_PROTOCOL } from './parseDeepLink.js'
 
-export const MACOS_BUNDLE_ID = 'com.anthropic.hawk-code-url-handler'
+export const MACOS_BUNDLE_ID = 'com.graycode.hawk-code-url-handler'
 const APP_NAME = 'Hawk URL Handler'
 const DESKTOP_FILE_NAME = 'hawk-code-url-handler.desktop'
 const MACOS_APP_NAME = 'Hawk URL Handler.app'

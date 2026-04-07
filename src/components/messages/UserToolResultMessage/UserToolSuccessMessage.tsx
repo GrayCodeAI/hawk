@@ -55,7 +55,7 @@ export function UserToolSuccessMessage({
 
   // Resumed transcripts deserialize toolUseResult via raw JSON.parse with no
   // validation (parseJSONL). A partial/corrupt/old-format result crashes
-  // renderToolResultMessage on first field access (anthropics/hawk-code#39817).
+  // renderToolResultMessage on first field access (graycodes/hawk-code#39817).
   // Validate against outputSchema before rendering — mirrors CollapsedReadSearchContent.
   const parsedOutput = tool.outputSchema?.safeParse(message.toolUseResult);
   if (parsedOutput && !parsedOutput.success) {

@@ -1,4 +1,4 @@
-import type { APIError } from '@anthropic-ai/sdk'
+import type { APIError } from '@graycode-ai/sdk'
 
 // SSL/TLS error codes from OpenSSL (used by both Node.js and Bun)
 // See: https://www.openssl.org/docs/man3.1/man3/X509_STORE_CTX_get_error.html
@@ -96,7 +96,7 @@ export function getSSLErrorHint(error: unknown): string | null {
   if (!details?.isSSLError) {
     return null
   }
-  return `SSL certificate error (${details.code}). If you are behind a corporate proxy or TLS-intercepting firewall, set NODE_EXTRA_CA_CERTS to your CA bundle path, or ask IT to allowlist *.anthropic.com. Run /doctor for details.`
+  return `SSL certificate error (${details.code}). If you are behind a corporate proxy or TLS-intercepting firewall, set NODE_EXTRA_CA_CERTS to your CA bundle path, or ask IT to allowlist *.graycode.com. Run /doctor for details.`
 }
 
 /**

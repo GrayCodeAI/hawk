@@ -164,7 +164,7 @@ import {
 } from './utils/plugins/loadPluginCommands.js'
 import memoize from 'lodash-es/memoize.js'
 import { isUsing3PServices, isHawkAISubscriber } from './utils/auth.js'
-import { isFirstPartyAnthropicBaseUrl } from './utils/model/providers.js'
+import { isFirstPartyGrayCodeBaseUrl } from './utils/model/providers.js'
 import env from './commands/env/index.js'
 import exit from './commands/exit/index.js'
 import exportCommand from './commands/export/index.js'
@@ -419,12 +419,12 @@ export function meetsAvailabilityRequirement(cmd: Command): boolean {
         break
       case 'console':
         // Console API key user = direct 1P API customer (not 3P, not hawkai).
-        // Excludes 3P (Bedrock/Vertex/Foundry) who don't set ANTHROPIC_BASE_URL
+        // Excludes 3P (Bedrock/Vertex/Foundry) who don't set GRAYCODE_BASE_URL
         // and gateway users who proxy through a custom base URL.
         if (
           !isHawkAISubscriber() &&
           !isUsing3PServices() &&
-          isFirstPartyAnthropicBaseUrl()
+          isFirstPartyGrayCodeBaseUrl()
         )
           return true
         break

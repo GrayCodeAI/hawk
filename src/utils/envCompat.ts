@@ -2,7 +2,7 @@
  * Keep GrayCode and GrayCode env var namespaces interoperable.
  *
  * This lets users migrate to GRAYCODE_* names while preserving compatibility
- * with existing code paths and external contracts that still read ANTHROPIC_*.
+ * with existing code paths and external contracts that still read GRAYCODE_*.
  */
 export function applyGrayCodeEnvCompat(
   env: NodeJS.ProcessEnv = process.env,
@@ -15,15 +15,15 @@ export function applyGrayCodeEnvCompat(
     if (key.startsWith('GRAYCODE_')) {
       const suffix = key.slice('GRAYCODE_'.length)
       if (!suffix) continue
-      const anthropicKey = `ANTHROPIC_${suffix}`
-      if (env[anthropicKey] == null) {
-        env[anthropicKey] = value
+      const graycodeKey = `GRAYCODE_${suffix}`
+      if (env[graycodeKey] == null) {
+        env[graycodeKey] = value
       }
       continue
     }
 
-    if (key.startsWith('ANTHROPIC_')) {
-      const suffix = key.slice('ANTHROPIC_'.length)
+    if (key.startsWith('GRAYCODE_')) {
+      const suffix = key.slice('GRAYCODE_'.length)
       if (!suffix) continue
       const grayCodeKey = `GRAYCODE_${suffix}`
       if (env[grayCodeKey] == null) {

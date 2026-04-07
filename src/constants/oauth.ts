@@ -82,15 +82,15 @@ type OauthConfig = {
 
 // Production OAuth configuration - Used in normal operation
 const PROD_OAUTH_CONFIG = {
-  BASE_API_URL: 'https://api.anthropic.com',
+  BASE_API_URL: 'https://api.graycode.com',
   CONSOLE_AUTHORIZE_URL: 'https://platform.hawk.com/oauth/authorize',
   // Bounces through hawk.com/cai/* so CLI sign-ins connect to hawk.com
   // visits for attribution. 307s to hawkai/oauth/authorize in two hops.
   HAWK_AI_AUTHORIZE_URL: 'https://hawk.com/cai/oauth/authorize',
   HAWK_AI_ORIGIN: 'https://hawkai',
   TOKEN_URL: 'https://platform.hawk.com/v1/oauth/token',
-  API_KEY_URL: 'https://api.anthropic.com/api/oauth/hawk_cli/create_api_key',
-  ROLES_URL: 'https://api.anthropic.com/api/oauth/hawk_cli/roles',
+  API_KEY_URL: 'https://api.graycode.com/api/oauth/hawk_cli/create_api_key',
+  ROLES_URL: 'https://api.graycode.com/api/oauth/hawk_cli/roles',
   CONSOLE_SUCCESS_URL:
     'https://platform.hawk.com/buy_credits?returnUrl=/oauth/code/success%3Fapp%3Dhawk-code',
   HAWKAI_SUCCESS_URL:
@@ -99,7 +99,7 @@ const PROD_OAUTH_CONFIG = {
   CLIENT_ID: '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
   // No suffix for production config
   OAUTH_FILE_SUFFIX: '',
-  MCP_PROXY_URL: 'https://mcp-proxy.anthropic.com',
+  MCP_PROXY_URL: 'https://mcp-proxy.graycode.com',
   MCP_PROXY_PATH: '/v1/mcp/{server_id}',
 } as const
 
@@ -118,7 +118,7 @@ export const MCP_CLIENT_METADATA_URL =
 const STAGING_OAUTH_CONFIG =
   process.env.USER_TYPE === 'ant'
     ? ({
-        BASE_API_URL: 'https://api-staging.anthropic.com',
+        BASE_API_URL: 'https://api-staging.graycode.com',
         CONSOLE_AUTHORIZE_URL:
           'https://platform.staging.ant.dev/oauth/authorize',
         HAWK_AI_AUTHORIZE_URL:
@@ -126,9 +126,9 @@ const STAGING_OAUTH_CONFIG =
         HAWK_AI_ORIGIN: 'https://hawk-ai.staging.ant.dev',
         TOKEN_URL: 'https://platform.staging.ant.dev/v1/oauth/token',
         API_KEY_URL:
-          'https://api-staging.anthropic.com/api/oauth/hawk_cli/create_api_key',
+          'https://api-staging.graycode.com/api/oauth/hawk_cli/create_api_key',
         ROLES_URL:
-          'https://api-staging.anthropic.com/api/oauth/hawk_cli/roles',
+          'https://api-staging.graycode.com/api/oauth/hawk_cli/roles',
         CONSOLE_SUCCESS_URL:
           'https://platform.staging.ant.dev/buy_credits?returnUrl=/oauth/code/success%3Fapp%3Dhawk-code',
         HAWKAI_SUCCESS_URL:
@@ -137,7 +137,7 @@ const STAGING_OAUTH_CONFIG =
           'https://platform.staging.ant.dev/oauth/code/callback',
         CLIENT_ID: '22422756-60c9-4084-8eb7-27705fd5cf9a',
         OAUTH_FILE_SUFFIX: '-staging-oauth',
-        MCP_PROXY_URL: 'https://mcp-proxy-staging.anthropic.com',
+        MCP_PROXY_URL: 'https://mcp-proxy-staging.graycode.com',
         MCP_PROXY_PATH: '/v1/mcp/{server_id}',
       } as const)
     : undefined

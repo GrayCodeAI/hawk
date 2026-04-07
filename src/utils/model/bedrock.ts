@@ -31,7 +31,7 @@ export const getBedrockInferenceProfiles = memoize(async function (): Promise<
 
     // Filter for GrayCode models (SYSTEM_DEFINED filtering handled in query)
     return allProfiles
-      .filter(profile => profile.inferenceProfileId?.includes('anthropic'))
+      .filter(profile => profile.inferenceProfileId?.includes('graycode'))
       .map(profile => profile.inferenceProfileId)
       .filter(Boolean) as string[]
   } catch (error) {
@@ -59,8 +59,8 @@ async function createBedrockClient() {
 
   const clientConfig: ConstructorParameters<typeof BedrockClient>[0] = {
     region,
-    ...(process.env.ANTHROPIC_BEDROCK_BASE_URL && {
-      endpoint: process.env.ANTHROPIC_BEDROCK_BASE_URL,
+    ...(process.env.GRAYCODE_BEDROCK_BASE_URL && {
+      endpoint: process.env.GRAYCODE_BEDROCK_BASE_URL,
     }),
     ...(await getAWSClientProxyConfig()),
     ...(skipAuth && {
@@ -102,8 +102,8 @@ export async function createBedrockRuntimeClient() {
 
   const clientConfig: ConstructorParameters<typeof BedrockRuntimeClient>[0] = {
     region,
-    ...(process.env.ANTHROPIC_BEDROCK_BASE_URL && {
-      endpoint: process.env.ANTHROPIC_BEDROCK_BASE_URL,
+    ...(process.env.GRAYCODE_BEDROCK_BASE_URL && {
+      endpoint: process.env.GRAYCODE_BEDROCK_BASE_URL,
     }),
     ...(await getAWSClientProxyConfig()),
     ...(skipAuth && {
@@ -176,10 +176,10 @@ export const getInferenceProfileBackingModel = memoize(async function (
 })
 
 /**
- * Check if a model ID is a foundation model (e.g., "anthropic.hawk-sonnet-4-5-20250929-v1:0")
+ * Check if a model ID is a foundation model (e.g., "graycode.hawk-sonnet-4-5-20250929-v1:0")
  */
 export function isFoundationModel(modelId: string): boolean {
-  return modelId.startsWith('anthropic.')
+  return modelId.startsWith('graycode.')
 }
 
 /**
@@ -213,10 +213,10 @@ export type BedrockRegionPrefix = (typeof BEDROCK_REGION_PREFIXES)[number]
  * Extract the region prefix from a Bedrock cross-region inference model ID.
  * Handles both plain model IDs and full ARN format.
  * For example:
- * - "eu.anthropic.hawk-sonnet-4-5-20250929-v1:0" → "eu"
- * - "us.anthropic.hawk-3-7-sonnet-20250219-v1:0" → "us"
- * - "arn:aws:bedrock:ap-northeast-2:123:inference-profile/global.anthropic.hawk-opus-4-6-v1" → "global"
- * - "anthropic.hawk-3-5-sonnet-20241022-v2:0" → undefined (foundation model)
+ * - "eu.graycode.hawk-sonnet-4-5-20250929-v1:0" → "eu"
+ * - "us.graycode.hawk-3-7-sonnet-20250219-v1:0" → "us"
+ * - "arn:aws:bedrock:ap-northeast-2:123:inference-profile/global.graycode.hawk-opus-4-6-v1" → "global"
+ * - "graycode.hawk-3-5-sonnet-20241022-v2:0" → undefined (foundation model)
  * - "hawk-sonnet-4-5-20250929" → undefined (first-party format)
  */
 export function getBedrockRegionPrefix(
@@ -227,7 +227,7 @@ export function getBedrockRegionPrefix(
   const effectiveModelId = extractModelIdFromArn(modelId)
 
   for (const prefix of BEDROCK_REGION_PREFIXES) {
-    if (effectiveModelId.startsWith(`${prefix}.anthropic.`)) {
+    if (effectiveModelId.startsWith(`${prefix}.graycode.`)) {
       return prefix
     }
   }
@@ -237,12 +237,12 @@ export function getBedrockRegionPrefix(
 /**
  * Apply a region prefix to a Bedrock model ID.
  * If the model already has a different region prefix, it will be replaced.
- * If the model is a foundation model (anthropic.*), the prefix will be added.
+ * If the model is a foundation model (graycode.*), the prefix will be added.
  * If the model is not a Bedrock model, it will be returned as-is.
  *
  * For example:
- * - applyBedrockRegionPrefix("us.anthropic.hawk-sonnet-4-5-v1:0", "eu") → "eu.anthropic.hawk-sonnet-4-5-v1:0"
- * - applyBedrockRegionPrefix("anthropic.hawk-sonnet-4-5-v1:0", "eu") → "eu.anthropic.hawk-sonnet-4-5-v1:0"
+ * - applyBedrockRegionPrefix("us.graycode.hawk-sonnet-4-5-v1:0", "eu") → "eu.graycode.hawk-sonnet-4-5-v1:0"
+ * - applyBedrockRegionPrefix("graycode.hawk-sonnet-4-5-v1:0", "eu") → "eu.graycode.hawk-sonnet-4-5-v1:0"
  * - applyBedrockRegionPrefix("hawk-sonnet-4-5-20250929", "eu") → "hawk-sonnet-4-5-20250929" (not a Bedrock model)
  */
 export function applyBedrockRegionPrefix(
@@ -255,7 +255,7 @@ export function applyBedrockRegionPrefix(
     return modelId.replace(`${existingPrefix}.`, `${prefix}.`)
   }
 
-  // Check if it's a foundation model (anthropic.*) and add the prefix
+  // Check if it's a foundation model (graycode.*) and add the prefix
   if (isFoundationModel(modelId)) {
     return `${prefix}.${modelId}`
   }

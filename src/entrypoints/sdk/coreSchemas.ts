@@ -1234,13 +1234,13 @@ export const RewindFilesResultSchema = lazySchema(() =>
 // The generation script uses TypeOverrideMap to output the correct TS type references.
 // This allows us to define SDK message types in Zod while maintaining proper typing.
 
-/** Placeholder for APIUserMessage from @anthropic-ai/sdk */
+/** Placeholder for APIUserMessage from @graycode-ai/sdk */
 export const APIUserMessagePlaceholder = lazySchema(() => z.unknown())
 
-/** Placeholder for APIAssistantMessage from @anthropic-ai/sdk */
+/** Placeholder for APIAssistantMessage from @graycode-ai/sdk */
 export const APIAssistantMessagePlaceholder = lazySchema(() => z.unknown())
 
-/** Placeholder for RawMessageStreamEvent from @anthropic-ai/sdk */
+/** Placeholder for RawMessageStreamEvent from @graycode-ai/sdk */
 export const RawMessageStreamEventPlaceholder = lazySchema(() => z.unknown())
 
 /** Placeholder for UUID from crypto */

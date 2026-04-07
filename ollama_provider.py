@@ -49,7 +49,7 @@ def normalize_ollama_model(model_name: str) -> str:
     return model_name
 
 
-def anthropic_to_ollama_messages(messages: list[dict]) -> list[dict]:
+def graycode_to_ollama_messages(messages: list[dict]) -> list[dict]:
     ollama_messages = []
     for msg in messages:
         role = msg.get("role", "user")
@@ -78,7 +78,7 @@ async def ollama_chat(
     temperature: float = 1.0,
 ) -> dict:
     model = normalize_ollama_model(model)
-    ollama_messages = anthropic_to_ollama_messages(messages)
+    ollama_messages = graycode_to_ollama_messages(messages)
     if system:
         ollama_messages.insert(0, {"role": "system", "content": system})
     payload = {
@@ -116,7 +116,7 @@ async def ollama_chat_stream(
 ) -> AsyncIterator[str]:
     import json
     model = normalize_ollama_model(model)
-    ollama_messages = anthropic_to_ollama_messages(messages)
+    ollama_messages = graycode_to_ollama_messages(messages)
     if system:
         ollama_messages.insert(0, {"role": "system", "content": system})
     payload = {

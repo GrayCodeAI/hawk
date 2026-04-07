@@ -9,7 +9,7 @@ import { homedir, userInfo } from 'os'
 import { join } from 'path'
 
 /** macOS preference domain for Hawk MDM profiles. */
-export const MACOS_PREFERENCE_DOMAIN = 'com.anthropic.hawkcode'
+export const MACOS_PREFERENCE_DOMAIN = 'com.graycode.hawkcode'
 
 /**
  * Windows registry key paths for Hawk MDM policies.

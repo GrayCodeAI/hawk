@@ -1,5 +1,5 @@
-import type Anthropic from '@anthropic-ai/sdk'
-import type { BetaToolUnion } from '@anthropic-ai/sdk/resources/beta/messages.js'
+import type GrayCode from '@graycode-ai/sdk'
+import type { BetaToolUnion } from '@graycode-ai/sdk/resources/beta/messages.js'
 import {
   getLastApiCompletionTimestamp,
   setLastApiCompletionTimestamp,
@@ -13,18 +13,18 @@ import {
 import { logEvent } from '../services/analytics/index.js'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../services/analytics/metadata.js'
 import { getAPIMetadata } from '../services/api/hawk.js'
-import { getAnthropicClient } from '../services/api/client.js'
+import { getGrayCodeClient } from '../services/api/client.js'
 import { getModelBetas, modelSupportsStructuredOutputs } from './betas.js'
 import { computeFingerprint } from './fingerprint.js'
 import { normalizeModelStringForAPI } from './model/model.js'
 
-type MessageParam = Anthropic.MessageParam
-type TextBlockParam = Anthropic.TextBlockParam
-type Tool = Anthropic.Tool
-type ToolChoice = Anthropic.ToolChoice
-type BetaMessage = Anthropic.Beta.Messages.BetaMessage
-type BetaJSONOutputFormat = Anthropic.Beta.Messages.BetaJSONOutputFormat
-type BetaThinkingConfigParam = Anthropic.Beta.Messages.BetaThinkingConfigParam
+type MessageParam = GrayCode.MessageParam
+type TextBlockParam = GrayCode.TextBlockParam
+type Tool = GrayCode.Tool
+type ToolChoice = GrayCode.ToolChoice
+type BetaMessage = GrayCode.Beta.Messages.BetaMessage
+type BetaJSONOutputFormat = GrayCode.Beta.Messages.BetaJSONOutputFormat
+type BetaThinkingConfigParam = GrayCode.Beta.Messages.BetaThinkingConfigParam
 
 export type SideQueryOptions = {
   /** Model to use for the query */
@@ -121,7 +121,7 @@ export async function sideQuery(opts: SideQueryOptions): Promise<BetaMessage> {
     stop_sequences,
   } = opts
 
-  const client = await getAnthropicClient({
+  const client = await getGrayCodeClient({
     maxRetries,
     model,
     source: 'side_query',

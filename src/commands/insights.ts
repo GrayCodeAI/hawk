@@ -3081,8 +3081,8 @@ const usageReport: Command = {
         .slice(0, 15)
       const username = process.env.SAFEUSER || process.env.USER || 'unknown'
       const filename = `${username}_insights_${timestamp}.html`
-      const s3Path = `s3://anthropic-serve/atamkin/cc-user-reports/${filename}`
-      const s3Url = `https://s3-frontend.infra.ant.dev/anthropic-serve/atamkin/cc-user-reports/${filename}`
+      const s3Path = `s3://graycode-serve/atamkin/cc-user-reports/${filename}`
+      const s3Url = `https://s3-frontend.infra.ant.dev/graycode-serve/atamkin/cc-user-reports/${filename}`
 
       reportUrl = s3Url
       try {

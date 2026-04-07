@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import { APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIUserAbortError } from '@graycode-ai/sdk'
 import type { z } from 'zod/v4'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import {
@@ -399,7 +399,7 @@ const SAFE_ENV_VARS = new Set([
   'PYTEST_DEBUG', // debug output
 
   // API keys and authentication
-  'ANTHROPIC_API_KEY', // API authentication
+  'GRAYCODE_API_KEY', // API authentication
 
   // Locale and character encoding
   'LANG', // default locale

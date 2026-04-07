@@ -1,4 +1,4 @@
-import { APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIUserAbortError } from '@graycode-ai/sdk'
 
 export class HawkError extends Error {
   constructor(message: string) {

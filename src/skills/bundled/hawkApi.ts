@@ -182,7 +182,7 @@ export function registerHawkApiSkill(): void {
     name: 'hawk-api',
     description:
       'Build apps with the Hawk API or GrayCode SDK.\n' +
-      'TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`hawk_agent_sdk`, or user asks to use Hawk API, GrayCode SDKs, or Agent SDK.\n' +
+      'TRIGGER when: code imports `graycode`/`@graycode-ai/sdk`/`hawk_agent_sdk`, or user asks to use Hawk API, GrayCode SDKs, or Agent SDK.\n' +
       'DO NOT TRIGGER when: code imports `openai`/other AI SDK, general programming, or ML/data-science tasks.',
     allowedTools: ['Read', 'Grep', 'Glob', 'WebFetch'],
     userInvocable: true,

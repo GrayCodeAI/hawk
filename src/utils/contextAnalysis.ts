@@ -1,8 +1,8 @@
-import type { BetaContentBlock } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaContentBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
 import type {
   ContentBlock,
   ContentBlockParam,
-} from '@anthropic-ai/sdk/resources/index.mjs'
+} from '@graycode-ai/sdk/resources/index.mjs'
 import { roughTokenCountEstimation as countTokens } from '../services/tokenEstimation.js'
 import type {
   AssistantMessage,

@@ -1,10 +1,10 @@
 import { feature } from 'bun:bundle'
-import type Anthropic from '@anthropic-ai/sdk'
+import type GrayCode from '@graycode-ai/sdk'
 import {
   APIConnectionError,
   APIError,
   APIUserAbortError,
-} from '@anthropic-ai/sdk'
+} from '@graycode-ai/sdk'
 import type { QuerySource } from 'src/constants/querySource.js'
 import type { SystemAPIErrorMessage } from 'src/types/message.js'
 import { isAwsCredentialsProviderError } from 'src/utils/aws.js'
@@ -273,7 +273,7 @@ export async function* withRetry<T>(
         // If the 429 is specifically because extra usage (overage) is not
         // available, permanently disable fast mode with a specific message.
         const overageReason = error.headers?.get(
-          'anthropic-ratelimit-unified-overage-disabled-reason',
+          'graycode-ratelimit-unified-overage-disabled-reason',
         )
         if (overageReason !== null && overageReason !== undefined) {
           handleFastModeOverageRejection(overageReason)
@@ -812,7 +812,7 @@ function getRetryAfterMs(error: APIError): number | null {
 }
 
 function getRateLimitResetDelayMs(error: APIError): number | null {
-  const resetHeader = error.headers?.get?.('anthropic-ratelimit-unified-reset')
+  const resetHeader = error.headers?.get?.('graycode-ratelimit-unified-reset')
   if (!resetHeader) return null
   const resetUnixSec = Number(resetHeader)
   if (!Number.isFinite(resetUnixSec)) return null

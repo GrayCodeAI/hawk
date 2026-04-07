@@ -9,7 +9,7 @@
  * pushed branches on repos with the Hawk GitHub app installed.
  */
 
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.js'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
@@ -134,7 +134,7 @@ export async function launchRemoteReview(
   // Synthetic DEFAULT_CODE_REVIEW_ENVIRONMENT_ID works without per-org CCR
   // setup, so no_remote_environment isn't a blocker. Server-side quota
   // consume at session creation routes billing: first N zero-rate, then
-  // anthropic:cccr org-service-key (overage-only).
+  // graycode:cccr org-service-key (overage-only).
   if (!eligibility.eligible) {
     const blockers = eligibility.errors.filter(
       e => e.type !== 'no_remote_environment',

@@ -44,7 +44,7 @@ export function modelSupportsEffort(model: string): boolean {
 
   // Default to true for unknown model strings on 1P.
   // Do not default to true for 3P as they have different formats for their
-  // model strings (ex. anthropics/hawk-code#30795)
+  // model strings (ex. graycodes/hawk-code#30795)
   return getAPIProvider() === 'firstParty'
 }
 

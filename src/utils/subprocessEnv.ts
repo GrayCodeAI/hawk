@@ -3,7 +3,7 @@ import { isEnvTruthy } from './envUtils.js'
 /**
  * Env vars to strip from subprocess environments when running inside GitHub
  * Actions. This prevents prompt-injection attacks from exfiltrating secrets
- * via shell expansion (e.g., ${ANTHROPIC_API_KEY}) in Bash tool commands.
+ * via shell expansion (e.g., ${GRAYCODE_API_KEY}) in Bash tool commands.
  *
  * The parent hawk process keeps these vars (needed for API calls, lazy
  * credential reads). Only child processes (bash, shell snapshot, MCP stdio, LSP, hooks) are scrubbed.
@@ -14,11 +14,11 @@ import { isEnvTruthy } from './envUtils.js'
  */
 const GHA_SUBPROCESS_SCRUB = [
   // GrayCode auth — hawk re-reads these per-request, subprocesses don't need them
-  'ANTHROPIC_API_KEY',
+  'GRAYCODE_API_KEY',
   'HAWK_CODE_OAUTH_TOKEN',
-  'ANTHROPIC_AUTH_TOKEN',
-  'ANTHROPIC_FOUNDRY_API_KEY',
-  'ANTHROPIC_CUSTOM_HEADERS',
+  'GRAYCODE_AUTH_TOKEN',
+  'GRAYCODE_FOUNDRY_API_KEY',
+  'GRAYCODE_CUSTOM_HEADERS',
 
   // OTLP exporter headers — documented to carry Authorization=Bearer tokens
   // for monitoring backends; read in-process by OTEL SDK, subprocesses never need them
@@ -45,7 +45,7 @@ const GHA_SUBPROCESS_SCRUB = [
   'ACTIONS_RUNTIME_URL',
 
   // hawk-code-action-specific duplicates — action JS consumes these during
-  // prepare, before spawning hawk. ALL_INPUTS contains anthropic_api_key as JSON.
+  // prepare, before spawning hawk. ALL_INPUTS contains graycode_api_key as JSON.
   'ALL_INPUTS',
   'OVERRIDE_GITHUB_TOKEN',
   'DEFAULT_WORKFLOW_TOKEN',
@@ -92,7 +92,7 @@ export function subprocessEnv(): NodeJS.ProcessEnv {
   for (const k of GHA_SUBPROCESS_SCRUB) {
     delete env[k]
     // GitHub Actions auto-creates INPUT_<NAME> for `with:` inputs, duplicating
-    // secrets like INPUT_ANTHROPIC_API_KEY. No-op for vars that aren't action inputs.
+    // secrets like INPUT_GRAYCODE_API_KEY. No-op for vars that aren't action inputs.
     delete env[`INPUT_${k}`]
   }
   return env

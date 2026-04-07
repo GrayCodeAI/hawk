@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
