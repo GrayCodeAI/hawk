@@ -8,6 +8,9 @@
   <a href="https://www.npmjs.com/package/hawk">
     <img src="https://img.shields.io/npm/v/hawk?style=flat&color=blue" alt="npm version">
   </a>
+  <a href="https://github.com/GrayCodeAI/hawk/releases">
+    <img src="https://img.shields.io/github/v/release/GrayCodeAI/hawk?style=flat" alt="GitHub Release">
+  </a>
   <a href="https://github.com/GrayCodeAI/hawk/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/GrayCodeAI/hawk" alt="License">
   </a>
@@ -18,8 +21,6 @@
 
 > A CLI for **any LLM** — OpenAI, Gemini, DeepSeek, Ollama, Claude, and 200+ models.
 
----
-
 ## Features
 
 - 🤖 **Multi-Provider** — Works with OpenAI, Claude, Gemini, DeepSeek, Ollama, and any OpenAI-compatible API
@@ -28,21 +29,31 @@
 - 📡 **OpenAI Shim** — Translation layer between Hawk and any LLM API
 - 💾 **Local Models** — Run offline with Ollama or LM Studio
 
----
+## Installation
 
-## Quick Start
+### npm
 
 ```bash
-# Install via npm
 npm install -g hawk
-
-# Or clone and build from source
-git clone https://github.com/GrayCodeAI/hawk.git
-cd hawk
-bun install && bun run build
 ```
 
-### Configure Your LLM
+### Homebrew
+
+```bash
+brew install hawk
+```
+
+### From Source
+
+```bash
+git clone https://github.com/GrayCodeAI/hawk.git
+cd hawk
+bun install
+bun run build
+npm link
+```
+
+## Quick Start
 
 ```bash
 export HAWK_CODE_USE_OPENAI=1
@@ -51,8 +62,6 @@ export OPENAI_MODEL=gpt-4o
 
 hawk
 ```
-
----
 
 ## Supported Providers
 
@@ -67,8 +76,6 @@ hawk
 | Ollama | `http://localhost:11434/v1` | Local, no API key |
 | LM Studio | `http://localhost:1234/v1` | Local |
 
----
-
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -78,9 +85,7 @@ hawk
 | `OPENAI_MODEL` | ✅ | Model name (e.g., `gpt-4o`, `deepseek-chat`) |
 | `OPENAI_BASE_URL` | ❌ | API endpoint (defaults to OpenAI) |
 
----
-
-## Examples
+## Usage Examples
 
 ### OpenAI
 
@@ -111,17 +116,52 @@ export OPENAI_MODEL=llama3.2
 hawk
 ```
 
----
-
 ## Commands
 
-- `hawk` — Start the CLI
-- `hawk --version` — Show version
-- `bun run doctor:runtime` — Validate environment
-- `bun run smoke` — Quick sanity check
+| Command | Description |
+|--------|------------|
+| `hawk` | Start the CLI |
+| `hawk --version` | Show version |
+| `hawk --help` | Show help |
 
----
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Build
+bun run build
+
+# Run in development
+bun run dev
+
+# Validate environment
+bun run doctor:runtime
+
+# Quick sanity check
+bun run smoke
+```
+
+## Contributing
+
+Contributions are welcome! Please read our [contributing guide](CONTRIBUTING.md) first.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for our security policy.
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Support
+
+- [Twitter](https://twitter.com/graycode)
+- [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
