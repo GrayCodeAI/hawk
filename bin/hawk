@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+
+/**
+ * Hawk launcher
+ *
+ * If dist/cli.mjs exists (built), run that.
+ * Otherwise, tell the user to build first or use `bun run dev`.
+ */
+
+import { existsSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
+
+function applyEnvCompat(env = process.env) {
+  for (const [key, value] of Object.entries(env)) {
+    if (value == null) continue
+
+    if (key.startsWith('GRAYCODE_')) {
+      const suffix = key.slice('GRAYCODE_'.length)
+      if (!suffix) continue
+      const anthropicKey = `ANTHROPIC_${suffix}`
+      if (env[anthropicKey] == null) {
+        env[anthropicKey] = value
+      }
+      continue
+    }
+
+    if (key.startsWith('ANTHROPIC_')) {
+      const suffix = key.slice('ANTHROPIC_'.length)
+      if (!suffix) continue
+      const grayCodeKey = `GRAYCODE_${suffix}`
+      if (env[grayCodeKey] == null) {
+        env[grayCodeKey] = value
+      }
+    }
+  }
+}
+
+applyEnvCompat()
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const distPath = join(__dirname, '..', 'dist', 'cli.mjs')
+
+if (existsSync(distPath)) {
+  await import(pathToFileURL(distPath).href)
+} else {
+  console.error(`
+  hawk: dist/cli.mjs not found.
+
+  Build first:
+    bun run build
+
+  Or run directly with Bun:
+    bun run dev
+
+  See README.md for setup instructions.
+`)
+  process.exit(1)
+}
