@@ -1,4 +1,4 @@
-import type { BetaMessageStreamParams } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaMessageStreamParams } from '@hawk/eyrie'
 import type { Attributes, Meter, MetricOptions } from '@opentelemetry/api'
 import type { logs } from '@opentelemetry/api-logs'
 import type { LoggerProvider } from '@opentelemetry/sdk-logs'

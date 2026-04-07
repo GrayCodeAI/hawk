@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle';
-import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { TextBlockParam } from '@hawk/eyrie';
 import React, { useContext, useMemo } from 'react';
 import { getKairosActive, getUserMsgOptIn } from '../../bootstrap/state.js';
 import { Box } from '../../ink.js';

@@ -1,7 +1,7 @@
 import type {
   Base64ImageSource,
   ImageBlockParam,
-} from '@graycode-ai/sdk/resources/messages.mjs'
+} from '@hawk/eyrie'
 import {
   API_IMAGE_MAX_BASE64_SIZE,
   IMAGE_MAX_HEIGHT,

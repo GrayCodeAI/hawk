@@ -1,7 +1,7 @@
 import type {
   BetaContentBlock,
   BetaWebSearchTool20250305,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@hawk/eyrie'
 import { getAPIProvider } from 'src/utils/model/providers.js'
 import type { PermissionResult } from 'src/utils/permissions/PermissionResult.js'
 import { z } from 'zod/v4'

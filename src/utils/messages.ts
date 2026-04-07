@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { BetaUsage as Usage } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import { type BetaUsage as Usage } from '@hawk/eyrie'
 import type {
   ContentBlock,
   ContentBlockParam,
@@ -11,7 +11,7 @@ import type {
   ToolResultBlockParam,
   ToolUseBlock,
   ToolUseBlockParam,
-} from '@graycode-ai/sdk/resources/index.mjs'
+} from '@hawk/eyrie'
 import { randomUUID, type UUID } from 'crypto'
 import isObject from 'lodash-es/isObject.js'
 import last from 'lodash-es/last.js'
@@ -91,14 +91,14 @@ type HookAttachmentWithName = Exclude<
   HookPermissionDecisionAttachment
 >
 
-import type { APIError } from '@graycode-ai/sdk'
+import { type APIError } from '@hawk/eyrie'
 import type {
   BetaContentBlock,
   BetaMessage,
   BetaRedactedThinkingBlock,
   BetaThinkingBlock,
   BetaToolUseBlock,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@hawk/eyrie'
 import type {
   HookEvent,
   SDKAssistantMessageError,

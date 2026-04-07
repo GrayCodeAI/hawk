@@ -1,7 +1,7 @@
 import type {
   ToolResultBlockParam,
   ToolUseBlockParam,
-} from '@graycode-ai/sdk/resources/index.mjs'
+} from '@hawk/eyrie'
 import type {
   ElicitRequestURLParams,
   ElicitResult,

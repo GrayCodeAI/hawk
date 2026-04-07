@@ -1,6 +1,6 @@
 import { feature } from 'bun:bundle'
-import type GrayCode from '@graycode-ai/sdk'
-import type { BetaToolUnion } from '@graycode-ai/sdk/resources/beta/messages.js'
+import type GrayCode from '@hawk/eyrie'
+import type { BetaToolUnion } from '@hawk/eyrie'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join } from 'path'
 import { z } from 'zod/v4'

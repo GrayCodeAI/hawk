@@ -10,7 +10,7 @@
  * skips that attachment. The message still reaches Hawk, just without @path.
  */
 
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@hawk/eyrie'
 import axios from 'axios'
 import { randomUUID } from 'crypto'
 import { mkdir, writeFile } from 'fs/promises'

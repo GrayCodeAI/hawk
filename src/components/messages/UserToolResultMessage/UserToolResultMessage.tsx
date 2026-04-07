@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { ToolResultBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { ToolResultBlockParam } from '@hawk/eyrie';
 import * as React from 'react';
 import type { Tools } from '../../../Tool.js';
 import type { NormalizedUserMessage, ProgressMessage } from '../../../types/message.js';

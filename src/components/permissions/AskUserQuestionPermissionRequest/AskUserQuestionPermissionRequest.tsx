@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { Base64ImageSource, ImageBlockParam } from '@graycode-ai/sdk/resources/messages.mjs';
+import type { Base64ImageSource, ImageBlockParam } from '@hawk/eyrie';
 import React, { Suspense, use, useCallback, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../../../hooks/useSettings.js';
 import { useTerminalSize } from '../../../hooks/useTerminalSize.js';

@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { BetaToolUseBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaToolUseBlock } from '@hawk/eyrie'
 import { randomUUID } from 'crypto'
 import { getIsNonInteractiveSession } from '../../bootstrap/state.js'
 import {

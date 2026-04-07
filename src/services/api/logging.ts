@@ -1,9 +1,9 @@
 import { feature } from 'bun:bundle'
-import { APIError } from '@graycode-ai/sdk'
+import { APIError } from '@hawk/eyrie'
 import type {
   BetaStopReason,
   BetaUsage as Usage,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@hawk/eyrie'
 import {
   addToTotalDurationState,
   consumePostCompaction,

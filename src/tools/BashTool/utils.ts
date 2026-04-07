@@ -2,7 +2,7 @@ import type {
   Base64ImageSource,
   ContentBlockParam,
   ToolResultBlockParam,
-} from '@graycode-ai/sdk/resources/index.mjs'
+} from '@hawk/eyrie'
 import { readFile, stat } from 'fs/promises'
 import { getOriginalCwd } from 'src/bootstrap/state.js'
 import { logEvent } from 'src/services/analytics/index.js'

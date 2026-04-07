@@ -1,5 +1,5 @@
-import type { GrayCode } from '@graycode-ai/sdk'
-import type { BetaMessageParam as MessageParam } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { GrayCode } from '@hawk/eyrie'
+import type { BetaMessageParam as MessageParam } from '@hawk/eyrie'
 // @aws-sdk/client-bedrock-runtime is imported dynamically in countTokensWithBedrock()
 // to defer ~279KB of AWS SDK code until a Bedrock call is actually made
 import type { CountTokensCommandInput } from '@aws-sdk/client-bedrock-runtime'

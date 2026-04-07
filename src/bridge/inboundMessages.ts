@@ -2,7 +2,7 @@ import type {
   Base64ImageSource,
   ContentBlockParam,
   ImageBlockParam,
-} from '@graycode-ai/sdk/resources/messages.mjs'
+} from '@hawk/eyrie'
 import type { UUID } from 'crypto'
 import type { SDKMessage } from '../entrypoints/agentSdkTypes.js'
 import { detectImageFormatFromBase64 } from '../utils/imageResizer.js'

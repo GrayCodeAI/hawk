@@ -10,7 +10,7 @@
  */
 
 import { feature } from 'bun:bundle'
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@hawk/eyrie'
 import { getSystemPrompt } from '../../constants/prompts.js'
 import { TEAMMATE_MESSAGE_TAG } from '../../constants/xml.js'
 import type { CanUseToolFn } from '../../hooks/useCanUseTool.js'

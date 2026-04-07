@@ -1,4 +1,4 @@
-import { APIUserAbortError } from '@graycode-ai/sdk';
+import { APIUserAbortError } from '@hawk/eyrie';
 import React, { type ReactNode, useCallback, useRef, useState } from 'react';
 import { useMainLoopModel } from '../../../../hooks/useMainLoopModel.js';
 import { Box, Text } from '../../../../ink.js';

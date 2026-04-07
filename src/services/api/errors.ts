@@ -2,11 +2,11 @@ import {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIError,
-} from '@graycode-ai/sdk'
+} from '@hawk/eyrie'
 import type {
   BetaMessage,
   BetaStopReason,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@hawk/eyrie'
 import { AFK_MODE_BETA_HEADER } from 'src/constants/betas.js'
 import type { SDKAssistantMessageError } from 'src/entrypoints/agentSdkTypes.js'
 import type {

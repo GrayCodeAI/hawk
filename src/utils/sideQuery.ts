@@ -1,5 +1,5 @@
-import type GrayCode from '@graycode-ai/sdk'
-import type { BetaToolUnion } from '@graycode-ai/sdk/resources/beta/messages.js'
+import type GrayCode from '@hawk/eyrie'
+import type { BetaToolUnion } from '@hawk/eyrie'
 import {
   getLastApiCompletionTimestamp,
   setLastApiCompletionTimestamp,

@@ -1,5 +1,5 @@
-import { APIError } from '@graycode-ai/sdk'
-import type { MessageParam } from '@graycode-ai/sdk/resources/index.mjs'
+import { APIError } from '@hawk/eyrie'
+import type { MessageParam } from '@hawk/eyrie'
 import isEqual from 'lodash-es/isEqual.js'
 import { getIsNonInteractiveSession } from '../bootstrap/state.js'
 import { isHawkAISubscriber } from '../utils/auth.js'

@@ -1,8 +1,8 @@
-import type GrayCode from '@graycode-ai/sdk'
+import type GrayCode from '@hawk/eyrie'
 import type {
   BetaTool,
   BetaToolUnion,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@hawk/eyrie'
 import { createHash } from 'crypto'
 import { SYSTEM_PROMPT_DYNAMIC_BOUNDARY } from 'src/constants/prompts.js'
 import { getSystemContext, getUserContext } from 'src/context.js'

@@ -1,4 +1,4 @@
-import type { ToolUseBlock } from '@graycode-ai/sdk/resources/index.mjs'
+import type { ToolUseBlock } from '@hawk/eyrie'
 import last from 'lodash-es/last.js'
 import {
   getSessionId,

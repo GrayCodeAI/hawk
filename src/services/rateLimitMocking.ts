@@ -3,7 +3,7 @@
  * This isolates mock logic from production code
  */
 
-import { APIError } from '@graycode-ai/sdk'
+import { APIError } from '@hawk/eyrie'
 import {
   applyMockHeaders,
   checkMockFastModeRateLimit,

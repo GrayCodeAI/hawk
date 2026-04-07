@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { BetaMessageStreamParams } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaMessageStreamParams } from '@hawk/eyrie'
 import { readdir, readFile, stat } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { join } from 'path'

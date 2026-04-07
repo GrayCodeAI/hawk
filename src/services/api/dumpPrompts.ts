@@ -1,4 +1,4 @@
-import type { ClientOptions } from '@graycode-ai/sdk'
+import type { ClientOptions } from '@hawk/eyrie'
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
 import { dirname, join } from 'path'

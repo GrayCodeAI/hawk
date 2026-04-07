@@ -8,7 +8,7 @@ import {
   APIError,
   APIConnectionError,
   AuthenticationError,
-} from '@graycode-ai/sdk'
+} from '@hawk/eyrie'
 import { getModelStrings } from './modelStrings.js'
 
 // Cache valid models to avoid repeated API calls

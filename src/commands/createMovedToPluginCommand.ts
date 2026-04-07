@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js'
+import type { ContentBlockParam } from '@hawk/eyrie'
 import type { Command } from '../commands.js'
 import type { ToolUseContext } from '../Tool.js'
 

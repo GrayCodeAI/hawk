@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { TextBlockParam } from '@hawk/eyrie';
 import * as React from 'react';
 import { BLACK_CIRCLE } from '../../constants/figures.js';
 import { Box, Text, type TextProps } from '../../ink.js';

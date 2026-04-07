@@ -1,4 +1,4 @@
-import type { ToolUseBlock } from '@graycode-ai/sdk/resources/index.mjs'
+import type { ToolUseBlock } from '@hawk/eyrie'
 import {
   createUserMessage,
   REJECT_MESSAGE,

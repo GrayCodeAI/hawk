@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { ContentBlockParam } from '@hawk/eyrie';
 import type { Command } from '../commands.js';
 import { AGENT_TOOL_NAME } from '../tools/AgentTool/constants.js';
 const statusline = {

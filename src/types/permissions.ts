@@ -7,7 +7,7 @@
  */
 
 import { feature } from 'bun:bundle'
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@hawk/eyrie'
 
 // ============================================================================
 // Permission Modes

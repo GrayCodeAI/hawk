@@ -1,4 +1,4 @@
-import GrayCode, { type ClientOptions } from '@graycode-ai/sdk'
+import { GrayCode, type ClientOptions } from '@hawk/eyrie'
 import { randomUUID } from 'crypto'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
@@ -162,6 +162,8 @@ export async function getGrayCodeClient({
       timeout: parseInt(process.env.API_TIMEOUT_MS || String(600 * 1000), 10),
     }) as unknown as GrayCode
   }
+  // TODO: Migrate Bedrock to eyrie
+  /*
   if (isEnvTruthy(process.env.HAWK_CODE_USE_BEDROCK)) {
     const { GrayCodeBedrock } = await import('@graycode-ai/bedrock-sdk')
     // Use region override for small fast model if specified
@@ -200,6 +202,7 @@ export async function getGrayCodeClient({
     // we have always been lying about the return type - this doesn't support batching or models
     return new GrayCodeBedrock(bedrockArgs) as unknown as GrayCode
   }
+  */
   if (isEnvTruthy(process.env.HAWK_CODE_USE_FOUNDRY)) {
     const { GrayCodeFoundry } = await importRuntimeModule(
       '@graycode-ai/foundry-sdk',

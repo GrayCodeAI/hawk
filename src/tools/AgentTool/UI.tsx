@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { ToolResultBlockParam, ToolUseBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { ToolResultBlockParam, ToolUseBlockParam } from '@hawk/eyrie';
 import * as React from 'react';
 import { ConfigurableShortcutHint } from 'src/components/ConfigurableShortcutHint.js';
 import { CtrlOToExpand, SubAgentProvider } from 'src/components/CtrlOToExpand.js';

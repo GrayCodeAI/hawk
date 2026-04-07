@@ -1,4 +1,4 @@
-import type { BetaContentBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaContentBlock } from '@hawk/eyrie'
 import { createHash, randomUUID, type UUID } from 'crypto'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import isPlainObject from 'lodash-es/isPlainObject.js'

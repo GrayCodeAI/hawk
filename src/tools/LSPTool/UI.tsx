@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { ToolResultBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { ToolResultBlockParam } from '@hawk/eyrie';
 import React from 'react';
 import { CtrlOToExpand } from '../../components/CtrlOToExpand.js';
 import { FallbackToolUseErrorMessage } from '../../components/FallbackToolUseErrorMessage.js';

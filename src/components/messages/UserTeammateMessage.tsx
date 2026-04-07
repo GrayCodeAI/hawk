@@ -1,5 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
-import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { TextBlockParam } from '@hawk/eyrie';
 import figures from 'figures';
 import * as React from 'react';
 import { TEAMMATE_MESSAGE_TAG } from '../../constants/xml.js';

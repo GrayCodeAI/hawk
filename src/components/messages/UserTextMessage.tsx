@@ -1,6 +1,6 @@
 import { c as _c } from "react-compiler-runtime";
 import { feature } from 'bun:bundle';
-import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { TextBlockParam } from '@hawk/eyrie';
 import * as React from 'react';
 import { NO_CONTENT_MESSAGE } from '../../constants/messages.js';
 import { COMMAND_MESSAGE_TAG, LOCAL_COMMAND_CAVEAT_TAG, TASK_NOTIFICATION_TAG, TEAMMATE_MESSAGE_TAG, TICK_TAG } from '../../constants/xml.js';

@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js';
+import type { ContentBlockParam } from '@hawk/eyrie';
 import React from 'react';
 import type { LocalJSXCommandCall, LocalJSXCommandOnDone } from '../../types/command.js';
 import { checkOverageGate, confirmOverage, launchRemoteReview } from './reviewRemote.js';

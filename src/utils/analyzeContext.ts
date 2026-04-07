@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle'
-import type { GrayCode } from '@graycode-ai/sdk'
+import type { GrayCode } from '@hawk/eyrie'
 import {
   getSystemPrompt,
   SYSTEM_PROMPT_DYNAMIC_BOUNDARY,

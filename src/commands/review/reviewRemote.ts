@@ -9,7 +9,7 @@
  * pushed branches on repos with the Hawk GitHub app installed.
  */
 
-import type { ContentBlockParam } from '@graycode-ai/sdk/resources/messages.js'
+import type { ContentBlockParam } from '@hawk/eyrie'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,

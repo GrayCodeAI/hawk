@@ -1,4 +1,4 @@
-import type { BetaUsage as Usage } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaUsage as Usage } from '@hawk/eyrie'
 import chalk from 'chalk'
 import {
   addToTotalCostState,

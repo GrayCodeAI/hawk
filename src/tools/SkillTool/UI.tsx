@@ -1,4 +1,4 @@
-import type { ToolResultBlockParam } from '@graycode-ai/sdk/resources/index.mjs';
+import type { ToolResultBlockParam } from '@hawk/eyrie';
 import * as React from 'react';
 import { SubAgentProvider } from 'src/components/CtrlOToExpand.js';
 import { FallbackToolUseErrorMessage } from 'src/components/FallbackToolUseErrorMessage.js';

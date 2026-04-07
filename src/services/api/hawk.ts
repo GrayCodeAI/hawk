@@ -16,9 +16,9 @@ import type {
   BetaToolUnion,
   BetaUsage,
   BetaMessageParam as MessageParam,
-} from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
-import type { TextBlockParam } from '@graycode-ai/sdk/resources/index.mjs'
-import type { Stream } from '@graycode-ai/sdk/streaming.mjs'
+} from '@hawk/eyrie'
+import type { TextBlockParam } from '@hawk/eyrie'
+import type { Stream } from '@hawk/eyrie'
 import { randomUUID } from 'crypto'
 import {
   getAPIProvider,
@@ -107,12 +107,12 @@ const autoModeStateModule = feature('TRANSCRIPT_CLASSIFIER')
   : null
 
 import { feature } from 'bun:bundle'
-import type { ClientOptions } from '@graycode-ai/sdk'
+import type { ClientOptions } from '@hawk/eyrie'
 import {
   APIConnectionTimeoutError,
   APIError,
   APIUserAbortError,
-} from '@graycode-ai/sdk/error'
+} from '@hawk/eyrie'
 import {
   getAfkModeHeaderLatched,
   getCacheEditingHeaderLatched,

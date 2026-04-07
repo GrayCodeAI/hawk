@@ -1,8 +1,8 @@
-import type { BetaContentBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaContentBlock } from '@hawk/eyrie'
 import type {
   ContentBlock,
   ContentBlockParam,
-} from '@graycode-ai/sdk/resources/index.mjs'
+} from '@hawk/eyrie'
 import { roughTokenCountEstimation as countTokens } from '../services/tokenEstimation.js'
 import type {
   AssistantMessage,

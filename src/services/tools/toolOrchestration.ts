@@ -1,4 +1,4 @@
-import type { ToolUseBlock } from '@graycode-ai/sdk/resources/index.mjs'
+import type { ToolUseBlock } from '@hawk/eyrie'
 import type { CanUseToolFn } from '../../hooks/useCanUseTool.js'
 import { findToolByName, type ToolUseContext } from '../../Tool.js'
 import type { AssistantMessage, Message } from '../../types/message.js'

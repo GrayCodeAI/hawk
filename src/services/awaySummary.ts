@@ -1,4 +1,4 @@
-import { APIUserAbortError } from '@graycode-ai/sdk'
+import { APIUserAbortError } from '@hawk/eyrie'
 import { getEmptyToolPermissionContext } from '../Tool.js'
 import type { Message } from '../types/message.js'
 import { logForDebugging } from '../utils/debug.js'

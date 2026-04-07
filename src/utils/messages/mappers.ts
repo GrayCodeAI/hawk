@@ -1,4 +1,4 @@
-import type { BetaContentBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
+import type { BetaContentBlock } from '@hawk/eyrie'
 import { randomUUID, type UUID } from 'crypto'
 import { getSessionId } from 'src/bootstrap/state.js'
 import {

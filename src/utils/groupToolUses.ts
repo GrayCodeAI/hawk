@@ -1,5 +1,5 @@
-import type { BetaToolUseBlock } from '@graycode-ai/sdk/resources/beta/messages/messages.mjs'
-import type { ToolResultBlockParam } from '@graycode-ai/sdk/resources/messages/messages.mjs'
+import type { BetaToolUseBlock } from '@hawk/eyrie'
+import type { ToolResultBlockParam } from '@hawk/eyrie'
 import type { Tools } from '../Tool.js'
 import type {
   GroupedToolUseMessage,
