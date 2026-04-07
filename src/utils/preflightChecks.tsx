@@ -6,7 +6,7 @@ import { Spinner } from '../components/Spinner.js';
 import { getOauthConfig } from '../constants/oauth.js';
 import { useTimeout } from '../hooks/useTimeout.js';
 import { Box, Text } from '../ink.js';
-import { getSSLErrorHint } from '../services/api/errorUtils.js';
+import { getSSLErrorHint } from '@hawk/eyrie';
 import { getUserAgent } from './http.js';
 import { logError } from './log.js';
 export interface PreflightCheckResult {
