@@ -26,7 +26,7 @@
 
 ## Features
 
-- 🤖 **Multi-Provider** — Works with OpenAI, Claude, Gemini, DeepSeek, Ollama, and any OpenAI-compatible API
+- 🤖 **Multi-Provider** — Works with OpenAI, Hawk, Gemini, DeepSeek, Ollama, and any OpenAI-compatible API
 - 🛠️ **Full Tool Suite** — Bash, File editing, Grep, Glob, WebFetch, Agents, MCP
 - 🔄 **Streaming** — Real-time token streaming
 - 📡 **OpenAI Shim** — Translation layer between Hawk and any LLM API
