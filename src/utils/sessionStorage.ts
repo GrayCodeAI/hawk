@@ -40,7 +40,7 @@ import {
   asAgentId,
   asSessionId,
   type SessionId,
-} from '../types/ids.js'
+} from '@hawk/eyrie'
 import type { AttributionSnapshotMessage } from '../types/logs.js'
 import {
   type ContentReplacementEntry,

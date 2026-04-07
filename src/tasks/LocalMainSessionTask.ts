@@ -27,7 +27,7 @@ import type {
   AgentDefinition,
   CustomAgentDefinition,
 } from '../tools/AgentTool/loadAgentsDir.js'
-import { asAgentId } from '../types/ids.js'
+import { asAgentId } from '@hawk/eyrie'
 import type { Message } from '../types/message.js'
 import { createAbortController } from '../utils/abortController.js'
 import {

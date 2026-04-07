@@ -3,7 +3,7 @@
 // print.ts) don't pull React/ink into the module graph.
 
 import type { TaskStateBase } from '../../Task.js'
-import type { AgentId } from '../../types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import type { ShellCommand } from '../../utils/ShellCommand.js'
 
 export type BashTaskKind = 'bash' | 'monitor'

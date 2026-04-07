@@ -28,7 +28,7 @@ import type {
 import type { Tool, Tools, ToolUseContext } from '../../Tool.js'
 import { killShellTasksForAgent } from '../../tasks/LocalShellTask/killShellTasks.js'
 import type { Command } from '../../types/command.js'
-import type { AgentId } from '../../types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import type {
   AssistantMessage,
   Message,

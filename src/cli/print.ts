@@ -319,7 +319,7 @@ import {
   startQueryProfile,
   logQueryProfileReport,
 } from 'src/utils/queryProfiler.js'
-import { asSessionId } from 'src/types/ids.js'
+import { asSessionId } from '@hawk/eyrie'
 import { jsonStringify } from '../utils/slowOperations.js'
 import { skillChangeDetector } from '../utils/skills/skillChangeDetector.js'
 import { getCommands, clearCommandsCache } from '../commands.js'

@@ -3,7 +3,7 @@
 // React/Ink into its module graph (same rationale as guards.ts).
 
 import type { AppState } from '../../state/AppState.js'
-import type { AgentId } from '../../types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import { logForDebugging } from '../../utils/debug.js'
 import { logError } from '../../utils/log.js'
 import { dequeueAllMatching } from '../../utils/messageQueueManager.js'

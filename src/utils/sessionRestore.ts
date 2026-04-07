@@ -20,7 +20,7 @@ import {
   getAgentDefinitionsWithOverrides,
 } from '../tools/AgentTool/loadAgentsDir.js'
 import { TODO_WRITE_TOOL_NAME } from '../tools/TodoWriteTool/constants.js'
-import { asSessionId } from '../types/ids.js'
+import { asSessionId } from '@hawk/eyrie'
 import type {
   AttributionSnapshotMessage,
   ContextCollapseCommitEntry,
