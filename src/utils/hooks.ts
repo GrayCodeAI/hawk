@@ -46,7 +46,7 @@ import {
   getTranscriptPathForSession,
   getAgentTranscriptPath,
 } from './sessionStorage.js'
-import type { AgentId } from '../types/ids.js'
+import type { AgentId } from '@hawk/eyrie'
 import {
   getSettings_DEPRECATED,
   getSettingsForSource,

@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { copyFile, writeFile } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { join, resolve, sep } from 'path'
-import type { AgentId, SessionId } from 'src/types/ids.js'
+import type { AgentId, SessionId } from '@hawk/eyrie'
 import type { LogOption } from 'src/types/logs.js'
 import type {
   AssistantMessage,
