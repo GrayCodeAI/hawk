@@ -22,7 +22,9 @@
   </a>
 </p>
 
-> A CLI for **any LLM** — OpenAI, Gemini, DeepSeek, Ollama, Claude, and 200+ models.
+Hawk CLI opened to any LLM — OpenAI, Gemini, Grok, OpenRouter, Ollama, and 200+ models.
+
+**AI Agent** · **Coding Assistant** · **LLM CLI** · **Ollama GUI** · **OpenAI Compatible** · **Local AI** · **Terminal AI** · **AI Coding** · **Claude Alternative** · **GPT CLI**
 
 ## Features
 
