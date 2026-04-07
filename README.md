@@ -2,7 +2,7 @@
 
 Use Hawk with **any LLM** — not just Hawk.
 
-Hawk is a fork of the [Hawk source leak](https://gitlawb.com/node/repos/z6MkgKkb/instructkr-hawk-code) (exposed via npm source maps on March 31, 2026). We added an OpenAI-compatible provider shim so you can plug in GPT-4o, DeepSeek, Gemini, Llama, Mistral, or any model that speaks the OpenAI chat completions API. It now also supports the ChatGPT Codex backend for `codexplan` and `codexspark`.
+Hawk — open to any LLM. Added an OpenAI-compatible provider shim so you can plug in GPT-4o, DeepSeek, Gemini, Llama, Mistral, or any model that speaks the OpenAI chat completions API. It also supports the ChatGPT Codex backend for `codexplan` and `codexspark`.
 
 All of Hawk's tools work — bash, file read/write/edit, grep, glob, agents, tasks, MCP — just powered by whatever model you choose.
 
@@ -13,14 +13,14 @@ All of Hawk's tools work — bash, file read/write/edit, grep, glob, agents, tas
 ### Option A: npm (recommended)
 
 ```bash
-npm install -g @gitlawb/hawk
+npm install -g hawk
 ```
 
 ### Option B: From source (requires Bun)
 
 ```bash
-# Clone from gitlawb
-git clone https://node.gitlawb.com/z6MkqDnb7Siv3Cwj7pGJq4T5EsUisECqR8KpnDLwcaZq5TPr/hawk.git
+# Clone from GitHub
+git clone https://github.com/GrayCodeAI/hawk.git
 cd hawk
 
 # Install dependencies
@@ -36,7 +36,7 @@ npm link
 ### Option C: Run directly with Bun (no build step)
 
 ```bash
-git clone https://node.gitlawb.com/z6MkqDnb7Siv3Cwj7pGJq4T5EsUisECqR8KpnDLwcaZq5TPr/hawk.git
+git clone https://github.com/GrayCodeAI/hawk.git
 cd hawk
 bun install
 bun run dev
@@ -68,7 +68,7 @@ node dist/cli.mjs
 
 That's it. The tool system, streaming, file editing, multi-step reasoning — everything works through the model you picked.
 
-The npm package name is `@gitlawb/hawk`, but the installed CLI command is still `hawk`.
+Install via `npm install -g hawk`.
 
 ---
 
@@ -344,7 +344,7 @@ src/utils/auth.ts                — Recognizes OpenAI as valid 3P provider
 
 ## Origin
 
-This is a fork of [instructkr/hawk-code](https://gitlawb.com/node/repos/z6MkgKkb/instructkr-hawk-code), which mirrored the Hawk source snapshot that became publicly accessible through an npm source map exposure on March 31, 2026.
+This is a fork of the Hawk source (exposed via npm source maps on March 31, 2026).
 
 The original Hawk source is the property of GrayCode. This repository is not affiliated with or endorsed by GrayCode.
 
