@@ -7,6 +7,7 @@ Run: pytest test_smart_router.py -v
 
 import pytest
 import asyncio
+import os
 from unittest.mock import AsyncMock, MagicMock, patch
 from smart_router import SmartRouter, Provider
 
@@ -17,10 +18,16 @@ from smart_router import SmartRouter, Provider
 def make_provider(
     name, healthy=True, configured=True, latency=100.0, cost=0.002, errors=0, requests=0
 ):
+    api_key_env = f"{name.upper()}_API_KEY_TEST"
+    if configured:
+        os.environ[api_key_env] = "test-key"
+    else:
+        os.environ.pop(api_key_env, None)
+
     p = Provider(
         name=name,
         ping_url=f"https://{name}.example.com/health",
-        api_key_env="FAKE_KEY",
+        api_key_env=api_key_env,
         cost_per_1k_tokens=cost,
         big_model=f"{name}-big",
         small_model=f"{name}-small",
@@ -29,8 +36,6 @@ def make_provider(
     p.avg_latency_ms = latency
     p.error_count = errors
     p.request_count = requests
-    if not configured:
-        p.api_key_env = ""  # makes is_configured False for non-ollama
     return p
 
 
