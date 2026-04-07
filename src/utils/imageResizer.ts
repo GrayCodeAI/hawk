@@ -7,7 +7,7 @@ import {
   IMAGE_MAX_HEIGHT,
   IMAGE_MAX_WIDTH,
   IMAGE_TARGET_RAW_SIZE,
-} from '../constants/apiLimits.js'
+} from '@hawk/eyrie'
 import { logEvent } from '../services/analytics/index.js'
 import {
   getImageProcessor,

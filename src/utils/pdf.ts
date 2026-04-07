@@ -4,7 +4,7 @@ import { join } from 'path'
 import {
   PDF_MAX_EXTRACT_SIZE,
   PDF_TARGET_RAW_SIZE,
-} from '../constants/apiLimits.js'
+} from '@hawk/eyrie'
 import { errorMessage } from './errors.js'
 import { execFileNoThrow } from './execFileNoThrow.js'
 import { formatFileSize } from './format.js'

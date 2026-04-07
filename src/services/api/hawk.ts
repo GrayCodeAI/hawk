@@ -188,7 +188,7 @@ import {
   isDeferredToolsDeltaEnabled,
   isToolSearchEnabled,
 } from 'src/utils/toolSearch.js'
-import { API_MAX_MEDIA_PER_REQUEST } from '../../constants/apiLimits.js'
+import { API_MAX_MEDIA_PER_REQUEST } from '@hawk/eyrie'
 import { ADVISOR_BETA_HEADER } from '../../constants/betas.js'
 import {
   formatDeferredToolLine,
