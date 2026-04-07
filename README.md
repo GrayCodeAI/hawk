@@ -17,7 +17,7 @@
   <a href="https://x.com/Lakshman2302">
     <img src="https://img.shields.io/twitter/follow/Lakshman2302?style=flat&color=1da1f2" alt="X (Twitter)">
   </a>
-  <a href="https://discord.com/channels/1469033265745891589/1490848536739319968">
+  <a href="https://discord.gg/AyGB7TjA">
     <img src="https://img.shields.io/discord/1346295526255403012?style=flat&color=5865F2" alt="Discord">
   </a>
 </p>
@@ -167,5 +167,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Support
 
 - [X (Twitter)](https://x.com/Lakshman2302)
-- [Discord](https://discord.com/channels/1469033265745891589/1490848536739319968)
+- [Discord](https://discord.gg/AyGB7TjA)
 - [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
