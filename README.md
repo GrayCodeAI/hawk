@@ -2,9 +2,7 @@
 
 A CLI for **any LLM** — OpenAI, Gemini, DeepSeek, Ollama, Claude, and 200+ models.
 
-Works with all standard tools — bash, file read/write/edit, grep, glob, agents, tasks, MCP.
-
-All of Hawk's tools work — bash, file read/write/edit, grep, glob, agents, tasks, MCP — just powered by whatever model you choose.
+![Hawk CLI](hawk-cli.png)
 
 ---
 
