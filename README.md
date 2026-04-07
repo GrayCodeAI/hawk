@@ -14,8 +14,11 @@
   <a href="https://github.com/GrayCodeAI/hawk/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/GrayCodeAI/hawk" alt="License">
   </a>
-  <a href="https://twitter.com/graycode">
-    <img src="https://img.shields.io/twitter/follow/graycode?style=flat&color=1da1f2" alt="Twitter">
+  <a href="https://x.com/Lakshman2302">
+    <img src="https://img.shields.io/twitter/follow/Lakshman2302?style=flat&color=1da1f2" alt="X (Twitter)">
+  </a>
+  <a href="https://discord.com/channels/1469033265745891589/1490848536739319968">
+    <img src="https://img.shields.io/discord/1346295526255403012?style=flat&color=5865F2" alt="Discord">
   </a>
 </p>
 
@@ -163,5 +166,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- [Twitter](https://twitter.com/graycode)
+- [X (Twitter)](https://x.com/Lakshman2302)
+- [Discord](https://discord.com/channels/1469033265745891589/1490848536739319968)
 - [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
