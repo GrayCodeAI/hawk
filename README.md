@@ -22,9 +22,7 @@
   </a>
 </p>
 
-Hawk CLI opened to any LLM — OpenAI, Gemini, Grok, OpenRouter, Ollama, and 200+ models.
-
-**AI Agent** · **Coding Assistant** · **LLM CLI** · **Ollama GUI** · **OpenAI Compatible** · **Local AI** · **Terminal AI** · **AI Coding** · **Claude Alternative** · **GPT CLI**
+> Hawk CLI opened to any LLM — OpenAI, Gemini, Grok, OpenRouter, Ollama, and 200+ models.
 
 ## Features
 
