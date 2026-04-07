@@ -2,7 +2,7 @@ import { feature } from 'bun:bundle';
 import {
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from '../services/api/providerConfig.js'
+} from '@hawk/eyrie'
 
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
