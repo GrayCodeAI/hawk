@@ -9,13 +9,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": false,
+    "declaration": true,
+    "declarationMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "src/*": ["./src/*"],
-      "@hawk/eyrie": ["../eyrie/src/index.ts"],
-      "@hawk/eyrie/*": ["../eyrie/src/*"]
+      "src/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],
