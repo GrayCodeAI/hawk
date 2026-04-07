@@ -44,11 +44,6 @@
   "dependencies": {
     "@alcalzone/ansi-tokenize": "^0.3.0",
     "@commander-js/extra-typings": "^12.0.0",
-    "@graycode-ai/bedrock-sdk": "0.0.3",
-    "@graycode-ai/foundry-sdk": "0.0.3",
-    "@graycode-ai/sandbox-runtime": "0.0.3",
-    "@graycode-ai/sdk": "0.0.3",
-    "@graycode-ai/vertex-sdk": "0.0.3",
     "@growthbook/growthbook": "^1.3.0",
     "@hawk/eyrie": "github:GrayCodeAI/eyrie#main",
     "@modelcontextprotocol/sdk": "^1.12.0",
