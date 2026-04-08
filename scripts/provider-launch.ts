@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import {
   DEFAULT_CODEX_BASE_URL,
   resolveCodexApiCredentials,
-} from '../src/services/api/providerConfig.js'
+} from '@hawk/eyrie'
 
 type ProviderProfile = 'openai' | 'ollama' | 'codex' | 'gemini'
 

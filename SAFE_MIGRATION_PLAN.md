@@ -2,6 +2,12 @@
 
 **Backup Status:** ✓ Created at `../hawk-backup/`
 
+## Status Update (2026-04-08)
+
+- [x] Phase 3 provider configuration cutover completed
+- [x] Provider config imports now use `@hawk/eyrie`
+- [x] `src/services/api/providerConfig.ts` removed from `hawk`
+
 ## Safety First Principles
 
 1. **Never delete original files** until migration is 100% verified
@@ -219,7 +225,7 @@ git commit -m "Phase 2: Extract base types to eyrie
 
 ---
 
-## Phase 3: Extract Provider Configuration (Day 3-5)
+## Phase 3: Extract Provider Configuration (Day 3-5) - COMPLETED (2026-04-08)
 
 **Target:** `src/services/api/providerConfig.ts`
 **Risk Level:** HIGH (complex logic, many dependencies)
@@ -244,25 +250,15 @@ function isEnvTruthy(value: unknown): boolean {
 }
 ```
 
-### Step 3.3: Create Safe Wrapper
+### Step 3.3: Cutover Imports (No Wrapper)
 ```typescript
-// src/services/api/providerConfig.ts - KEEP AS WRAPPER
-// Re-export everything from eyrie for backwards compatibility
-
-export {
+// Import directly from published package exports.
+import {
   resolveProviderRequest,
   resolveCodexApiCredentials,
   isLocalProviderUrl,
   isCodexBaseUrl,
-  // ... all exports
-} from '../../../eyrie/src/config/providers.js'
-
-// Re-export types
-export type {
-  ResolvedProviderRequest,
-  ResolvedCodexCredentials,
-  ProviderTransport,
-} from '../../../eyrie/src/config/providers.js'
+} from '@hawk/eyrie'
 ```
 
 ### Step 3.4: Test Wrapper
@@ -279,8 +275,8 @@ npm test
 // BEFORE:
 import { resolveProviderRequest } from '../services/api/providerConfig.js'
 
-// AFTER (direct to eyrie):
-import { resolveProviderRequest } from '../../eyrie/src/config/providers.js'
+// AFTER (direct package import):
+import { resolveProviderRequest } from '@hawk/eyrie'
 ```
 
 **Test after each file update!**
@@ -300,9 +296,8 @@ git add .
 git commit -m "Phase 3: Extract providerConfig to eyrie
 
 - Copied providerConfig.ts to eyrie/src/config/
-- Made dependencies self-contained in eyrie
-- Created wrapper for backwards compatibility
-- Updated 4 direct imports
+- Updated runtime + script imports to @hawk/eyrie
+- Removed src/services/api/providerConfig.ts from hawk
 - All tests passing"
 ```
 
@@ -445,7 +440,7 @@ npm run test
 Once all imports updated, remove wrapper files:
 ```bash
 rm src/constants/apiLimits.ts  # Now just imports from eyrie
-rm src/services/api/providerConfig.ts  # Wrapper
+rm src/services/api/providerConfig.ts  # Duplicate (already removed as of 2026-04-08)
 ```
 
 ### Step 8.2: Clean Build
@@ -554,7 +549,7 @@ git cherry-pick <fix-commit>
 - [ ] No functional changes
 
 ### Checkpoint 2: After Phase 3 (Providers)
-- [ ] `providerConfig.ts` works from eyrie
+- [x] `providerConfig.ts` extracted to eyrie and removed from hawk
 - [ ] CLI can resolve providers
 - [ ] All provider tests pass
 - [ ] Codex and OpenAI shims work

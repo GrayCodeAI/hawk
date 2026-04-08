@@ -2,6 +2,12 @@
 
 Based on `langdag` → `herm` pattern analysis.
 
+## Status Update (2026-04-08)
+
+- [x] `providerConfig` extracted into `eyrie` as `src/config/providers.ts`
+- [x] `hawk` callsites switched to `@hawk/eyrie` (CLI, shims, tests, scripts)
+- [x] `hawk/src/services/api/providerConfig.ts` removed (no runtime references remain)
+
 ## Architecture Overview
 
 ```
@@ -308,7 +314,7 @@ export {
 
 ### 3.2 Import Mappings
 
-**Before (current):**
+**Before (historical):**
 ```typescript
 import { resolveProviderRequest } from './services/api/providerConfig.js'
 import { API_MAX_MEDIA_PER_REQUEST } from './constants/apiLimits.js'
@@ -347,13 +353,16 @@ import type { AgentId } from '@hawk/eyrie'
 
 ## Phase 4: Dependency Analysis
 
-### Files that import from `src/services/api/providerConfig.ts` (4 files)
+### Provider Config Migration Status (completed 2026-04-08)
 
 ```
-src/entrypoints/cli.tsx         # Uses: resolveProviderRequest
-src/services/api/openaiShim.ts  # Uses: resolveProviderRequest, types
-src/services/api/codexShim.ts   # Uses: resolveProviderRequest, types
-src/services/api/codexShim.test.ts  # Test file
+src/entrypoints/cli.tsx               # Uses: resolveProviderRequest
+src/services/api/openaiShim.ts        # Uses: resolveProviderRequest, types
+src/services/api/codexShim.ts         # Uses: provider config types
+src/services/api/codexShim.test.ts    # Provider config test coverage
+scripts/provider-launch.ts            # Uses: resolveCodexApiCredentials
+scripts/provider-bootstrap.ts         # Uses: resolveCodexApiCredentials
+scripts/system-check.ts               # Uses: resolveProviderRequest/isLocalProviderUrl
 ```
 
 ### Files that import from `src/constants/apiLimits.ts` (8 files)
@@ -461,7 +470,9 @@ test('eyrie integration works', () => {
 
 ### Migration
 - [ ] Extract apiLimits.ts
-- [ ] Extract providerConfig.ts
+- [x] Extract providerConfig.ts to `eyrie/src/config/providers.ts`
+- [x] Update hawk provider-config imports to `@hawk/eyrie`
+- [x] Remove duplicate `hawk/src/services/api/providerConfig.ts`
 - [ ] Extract error types
 - [ ] Extract base message types
 - [ ] Extract provider clients

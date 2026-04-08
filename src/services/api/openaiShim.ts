@@ -27,7 +27,7 @@ import {
 import {
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from './providerConfig.js'
+} from '@hawk/eyrie'
 
 // ---------------------------------------------------------------------------
 // Types — minimal subset of GrayCode SDK types we need to produce
@@ -746,7 +746,7 @@ export function createOpenAIShimClient(options: {
   timeout?: number
 }): unknown {
   // When Gemini provider is active, map Gemini env vars to OpenAI-compatible ones
-  // so the existing providerConfig.ts infrastructure picks them up correctly.
+  // so eyrie's provider resolution utilities pick them up correctly.
   if (
     process.env.HAWK_CODE_USE_GEMINI === '1' ||
     process.env.HAWK_CODE_USE_GEMINI === 'true'

@@ -11,7 +11,7 @@ import {
 import {
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from './providerConfig.js'
+} from '@hawk/eyrie'
 
 const tempDirs: string[] = []
 

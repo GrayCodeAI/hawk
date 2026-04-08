@@ -1,7 +1,7 @@
 import type {
   ResolvedCodexCredentials,
   ResolvedProviderRequest,
-} from './providerConfig.js'
+} from '@hawk/eyrie'
 
 export interface GrayCodeUsage {
   input_tokens: number

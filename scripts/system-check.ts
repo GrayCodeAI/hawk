@@ -6,7 +6,7 @@ import {
   resolveCodexApiCredentials,
   resolveProviderRequest,
   isLocalProviderUrl as isProviderLocalUrl,
-} from '../src/services/api/providerConfig.js'
+} from '@hawk/eyrie'
 
 function applyEnvCompat(env: NodeJS.ProcessEnv = process.env): void {
   for (const [key, value] of Object.entries(env)) {
