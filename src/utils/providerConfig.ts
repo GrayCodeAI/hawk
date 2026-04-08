@@ -17,6 +17,7 @@ export type ProviderProfile =
   | 'ollama'
 
 export type ProviderConfig = {
+  active_provider?: ProviderProfile
   anthropic_api_key?: string
   grok_api_key?: string
   xai_api_key?: string
@@ -129,6 +130,10 @@ export function isProviderConfigured(config: ProviderConfig, provider: ProviderP
 
 export function defaultProviderFromConfig(config: ProviderConfig | null): ProviderProfile | null {
   if (!config) return null
+  const explicitProvider = asNonEmptyString(config.active_provider) as ProviderProfile | undefined
+  if (explicitProvider && isProviderConfigured(config, explicitProvider)) {
+    return explicitProvider
+  }
   for (const provider of PROVIDER_PRIORITY) {
     if (isProviderConfigured(config, provider)) return provider
   }

@@ -565,12 +565,6 @@ export function getModelOptions(fastMode = false): ModelOption[] {
     const knownOption = getKnownModelOption(customModel)
     if (knownOption) {
       options.push(knownOption)
-    } else {
-      options.push({
-        value: customModel,
-        label: customModel,
-        description: 'Custom model',
-      })
     }
     return filterModelOptionsByAllowlist(options)
   }

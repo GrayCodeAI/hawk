@@ -18,6 +18,7 @@ import {
   type ProviderConfig,
   type ProviderProfile,
 } from '../../utils/providerConfig.js'
+import { getPreferredProviderModel } from '../../utils/model/configs.js'
 import { Select } from '../CustomSelect/index.js'
 import TextInput from '../TextInput.js'
 
@@ -36,12 +37,9 @@ const PROVIDERS: ProviderProfile[] = [
   'ollama',
 ]
 
-const DEFAULT_MODELS: Record<ProviderProfile, string> = {
-  anthropic: 'claude-3-5-sonnet-latest',
-  openai: 'gpt-4o',
-  grok: 'grok-2',
-  gemini: 'gemini-2.0-flash',
-  ollama: 'llama3.1:8b',
+function getDefaultProviderModel(provider: ProviderProfile): string {
+  if (provider === 'ollama') return 'llama3.1:8b'
+  return getPreferredProviderModel(provider, 'sonnet')
 }
 
 const DEFAULT_BASE_URLS: Record<ProviderProfile, string> = {
@@ -85,8 +83,8 @@ function existingBaseUrl(config: ProviderConfig | null, provider: ProviderProfil
 }
 
 function existingModel(config: ProviderConfig | null, provider: ProviderProfile): string {
-  if (!config) return DEFAULT_MODELS[provider]
-  return getProviderActiveModel(config, provider) ?? DEFAULT_MODELS[provider]
+  if (!config) return getDefaultProviderModel(provider)
+  return getProviderActiveModel(config, provider) ?? getDefaultProviderModel(provider)
 }
 
 function applyProviderSelection(
@@ -102,31 +100,32 @@ function applyProviderSelection(
 
   const next: ProviderConfig = {
     ...config,
+    active_provider: provider,
   }
 
   switch (provider) {
     case 'anthropic':
       if (key) next.anthropic_api_key = key
-      next.anthropic_model = trimmedModel || DEFAULT_MODELS[provider]
+      next.anthropic_model = trimmedModel || getDefaultProviderModel(provider)
       next.anthropic_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
       break
     case 'openai':
       if (key) next.openai_api_key = key
-      next.openai_model = trimmedModel || DEFAULT_MODELS[provider]
+      next.openai_model = trimmedModel || getDefaultProviderModel(provider)
       next.openai_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
       break
     case 'grok':
       if (key) next.grok_api_key = key
-      next.grok_model = trimmedModel || DEFAULT_MODELS[provider]
+      next.grok_model = trimmedModel || getDefaultProviderModel(provider)
       next.grok_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
       break
     case 'gemini':
       if (key) next.gemini_api_key = key
-      next.gemini_model = trimmedModel || DEFAULT_MODELS[provider]
+      next.gemini_model = trimmedModel || getDefaultProviderModel(provider)
       next.gemini_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
       break
     case 'ollama':
-      next.ollama_model = trimmedModel || DEFAULT_MODELS[provider]
+      next.ollama_model = trimmedModel || getDefaultProviderModel(provider)
       next.ollama_base_url = (trimmedBaseUrl || DEFAULT_BASE_URLS[provider]).replace(/\/v1\/?$/, '')
       break
   }
@@ -155,8 +154,8 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
   const [step, setStep] = useState<Step>('provider')
   const [provider, setProvider] = useState<ProviderProfile>(initialProvider)
   const [apiKey, setApiKey] = useState('')
-  const [model, setModel] = useState(DEFAULT_MODELS.anthropic)
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS.anthropic)
+  const [model, setModel] = useState(getDefaultProviderModel(initialProvider))
+  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS[initialProvider])
   const [cursorOffset, setCursorOffset] = useState(0)
 
   useKeybinding('confirm:no', onCancel, { context: 'Settings' })
