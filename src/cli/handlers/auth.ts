@@ -287,7 +287,7 @@ export async function authStatus(opts: {
     }
     if (!loggedIn) {
       process.stdout.write(
-        'Not logged in. Run hawk auth login to authenticate.\n',
+        'No API key configured. Use /config or set GRAYCODE_API_KEY to authenticate.\n',
       )
     }
   } else {

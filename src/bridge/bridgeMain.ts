@@ -2392,7 +2392,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
       }
       // biome-ignore lint/suspicious/noConsole: intentional error output
       console.error(
-        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your login may have lapsed (run \`hawk /login\`).`,
+        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your auth may have lapsed (run \`/config\`).`,
       )
       // eslint-disable-next-line custom-rules/no-process-exit
       process.exit(1)

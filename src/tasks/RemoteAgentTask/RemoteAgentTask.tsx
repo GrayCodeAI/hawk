@@ -146,7 +146,7 @@ export async function checkRemoteAgentEligibility({
 export function formatPreconditionError(error: BackgroundRemoteSessionPrecondition): string {
   switch (error.type) {
     case 'not_logged_in':
-      return 'Please run /login and sign in with your Hawk.ai account (not Console).';
+      return 'Please use /config and sign in with your Hawk.ai account (not Console).';
     case 'no_remote_environment':
       return 'No cloud environment available. Set one up at https://hawkai/code/onboarding?magic=env-setup';
     case 'not_in_git_repo':

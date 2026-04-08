@@ -1,8 +1,9 @@
 import { feature } from 'bun:bundle';
 import {
   resolveCodexApiCredentials,
-  resolveProviderRequest,
+  resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
+import { applyProviderConfigToEnv } from '../utils/providerConfig.js'
 
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
@@ -45,20 +46,24 @@ function isLocalProviderUrl(baseUrl: string | undefined): boolean {
   }
 }
 
+function isOpenAICompatibleModeEnabled(): boolean {
+  return !!(
+    process.env.OPENAI_API_KEY ||
+    process.env.GROK_API_KEY ||
+    process.env.XAI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.OLLAMA_BASE_URL
+  )
+}
+
 function validateProviderEnvOrExit(): void {
-  if (!isEnvTruthy(process.env.HAWK_CODE_USE_OPENAI)) {
+  if (!isOpenAICompatibleModeEnabled()) {
     return
   }
 
-  const request = resolveProviderRequest({
-    model: process.env.OPENAI_MODEL,
-    baseUrl: process.env.OPENAI_BASE_URL,
-  })
-
-  if (process.env.OPENAI_API_KEY === 'SUA_CHAVE') {
-    console.error('Invalid OPENAI_API_KEY: placeholder value SUA_CHAVE detected. Set a real key or unset for local providers.')
-    process.exit(1)
-  }
+  const runtime = resolveOpenAICompatibleRuntime()
+  const request = runtime.request
 
   if (request.transport === 'codex_responses') {
     const credentials = resolveCodexApiCredentials()
@@ -76,8 +81,29 @@ function validateProviderEnvOrExit(): void {
     return
   }
 
-  if (!process.env.OPENAI_API_KEY && !isLocalProviderUrl(request.baseUrl)) {
-    console.error('OPENAI_API_KEY is required when HAWK_CODE_USE_OPENAI=1 and OPENAI_BASE_URL is not local.')
+  if (runtime.apiKey === 'SUA_CHAVE') {
+    const keyLabel =
+      runtime.mode === 'gemini'
+        ? 'GEMINI_API_KEY/GOOGLE_API_KEY'
+        : runtime.mode === 'anthropic'
+          ? 'ANTHROPIC_API_KEY'
+          : runtime.mode === 'grok'
+            ? 'GROK_API_KEY/XAI_API_KEY'
+            : 'OPENAI_API_KEY'
+    console.error(`Invalid ${keyLabel}: placeholder value SUA_CHAVE detected. Set a real key or unset for local providers.`)
+    process.exit(1)
+  }
+
+  if (!runtime.apiKey && !isLocalProviderUrl(request.baseUrl)) {
+    if (runtime.mode === 'gemini') {
+      console.error('GEMINI_API_KEY (or GOOGLE_API_KEY) is required when GEMINI_BASE_URL is not local.')
+      process.exit(1)
+    }
+    if (runtime.mode === 'grok') {
+      console.error('GROK_API_KEY (or XAI_API_KEY) is required when GROK_BASE_URL is not local.')
+      process.exit(1)
+    }
+    console.error('OPENAI_API_KEY is required when OPENAI_BASE_URL is not local.')
     process.exit(1)
   }
 }
@@ -98,6 +124,7 @@ async function main(): Promise<void> {
     return;
   }
 
+  applyProviderConfigToEnv()
   validateProviderEnvOrExit()
 
   // For all other paths, load the startup profiler

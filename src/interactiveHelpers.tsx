@@ -107,7 +107,7 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
     return false;
   }
 
-  const isOpenAIProvider = isEnvTruthy(process.env.HAWK_CODE_USE_OPENAI);
+  const isOpenAIProvider = !!process.env.OPENAI_API_KEY;
   const config = getGlobalConfig();
   let onboardingShown = false;
 

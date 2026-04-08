@@ -9,6 +9,10 @@ import {
   convertToolsToResponsesTools,
 } from './codexShim.js'
 import {
+  DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
+  DEFAULT_GEMINI_OPENAI_BASE_URL,
+  DEFAULT_GROK_OPENAI_BASE_URL,
+  resolveOpenAICompatibleRuntime,
   resolveCodexApiCredentials,
   resolveProviderRequest,
 } from '@hawk/eyrie'
@@ -68,6 +72,69 @@ describe('Codex provider config', () => {
     expect(credentials.apiKey).toBe('header.payload.signature')
     expect(credentials.accountId).toBe('acct_test')
     expect(credentials.source).toBe('auth.json')
+  })
+})
+
+describe('OpenAI-compatible runtime resolution', () => {
+  test('resolves Gemini mode API key and base URL from Gemini env vars', () => {
+    const runtime = resolveOpenAICompatibleRuntime({
+      env: {
+        GEMINI_API_KEY: 'gemini-test-key',
+        GEMINI_MODEL: 'gemini-2.5-flash',
+      } as NodeJS.ProcessEnv,
+    })
+
+    expect(runtime.mode).toBe('gemini')
+    expect(runtime.request.baseUrl).toBe(DEFAULT_GEMINI_OPENAI_BASE_URL)
+    expect(runtime.request.requestedModel).toBe('gemini-2.5-flash')
+    expect(runtime.apiKey).toBe('gemini-test-key')
+    expect(runtime.apiKeySource).toBe('gemini')
+  })
+
+  test('resolves Grok mode API key and base URL from Grok env vars', () => {
+    const runtime = resolveOpenAICompatibleRuntime({
+      env: {
+        GROK_API_KEY: 'grok-test-key',
+        GROK_MODEL: 'grok-2',
+      } as NodeJS.ProcessEnv,
+    })
+
+    expect(runtime.mode).toBe('grok')
+    expect(runtime.request.baseUrl).toBe(DEFAULT_GROK_OPENAI_BASE_URL)
+    expect(runtime.request.requestedModel).toBe('grok-2')
+    expect(runtime.apiKey).toBe('grok-test-key')
+    expect(runtime.apiKeySource).toBe('grok')
+  })
+
+  test('resolves Anthropic mode API key and base URL from Anthropic env vars', () => {
+    const runtime = resolveOpenAICompatibleRuntime({
+      env: {
+        ANTHROPIC_API_KEY: 'anthropic-test-key',
+        ANTHROPIC_MODEL: 'claude-3-5-sonnet-latest',
+      } as NodeJS.ProcessEnv,
+    })
+
+    expect(runtime.mode).toBe('anthropic')
+    expect(runtime.request.baseUrl).toBe(DEFAULT_ANTHROPIC_OPENAI_BASE_URL)
+    expect(runtime.request.requestedModel).toBe('claude-3-5-sonnet-latest')
+    expect(runtime.apiKey).toBe('anthropic-test-key')
+    expect(runtime.apiKeySource).toBe('anthropic')
+  })
+
+  test('resolves Codex mode credentials from CODEX env vars', () => {
+    const runtime = resolveOpenAICompatibleRuntime({
+      env: {
+        OPENAI_MODEL: 'codexplan',
+        CODEX_API_KEY: 'header.payload.signature',
+        CODEX_ACCOUNT_ID: 'acct_test',
+      } as NodeJS.ProcessEnv,
+    })
+
+    expect(runtime.mode).toBe('codex')
+    expect(runtime.request.transport).toBe('codex_responses')
+    expect(runtime.apiKey).toBe('header.payload.signature')
+    expect(runtime.apiKeySource).toBe('codex_env')
+    expect(runtime.codexCredentials?.accountId).toBe('acct_test')
   })
 })
 

@@ -15,10 +15,9 @@
  * Eligibility is a tri-state here: undefined (not yet determined — return
  * null), false (ineligible — return null), true (proceed). managedEnv.ts
  * calls isRemoteManagedSettingsEligible() just before the policySettings
- * read — after userSettings/flagSettings env vars are applied, so the check
- * sees config-provided HAWK_CODE_USE_BEDROCK/GRAYCODE_BASE_URL. That call
- * computes once and mirrors the result here via setEligibility(). Every
- * subsequent read hits the cached bool instead of re-running the auth chain.
+ * read — after userSettings env vars are applied. That call computes once
+ * and mirrors the result here via setEligibility(). Every subsequent read
+ * hits the cached bool instead of re-running the auth chain.
  */
 
 import { join } from 'path'

@@ -46,6 +46,40 @@ export function isEnvDefinedFalsy(
   return ['0', 'false', 'no', 'off'].includes(normalizedValue)
 }
 
+function hasNonEmptyEnv(...keys: string[]): boolean {
+  return keys.some(key => {
+    const value = process.env[key]
+    return typeof value === 'string' && value.trim().length > 0
+  })
+}
+
+export function isProviderApiModeEnabled(): boolean {
+  return (
+    hasNonEmptyEnv(
+      'OPENAI_API_KEY',
+      'OPENAI_MODEL',
+      'OPENAI_BASE_URL',
+      'OPENAI_API_BASE',
+      'GEMINI_API_KEY',
+      'GOOGLE_API_KEY',
+      'GEMINI_MODEL',
+      'GEMINI_BASE_URL',
+      'ANTHROPIC_API_KEY',
+      'ANTHROPIC_MODEL',
+      'ANTHROPIC_BASE_URL',
+      'GROK_API_KEY',
+      'XAI_API_KEY',
+      'GROK_MODEL',
+      'XAI_MODEL',
+      'GROK_BASE_URL',
+      'XAI_BASE_URL',
+      'CODEX_API_KEY',
+      'CODEX_ACCOUNT_ID',
+      'CHATGPT_ACCOUNT_ID',
+    )
+  )
+}
+
 /**
  * --bare / HAWK_CODE_SIMPLE — skip hooks, LSP, plugin sync, skill dir-walk,
  * attribution, background prefetches, and ALL keychain/credential reads.
@@ -146,38 +180,4 @@ export function isInProtectedNamespace(): boolean {
   return false
 }
 
-// @[MODEL LAUNCH]: Add a Vertex region override env var for the new model.
-/**
- * Model prefix → env var for Vertex region overrides.
- * Order matters: more specific prefixes must come before less specific ones
- * (e.g., 'hawk-opus-4-1' before 'hawk-opus-4').
- */
-const VERTEX_REGION_OVERRIDES: ReadonlyArray<[string, string]> = [
-  ['hawk-haiku-4-5', 'VERTEX_REGION_HAWK_HAIKU_4_5'],
-  ['hawk-3-5-haiku', 'VERTEX_REGION_HAWK_3_5_HAIKU'],
-  ['hawk-3-5-sonnet', 'VERTEX_REGION_HAWK_3_5_SONNET'],
-  ['hawk-3-7-sonnet', 'VERTEX_REGION_HAWK_3_7_SONNET'],
-  ['hawk-opus-4-1', 'VERTEX_REGION_HAWK_4_1_OPUS'],
-  ['hawk-opus-4', 'VERTEX_REGION_HAWK_4_0_OPUS'],
-  ['hawk-sonnet-4-6', 'VERTEX_REGION_HAWK_4_6_SONNET'],
-  ['hawk-sonnet-4-5', 'VERTEX_REGION_HAWK_4_5_SONNET'],
-  ['hawk-sonnet-4', 'VERTEX_REGION_HAWK_4_0_SONNET'],
-]
 
-/**
- * Get the Vertex AI region for a specific model.
- * Different models may be available in different regions.
- */
-export function getVertexRegionForModel(
-  model: string | undefined,
-): string | undefined {
-  if (model) {
-    const match = VERTEX_REGION_OVERRIDES.find(([prefix]) =>
-      model.startsWith(prefix),
-    )
-    if (match) {
-      return process.env[match[1]] || getDefaultVertexRegion()
-    }
-  }
-  return getDefaultVertexRegion()
-}

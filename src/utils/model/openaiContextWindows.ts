@@ -3,10 +3,10 @@
  * Context window sizes for OpenAI-compatible models used via the shim.
  * Fixes: auto-compact and warnings using wrong 200k default for OpenAI models.
  *
- * When HAWK_CODE_USE_OPENAI=1, getContextWindowForModel() falls through to
- * MODEL_CONTEXT_WINDOW_DEFAULT (200k). This causes the warning and blocking
- * thresholds to be set at 200k even for models like gpt-4o (128k) or llama3 (8k),
- * meaning users get no warning before hitting a hard API error.
+ * When using OpenAI (detected by OPENAI_API_KEY), getContextWindowForModel()
+ * falls through to MODEL_CONTEXT_WINDOW_DEFAULT (200k). This causes the warning
+ * and blocking thresholds to be set at 200k even for models like gpt-4o (128k)
+ * or llama3 (8k), meaning users get no warning before hitting a hard API error.
  *
  * Prices in tokens as of April 2026 — update as needed.
  */

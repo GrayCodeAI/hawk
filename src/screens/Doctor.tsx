@@ -151,7 +151,7 @@ export function Doctor(t0) {
       upperLimit: TASK_MAX_OUTPUT_UPPER_LIMIT
     }, {
       name: "HAWK_CODE_MAX_OUTPUT_TOKENS",
-      ...getModelMaxOutputTokens("hawk-opus-4-6")
+      ...getModelMaxOutputTokens("claude-opus-4-6")
     }];
     t4 = envVars.map(_temp8).filter(_temp9);
     $[5] = t4;

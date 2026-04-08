@@ -70,13 +70,13 @@ export async function isBridgeEnabledBlocking(): Promise<boolean> {
 export async function getBridgeDisabledReason(): Promise<string | null> {
   if (feature('BRIDGE_MODE')) {
     if (!isHawkAISubscriber()) {
-      return 'Remote Control requires a hawkai subscription. Run `hawk auth login` to sign in with your hawkai account.'
+      return 'Remote Control requires a hawkai subscription. Use `/config` to sign in with your hawkai account.'
     }
     if (!hasProfileScope()) {
-      return 'Remote Control requires a full-scope login token. Long-lived tokens (from `hawk setup-token` or HAWK_CODE_OAUTH_TOKEN) are limited to inference-only for security reasons. Run `hawk auth login` to use Remote Control.'
+      return 'Remote Control requires a full-scope login token. Long-lived tokens (from `hawk setup-token` or HAWK_CODE_OAUTH_TOKEN) are limited to inference-only for security reasons. Use `/config` to use Remote Control.'
     }
     if (!getOauthAccountInfo()?.organizationUuid) {
-      return 'Unable to determine your organization for Remote Control eligibility. Run `hawk auth login` to refresh your account information.'
+      return 'Unable to determine your organization for Remote Control eligibility. Use `/config` to refresh your account information.'
     }
     if (!(await checkGate_CACHED_OR_BLOCKING('tengu_ccr_bridge'))) {
       return 'Remote Control is not yet enabled for your account.'

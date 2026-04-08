@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"],
+      "@hawk/eyrie": ["../eyrie/src/index.ts"],
+      "@hawk/eyrie/*": ["../eyrie/src/*"]
+    }
+  },
+  "include": [
+    "scripts/provider-bootstrap.ts",
+    "scripts/provider-launch.ts",
+    "scripts/system-check.ts"
+  ]
+}

@@ -28,7 +28,7 @@ async function _temp() {
     logForDebugging("Showing marketplace installation success notification");
     notifs.push({
       key: "marketplace-installed",
-      jsx: <Text color="success">✓ GrayCode marketplace installed · /plugin to see available plugins</Text>,
+      jsx: <Text color="success">✓ Hawk marketplace installed · /plugin to see available plugins</Text>,
       priority: "immediate",
       timeoutMs: 7000
     });
@@ -37,7 +37,7 @@ async function _temp() {
       logForDebugging("Showing marketplace installation failure notification");
       notifs.push({
         key: "marketplace-install-failed",
-        jsx: <Text color="warning">Failed to install GrayCode marketplace · Will retry on next startup</Text>,
+        jsx: <Text color="warning">Failed to install Hawk marketplace · Will retry on next startup</Text>,
         priority: "immediate",
         timeoutMs: 8000
       });

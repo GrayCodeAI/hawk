@@ -3,10 +3,11 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import {
-  resolveCodexApiCredentials,
-  resolveProviderRequest,
+  isOpenAICompatibleRuntimeEnabled,
   isLocalProviderUrl as isProviderLocalUrl,
+  resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
+import { applyProviderConfigToEnv } from '../src/utils/providerConfig.js'
 
 function applyEnvCompat(env: NodeJS.ProcessEnv = process.env): void {
   for (const [key, value] of Object.entries(env)) {
@@ -34,6 +35,7 @@ function applyEnvCompat(env: NodeJS.ProcessEnv = process.env): void {
 }
 
 applyEnvCompat()
+applyProviderConfigToEnv()
 
 type CheckResult = {
   ok: boolean
@@ -119,20 +121,19 @@ function isLocalBaseUrl(baseUrl: string): boolean {
   return isProviderLocalUrl(baseUrl)
 }
 
-const GEMINI_DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai'
+function resolveRuntime(env: NodeJS.ProcessEnv = process.env) {
+  return resolveOpenAICompatibleRuntime({ env })
+}
 
 function currentBaseUrl(): string {
-  if (isTruthy(process.env.HAWK_CODE_USE_GEMINI)) {
-    return process.env.GEMINI_BASE_URL ?? GEMINI_DEFAULT_BASE_URL
-  }
-  return process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'
+  return resolveRuntime().request.baseUrl
 }
 
 function checkGeminiEnv(): CheckResult[] {
   const results: CheckResult[] = []
+  const runtime = resolveRuntime()
   const model = process.env.GEMINI_MODEL
-  const key = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY
-  const baseUrl = process.env.GEMINI_BASE_URL ?? GEMINI_DEFAULT_BASE_URL
+  const baseUrl = runtime.request.baseUrl
 
   results.push(pass('Provider mode', 'Google Gemini provider enabled.'))
 
@@ -144,7 +145,7 @@ function checkGeminiEnv(): CheckResult[] {
 
   results.push(pass('GEMINI_BASE_URL', baseUrl))
 
-  if (!key) {
+  if (!runtime.apiKey) {
     results.push(fail('GEMINI_API_KEY', 'Missing. Set GEMINI_API_KEY or GOOGLE_API_KEY.'))
   } else {
     results.push(pass('GEMINI_API_KEY', 'Configured.'))
@@ -156,27 +157,29 @@ function checkGeminiEnv(): CheckResult[] {
 function checkOpenAIEnv(): CheckResult[] {
   const results: CheckResult[] = []
   const useGemini = isTruthy(process.env.HAWK_CODE_USE_GEMINI)
-  const useOpenAI = isTruthy(process.env.HAWK_CODE_USE_OPENAI)
+  const useOpenAICompat = isOpenAICompatibleRuntimeEnabled()
 
   if (useGemini) {
     return checkGeminiEnv()
   }
 
-  if (!useOpenAI) {
+  if (!useOpenAICompat) {
     results.push(pass('Provider mode', 'GrayCode login flow enabled (HAWK_CODE_USE_OPENAI is off).'))
     return results
   }
 
-  const request = resolveProviderRequest({
-    model: process.env.OPENAI_MODEL,
-    baseUrl: process.env.OPENAI_BASE_URL,
-  })
+  const runtime = resolveRuntime()
+  const request = runtime.request
 
   results.push(
     pass(
       'Provider mode',
-      request.transport === 'codex_responses'
+      runtime.mode === 'codex'
         ? 'Codex responses backend enabled.'
+        : runtime.mode === 'anthropic'
+          ? 'Anthropic provider enabled.'
+          : runtime.mode === 'grok'
+            ? 'Grok provider enabled.'
         : 'OpenAI-compatible provider enabled.',
     ),
   )
@@ -189,8 +192,8 @@ function checkOpenAIEnv(): CheckResult[] {
 
   results.push(pass('OPENAI_BASE_URL', request.baseUrl))
 
-  if (request.transport === 'codex_responses') {
-    const credentials = resolveCodexApiCredentials(process.env)
+  if (runtime.mode === 'codex') {
+    const credentials = runtime.codexCredentials ?? { apiKey: '', source: 'none' as const }
     if (!credentials.apiKey) {
       const authHint = credentials.authPath
         ? `Missing CODEX_API_KEY and no usable auth.json at ${credentials.authPath}.`
@@ -207,7 +210,33 @@ function checkOpenAIEnv(): CheckResult[] {
     return results
   }
 
-  const key = process.env.OPENAI_API_KEY
+  const key = runtime.apiKey
+  if (runtime.mode === 'anthropic') {
+    if (key === 'SUA_CHAVE') {
+      results.push(fail('ANTHROPIC_API_KEY', 'Placeholder value detected: SUA_CHAVE.'))
+    } else if (!key && !isLocalBaseUrl(request.baseUrl)) {
+      results.push(fail('ANTHROPIC_API_KEY', 'Missing key for non-local provider URL.'))
+    } else if (!key) {
+      results.push(pass('ANTHROPIC_API_KEY', 'Not set (allowed for local providers).'))
+    } else {
+      results.push(pass('ANTHROPIC_API_KEY', 'Configured.'))
+    }
+    return results
+  }
+
+  if (runtime.mode === 'grok') {
+    if (key === 'SUA_CHAVE') {
+      results.push(fail('GROK_API_KEY', 'Placeholder value detected: SUA_CHAVE.'))
+    } else if (!key && !isLocalBaseUrl(request.baseUrl)) {
+      results.push(fail('GROK_API_KEY', 'Missing key for non-local provider URL.'))
+    } else if (!key) {
+      results.push(pass('GROK_API_KEY', 'Not set (allowed for local providers).'))
+    } else {
+      results.push(pass('GROK_API_KEY', 'Configured.'))
+    }
+    return results
+  }
+
   if (key === 'SUA_CHAVE') {
     results.push(fail('OPENAI_API_KEY', 'Placeholder value detected: SUA_CHAVE.'))
   } else if (!key && !isLocalBaseUrl(request.baseUrl)) {
@@ -223,20 +252,14 @@ function checkOpenAIEnv(): CheckResult[] {
 
 async function checkBaseUrlReachability(): Promise<CheckResult> {
   const useGemini = isTruthy(process.env.HAWK_CODE_USE_GEMINI)
-  const useOpenAI = isTruthy(process.env.HAWK_CODE_USE_OPENAI)
+  const useOpenAICompat = isOpenAICompatibleRuntimeEnabled()
 
-  if (!useGemini && !useOpenAI) {
+  if (!useGemini && !useOpenAICompat) {
     return pass('Provider reachability', 'Skipped (OpenAI-compatible mode disabled).')
   }
 
-  const geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai'
-  const resolvedBaseUrl = useGemini
-    ? (process.env.GEMINI_BASE_URL ?? geminiBaseUrl)
-    : undefined
-  const request = resolveProviderRequest({
-    model: process.env.OPENAI_MODEL,
-    baseUrl: resolvedBaseUrl ?? process.env.OPENAI_BASE_URL,
-  })
+  const runtime = resolveRuntime()
+  const request = runtime.request
   const endpoint = request.transport === 'codex_responses'
     ? `${request.baseUrl}/responses`
     : `${request.baseUrl}/models`
@@ -249,8 +272,8 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
     let method = 'GET'
     let body: string | undefined
 
-    if (request.transport === 'codex_responses') {
-      const credentials = resolveCodexApiCredentials(process.env)
+    if (runtime.mode === 'codex') {
+      const credentials = runtime.codexCredentials ?? { apiKey: '', source: 'none' as const }
       if (credentials.apiKey) {
         headers.Authorization = `Bearer ${credentials.apiKey}`
       }
@@ -272,10 +295,15 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
         store: false,
         stream: true,
       })
-    } else if (useGemini && (process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY)) {
-      headers.Authorization = `Bearer ${process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY}`
-    } else if (process.env.OPENAI_API_KEY) {
-      headers.Authorization = `Bearer ${process.env.OPENAI_API_KEY}`
+    } else if (runtime.mode === 'anthropic') {
+      if (runtime.apiKey) {
+        headers.Authorization = `Bearer ${runtime.apiKey}`
+        headers['x-api-key'] = runtime.apiKey
+      }
+      headers['anthropic-version'] =
+        process.env.ANTHROPIC_VERSION?.trim() || '2023-06-01'
+    } else if (runtime.apiKey) {
+      headers.Authorization = `Bearer ${runtime.apiKey}`
     }
 
     const response = await fetch(endpoint, {
@@ -299,11 +327,16 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
 }
 
 function checkOllamaProcessorMode(): CheckResult {
-  if (!isTruthy(process.env.HAWK_CODE_USE_OPENAI) || isTruthy(process.env.HAWK_CODE_USE_GEMINI)) {
+  if (!isOpenAICompatibleRuntimeEnabled()) {
     return pass('Ollama processor mode', 'Skipped (OpenAI-compatible mode disabled).')
   }
 
-  const baseUrl = currentBaseUrl()
+  const runtime = resolveRuntime()
+  if (runtime.mode !== 'openai') {
+    return pass('Ollama processor mode', `Skipped (provider mode is ${runtime.mode}).`)
+  }
+
+  const baseUrl = runtime.request.baseUrl
   if (!isLocalBaseUrl(baseUrl)) {
     return pass('Ollama processor mode', 'Skipped (provider URL is not local).')
   }
@@ -338,24 +371,51 @@ function checkOllamaProcessorMode(): CheckResult {
 }
 
 function serializeSafeEnvSummary(): Record<string, string | boolean> {
+  const runtime = resolveRuntime()
+
   if (isTruthy(process.env.HAWK_CODE_USE_GEMINI)) {
     return {
       HAWK_CODE_USE_GEMINI: true,
       GEMINI_MODEL: process.env.GEMINI_MODEL ?? '(unset, default: gemini-2.0-flash)',
-      GEMINI_BASE_URL: process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta/openai',
-      GEMINI_API_KEY_SET: Boolean(process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY),
+      GEMINI_BASE_URL: runtime.request.baseUrl,
+      GEMINI_API_KEY_SET: Boolean(runtime.apiKey),
     }
   }
-  const request = resolveProviderRequest({
-    model: process.env.OPENAI_MODEL,
-    baseUrl: process.env.OPENAI_BASE_URL,
-  })
+
+  if (runtime.mode === 'anthropic') {
+    return {
+      HAWK_CODE_USE_OPENAI: isTruthy(process.env.HAWK_CODE_USE_OPENAI),
+      HAWK_CODE_USE_ANTHROPIC: isTruthy(process.env.HAWK_CODE_USE_ANTHROPIC),
+      ANTHROPIC_MODEL:
+        process.env.ANTHROPIC_MODEL ?? process.env.OPENAI_MODEL ?? '(unset)',
+      ANTHROPIC_BASE_URL: runtime.request.baseUrl,
+      ANTHROPIC_API_KEY_SET: Boolean(runtime.apiKey),
+    }
+  }
+
+  if (runtime.mode === 'grok') {
+    return {
+      HAWK_CODE_USE_OPENAI: isTruthy(process.env.HAWK_CODE_USE_OPENAI),
+      HAWK_CODE_USE_GROK: isTruthy(process.env.HAWK_CODE_USE_GROK),
+      GROK_MODEL:
+        process.env.GROK_MODEL ??
+        process.env.XAI_MODEL ??
+        process.env.OPENAI_MODEL ??
+        '(unset)',
+      GROK_BASE_URL: runtime.request.baseUrl,
+      GROK_API_KEY_SET: Boolean(runtime.apiKey),
+    }
+  }
+
   return {
     HAWK_CODE_USE_OPENAI: isTruthy(process.env.HAWK_CODE_USE_OPENAI),
     OPENAI_MODEL: process.env.OPENAI_MODEL ?? '(unset)',
-    OPENAI_BASE_URL: request.baseUrl,
-    OPENAI_API_KEY_SET: Boolean(process.env.OPENAI_API_KEY),
-    CODEX_API_KEY_SET: Boolean(resolveCodexApiCredentials(process.env).apiKey),
+    OPENAI_BASE_URL: runtime.request.baseUrl,
+    OPENAI_API_KEY_SET: runtime.mode === 'openai' ? Boolean(runtime.apiKey) : false,
+    CODEX_API_KEY_SET:
+      runtime.mode === 'codex'
+        ? Boolean(runtime.codexCredentials?.apiKey)
+        : false,
   }
 }
 

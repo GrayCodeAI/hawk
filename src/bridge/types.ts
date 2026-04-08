@@ -1,9 +1,9 @@
 /** Default per-session timeout (24 hours). */
 export const DEFAULT_SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000
 
-/** Reusable login guidance appended to bridge auth errors. */
+/** Reusable auth guidance appended to bridge auth errors. */
 export const BRIDGE_LOGIN_INSTRUCTION =
-  'Remote Control is only available with hawkai subscriptions. Please use `/login` to sign in with your hawkai account.'
+  'Remote Control is only available with hawkai subscriptions. Please use `/config` to sign in with your hawkai account.'
 
 /** Full error printed when `hawk remote-control` is run without auth. */
 export const BRIDGE_LOGIN_ERROR =

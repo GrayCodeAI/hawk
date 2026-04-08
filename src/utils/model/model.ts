@@ -28,6 +28,8 @@ import { LIGHTNING_BOLT } from '../../constants/figures.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { type ModelAlias, isModelAlias } from './aliases.js'
 import { capitalize } from '../stringUtils.js'
+import { getPreferredProviderModel } from './configs.js'
+import { resolveProviderModelEnvOverride } from '@hawk/eyrie'
 
 export type ModelShortName = string
 export type ModelName = string
@@ -37,13 +39,13 @@ export function getSmallFastModel(): ModelName {
   if (process.env.GRAYCODE_SMALL_FAST_MODEL) return process.env.GRAYCODE_SMALL_FAST_MODEL
   // For Gemini provider, use a fast model
   if (getAPIProvider() === 'gemini') {
-    return process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite'
+    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
   }
   // For OpenAI provider, use OPENAI_MODEL or a sensible default
   if (getAPIProvider() === 'openai') {
-    return process.env.OPENAI_MODEL || 'gpt-4o-mini'
+    return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'haiku')
   }
-  return getDefaultHaikuModel()
+  return getPreferredProviderModel(getAPIProvider(), 'haiku')
 }
 
 export function isNonCustomOpusModel(model: ModelName): boolean {
@@ -75,7 +77,11 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
     specifiedModel = modelOverride
   } else {
     const settings = getSettings_DEPRECATED() || {}
-    specifiedModel = process.env.GRAYCODE_MODEL || process.env.GEMINI_MODEL || process.env.OPENAI_MODEL || settings.model || undefined
+    specifiedModel =
+      process.env.GRAYCODE_MODEL ||
+      resolveProviderModelEnvOverride(getAPIProvider()) ||
+      settings.model ||
+      undefined
   }
 
   // Ignore the user-specified model if it's not in the availableModels allowlist.
@@ -110,64 +116,52 @@ export function getBestModel(): ModelName {
   return getDefaultOpusModel()
 }
 
-// @[MODEL LAUNCH]: Update the default Opus model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Opus model.
 export function getDefaultOpusModel(): ModelName {
   if (process.env.GRAYCODE_DEFAULT_OPUS_MODEL) {
     return process.env.GRAYCODE_DEFAULT_OPUS_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
-    return process.env.GEMINI_MODEL || 'gemini-2.5-pro-preview-03-25'
+    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'opus')
   }
   // OpenAI provider: use user-specified model or default
   if (getAPIProvider() === 'openai') {
-    return process.env.OPENAI_MODEL || 'gpt-4o'
+    return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'opus')
   }
-  // 3P providers (Bedrock, Vertex, Foundry) — kept as a separate branch
-  // even when values match, since 3P availability lags firstParty and
-  // these will diverge again at the next model launch.
-  if (getAPIProvider() !== 'firstParty') {
-    return getModelStrings().opus46
-  }
-  return getModelStrings().opus46
+  return getPreferredProviderModel(getAPIProvider(), 'opus')
 }
 
-// @[MODEL LAUNCH]: Update the default Sonnet model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Sonnet model.
 export function getDefaultSonnetModel(): ModelName {
   if (process.env.GRAYCODE_DEFAULT_SONNET_MODEL) {
     return process.env.GRAYCODE_DEFAULT_SONNET_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
-    return process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
   }
   // OpenAI provider
   if (getAPIProvider() === 'openai') {
-    return process.env.OPENAI_MODEL || 'gpt-4o'
+    return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'sonnet')
   }
-  // Default to Sonnet 4.5 for 3P since they may not have 4.6 yet
-  if (getAPIProvider() !== 'firstParty') {
-    return getModelStrings().sonnet45
-  }
-  return getModelStrings().sonnet46
+  return getPreferredProviderModel(getAPIProvider(), 'sonnet')
 }
 
-// @[MODEL LAUNCH]: Update the default Haiku model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Haiku model.
 export function getDefaultHaikuModel(): ModelName {
   if (process.env.GRAYCODE_DEFAULT_HAIKU_MODEL) {
     return process.env.GRAYCODE_DEFAULT_HAIKU_MODEL
   }
   // Gemini provider
   if (getAPIProvider() === 'gemini') {
-    return process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite'
+    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
   }
   // OpenAI provider
   if (getAPIProvider() === 'openai') {
-    return process.env.OPENAI_MODEL || 'gpt-4o-mini'
+    return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'haiku')
   }
-
-  // Haiku 4.5 is available on all platforms (first-party, Foundry, Bedrock, Vertex)
-  return getModelStrings().haiku45
+  return getPreferredProviderModel(getAPIProvider(), 'haiku')
 }
 
 /**
@@ -211,11 +205,11 @@ export function getRuntimeMainLoopModel(params: {
 export function getDefaultMainLoopModelSetting(): ModelName | ModelAlias {
   // Gemini provider: always use the configured Gemini model
   if (getAPIProvider() === 'gemini') {
-    return process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
   }
   // OpenAI provider: always use the configured OpenAI model
   if (getAPIProvider() === 'openai') {
-    return process.env.OPENAI_MODEL || 'gpt-4o'
+    return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'sonnet')
   }
 
   // Ants default to defaultModel from flag config, or Opus 1M if not configured
@@ -252,58 +246,58 @@ export function getDefaultMainLoopModel(): ModelName {
 // @[MODEL LAUNCH]: Add a canonical name mapping for the new model below.
 /**
  * Pure string-match that strips date/provider suffixes from a first-party model
- * name. Input must already be a 1P-format ID (e.g. 'hawk-3-7-sonnet-20250219',
- * 'us.graycode.hawk-opus-4-6-v1:0'). Does not touch settings, so safe at
+ * name. Input must already be a 1P-format ID (e.g. 'claude-3-7-sonnet-20250219',
+ * 'us.graycode.claude-opus-4-6-v1:0'). Does not touch settings, so safe at
  * module top-level (see MODEL_COSTS in modelCost.ts).
  */
-export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
+export function anthropicNameToCanonical(name: ModelName): ModelShortName {
   name = name.toLowerCase()
   // Special cases for Hawk 4+ models to differentiate versions
   // Order matters: check more specific versions first (4-5 before 4)
-  if (name.includes('hawk-opus-4-6')) {
-    return 'hawk-opus-4-6'
+  if (name.includes('claude-opus-4-6')) {
+    return 'claude-opus-4-6'
   }
-  if (name.includes('hawk-opus-4-5')) {
-    return 'hawk-opus-4-5'
+  if (name.includes('claude-opus-4-5')) {
+    return 'claude-opus-4-5'
   }
-  if (name.includes('hawk-opus-4-1')) {
-    return 'hawk-opus-4-1'
+  if (name.includes('claude-opus-4-1')) {
+    return 'claude-opus-4-1'
   }
-  if (name.includes('hawk-opus-4')) {
-    return 'hawk-opus-4'
+  if (name.includes('claude-opus-4')) {
+    return 'claude-opus-4'
   }
-  if (name.includes('hawk-sonnet-4-6')) {
-    return 'hawk-sonnet-4-6'
+  if (name.includes('claude-sonnet-4-6')) {
+    return 'claude-sonnet-4-6'
   }
-  if (name.includes('hawk-sonnet-4-5')) {
-    return 'hawk-sonnet-4-5'
+  if (name.includes('claude-sonnet-4-5')) {
+    return 'claude-sonnet-4-5'
   }
-  if (name.includes('hawk-sonnet-4')) {
-    return 'hawk-sonnet-4'
+  if (name.includes('claude-sonnet-4')) {
+    return 'claude-sonnet-4'
   }
-  if (name.includes('hawk-haiku-4-5')) {
-    return 'hawk-haiku-4-5'
+  if (name.includes('claude-haiku-4-5')) {
+    return 'claude-haiku-4-5'
   }
-  // Hawk 3.x models use a different naming scheme (hawk-3-{family})
-  if (name.includes('hawk-3-7-sonnet')) {
-    return 'hawk-3-7-sonnet'
+  // Claude 3.x models use a different naming scheme (claude-3-{family})
+  if (name.includes('claude-3-7-sonnet')) {
+    return 'claude-3-7-sonnet'
   }
-  if (name.includes('hawk-3-5-sonnet')) {
-    return 'hawk-3-5-sonnet'
+  if (name.includes('claude-3-5-sonnet')) {
+    return 'claude-3-5-sonnet'
   }
-  if (name.includes('hawk-3-5-haiku')) {
-    return 'hawk-3-5-haiku'
+  if (name.includes('claude-3-5-haiku')) {
+    return 'claude-3-5-haiku'
   }
-  if (name.includes('hawk-3-opus')) {
-    return 'hawk-3-opus'
+  if (name.includes('claude-3-opus')) {
+    return 'claude-3-opus'
   }
-  if (name.includes('hawk-3-sonnet')) {
-    return 'hawk-3-sonnet'
+  if (name.includes('claude-3-sonnet')) {
+    return 'claude-3-sonnet'
   }
-  if (name.includes('hawk-3-haiku')) {
-    return 'hawk-3-haiku'
+  if (name.includes('claude-3-haiku')) {
+    return 'claude-3-haiku'
   }
-  const match = name.match(/(hawk-(\d+-\d+-)?\w+)/)
+  const match = name.match(/(claude-(\d+-\d+-)?\w+)/)
   if (match && match[1]) {
     return match[1]
   }
@@ -313,15 +307,15 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
 
 /**
  * Maps a full model string to a shorter canonical version that's unified across 1P and 3P providers.
- * For example, 'hawk-3-5-haiku-20241022' and 'us.graycode.hawk-3-5-haiku-20241022-v1:0'
- * would both be mapped to 'hawk-3-5-haiku'.
- * @param fullModelName The full model name (e.g., 'hawk-3-5-haiku-20241022')
- * @returns The short name (e.g., 'hawk-3-5-haiku') if found, or the original name if no mapping exists
+ * For example, 'claude-3-5-haiku-20241022' and 'us.graycode.claude-3-5-haiku-20241022-v1:0'
+ * would both be mapped to 'claude-3-5-haiku'.
+ * @param fullModelName The full model name (e.g., 'claude-3-5-haiku-20241022')
+ * @returns The short name (e.g., 'claude-3-5-haiku') if found, or the original name if no mapping exists
  */
 export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   // Resolve overridden model IDs (e.g. Bedrock ARNs) back to canonical names.
-  // resolved is always a 1P-format ID, so firstPartyNameToCanonical can handle it.
-  return firstPartyNameToCanonical(resolveOverriddenModel(fullModelName))
+  // resolved is always an Anthropic-format ID, so anthropicNameToCanonical can handle it.
+  return anthropicNameToCanonical(resolveOverriddenModel(fullModelName))
 }
 
 // @[MODEL LAUNCH]: Update the default model description strings shown to users.
@@ -353,7 +347,7 @@ export function renderDefaultModelSetting(
 }
 
 export function getOpus46PricingSuffix(fastMode: boolean): string {
-  if (getAPIProvider() !== 'firstParty') return ''
+  if (getAPIProvider() !== 'anthropic') return ''
   const pricing = formatModelPricing(getOpus46CostTier(fastMode))
   const fastModeIndicator = fastMode ? ` (${LIGHTNING_BOLT})` : ''
   return ` ·${fastModeIndicator} ${pricing}`
@@ -363,7 +357,7 @@ export function isOpus1mMergeEnabled(): boolean {
   if (
     is1mContextDisabled() ||
     isProSubscriber() ||
-    getAPIProvider() !== 'firstParty'
+    getAPIProvider() !== 'anthropic'
   ) {
     return false
   }
@@ -401,8 +395,8 @@ export function renderModelSetting(setting: ModelName | ModelAlias): string {
  * if the model is not recognized as a public model.
  */
 export function getPublicModelDisplayName(model: ModelName): string | null {
-  // For OpenAI/Gemini providers, show the actual model name not a Hawk alias
-  if (getAPIProvider() === 'openai' || getAPIProvider() === 'gemini') {
+  // For non-anthropic providers, show the actual model name, not a Hawk alias.
+  if (getAPIProvider() !== 'anthropic') {
     return null
   }
   switch (model) {
@@ -541,7 +535,7 @@ export function parseUserSpecifiedModel(
   // strings pinned them in settings/env/--model/SDK before 4.5 launched.
   // 3P providers may not yet have 4.6 capacity, so pass through unchanged.
   if (
-    getAPIProvider() === 'firstParty' &&
+    getAPIProvider() === 'anthropic' &&
     isLegacyOpusFirstParty(modelString) &&
     isLegacyModelRemapEnabled()
   ) {
@@ -593,7 +587,7 @@ export function resolveSkillModelOverride(
   if (has1mContext(skillModel) || !has1mContext(currentModel)) {
     return skillModel
   }
-  // modelSupports1M matches on canonical IDs ('hawk-opus-4-6', 'hawk-sonnet-4');
+  // modelSupports1M matches on canonical IDs ('claude-opus-4-6', 'claude-sonnet-4');
   // a bare 'opus' alias falls through getCanonicalName unmatched. Resolve first.
   if (modelSupports1M(parseUserSpecifiedModel(skillModel))) {
     return skillModel + '[1m]'
@@ -602,10 +596,10 @@ export function resolveSkillModelOverride(
 }
 
 const LEGACY_OPUS_FIRSTPARTY = [
-  'hawk-opus-4-20250514',
-  'hawk-opus-4-1-20250805',
-  'hawk-opus-4-0',
-  'hawk-opus-4-1',
+  'claude-opus-4-20250514',
+  'claude-opus-4-1-20250805',
+  'claude-opus-4-0',
+  'claude-opus-4-1',
 ]
 
 function isLegacyOpusFirstParty(model: string): boolean {
@@ -634,45 +628,40 @@ export function modelDisplayString(model: ModelSetting): string {
 
 // @[MODEL LAUNCH]: Add a marketing name mapping for the new model below.
 export function getMarketingNameForModel(modelId: string): string | undefined {
-  if (getAPIProvider() === 'foundry') {
-    // deployment ID is user-defined in Foundry, so it may have no relation to the actual model
-    return undefined
-  }
-
   const has1m = modelId.toLowerCase().includes('[1m]')
   const canonical = getCanonicalName(modelId)
 
-  if (canonical.includes('hawk-opus-4-6')) {
+  if (canonical.includes('claude-opus-4-6')) {
     return has1m ? 'Opus 4.6 (with 1M context)' : 'Opus 4.6'
   }
-  if (canonical.includes('hawk-opus-4-5')) {
+  if (canonical.includes('claude-opus-4-5')) {
     return 'Opus 4.5'
   }
-  if (canonical.includes('hawk-opus-4-1')) {
+  if (canonical.includes('claude-opus-4-1')) {
     return 'Opus 4.1'
   }
-  if (canonical.includes('hawk-opus-4')) {
+  if (canonical.includes('claude-opus-4')) {
     return 'Opus 4'
   }
-  if (canonical.includes('hawk-sonnet-4-6')) {
+  if (canonical.includes('claude-sonnet-4-6')) {
     return has1m ? 'Sonnet 4.6 (with 1M context)' : 'Sonnet 4.6'
   }
-  if (canonical.includes('hawk-sonnet-4-5')) {
+  if (canonical.includes('claude-sonnet-4-5')) {
     return has1m ? 'Sonnet 4.5 (with 1M context)' : 'Sonnet 4.5'
   }
-  if (canonical.includes('hawk-sonnet-4')) {
+  if (canonical.includes('claude-sonnet-4')) {
     return has1m ? 'Sonnet 4 (with 1M context)' : 'Sonnet 4'
   }
-  if (canonical.includes('hawk-3-7-sonnet')) {
+  if (canonical.includes('claude-3-7-sonnet')) {
     return 'Hawk 3.7 Sonnet'
   }
-  if (canonical.includes('hawk-3-5-sonnet')) {
+  if (canonical.includes('claude-3-5-sonnet')) {
     return 'Hawk 3.5 Sonnet'
   }
-  if (canonical.includes('hawk-haiku-4-5')) {
+  if (canonical.includes('claude-haiku-4-5')) {
     return 'Haiku 4.5'
   }
-  if (canonical.includes('hawk-3-5-haiku')) {
+  if (canonical.includes('claude-3-5-haiku')) {
     return 'Hawk 3.5 Haiku'
   }
 

@@ -70,7 +70,7 @@ export function ChannelsNotice() {
     }
     let t2;
     if ($[9] === Symbol.for("react.memo_cache_sentinel")) {
-      t2 = <Text dimColor={true}>Channels require hawkai authentication · run /login, then restart</Text>;
+      t2 = <Text dimColor={true}>Channels require hawkai authentication · use /config, then restart</Text>;
       $[9] = t2;
     } else {
       t2 = $[9];

@@ -34,14 +34,14 @@ import typescriptHawkApiToolUse from './hawk-api/typescript/hawk-api/tool-use.md
 //   - hawk-api/SKILL.md (Current Models pricing table)
 //   - hawk-api/shared/models.md (full model catalog with legacy versions and alias mappings)
 export const SKILL_MODEL_VARS = {
-  OPUS_ID: 'hawk-opus-4-6',
+  OPUS_ID: 'claude-opus-4-6',
   OPUS_NAME: 'Hawk Opus 4.6',
-  SONNET_ID: 'hawk-sonnet-4-6',
+  SONNET_ID: 'claude-sonnet-4-6',
   SONNET_NAME: 'Hawk Sonnet 4.6',
-  HAIKU_ID: 'hawk-haiku-4-5',
+  HAIKU_ID: 'claude-haiku-4-5',
   HAIKU_NAME: 'Hawk Haiku 4.5',
   // Previous Sonnet ID — used in "do not append date suffixes" example in SKILL.md.
-  PREV_SONNET_ID: 'hawk-sonnet-4-5',
+  PREV_SONNET_ID: 'claude-sonnet-4-5',
 } satisfies Record<string, string>
 
 export const SKILL_PROMPT: string = skillPrompt

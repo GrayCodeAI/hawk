@@ -46,7 +46,10 @@ export function modelSupports1M(model: string): boolean {
     return false
   }
   const canonical = getCanonicalName(model)
-  return canonical.includes('hawk-sonnet-4') || canonical.includes('opus-4-6')
+  return (
+    canonical.includes('claude-sonnet-4') ||
+    canonical.includes('claude-opus-4-6')
+  )
 }
 
 export function getContextWindowForModel(
@@ -74,10 +77,12 @@ export function getContextWindowForModel(
 
   // OpenAI-compatible provider — use known context windows for the model
   if (
-    process.env.HAWK_CODE_USE_OPENAI === '1' ||
-    process.env.HAWK_CODE_USE_OPENAI === 'true' ||
-    process.env.HAWK_CODE_USE_GEMINI === '1' ||
-    process.env.HAWK_CODE_USE_GEMINI === 'true'
+    process.env.OPENAI_API_KEY ||
+    process.env.GROK_API_KEY ||
+    process.env.XAI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.OLLAMA_BASE_URL
   ) {
     const openaiWindow = getOpenAIContextWindow(model)
     if (openaiWindow !== undefined) {
@@ -178,10 +183,12 @@ export function getModelMaxOutputTokens(model: string): {
 
   // OpenAI-compatible provider — use known output limits to avoid 400 errors
   if (
-    process.env.HAWK_CODE_USE_OPENAI === '1' ||
-    process.env.HAWK_CODE_USE_OPENAI === 'true' ||
-    process.env.HAWK_CODE_USE_GEMINI === '1' ||
-    process.env.HAWK_CODE_USE_GEMINI === 'true'
+    process.env.OPENAI_API_KEY ||
+    process.env.GROK_API_KEY ||
+    process.env.XAI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.OLLAMA_BASE_URL
   ) {
     const openaiMax = getOpenAIMaxOutputTokens(model)
     if (openaiMax !== undefined) {
@@ -207,13 +214,13 @@ export function getModelMaxOutputTokens(model: string): {
   } else if (m.includes('opus-4-1') || m.includes('opus-4')) {
     defaultTokens = 32_000
     upperLimit = 32_000
-  } else if (m.includes('hawk-3-opus')) {
+  } else if (m.includes('claude-3-opus')) {
     defaultTokens = 4_096
     upperLimit = 4_096
-  } else if (m.includes('hawk-3-sonnet')) {
+  } else if (m.includes('claude-3-sonnet')) {
     defaultTokens = 8_192
     upperLimit = 8_192
-  } else if (m.includes('hawk-3-haiku')) {
+  } else if (m.includes('claude-3-haiku')) {
     defaultTokens = 4_096
     upperLimit = 4_096
   } else if (m.includes('3-5-sonnet') || m.includes('3-5-haiku')) {

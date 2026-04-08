@@ -40,7 +40,7 @@ const MCP_SERVERS_BETA_HEADER = 'mcp-servers-2025-12-04'
 export const fetchHawkAIMcpConfigsIfEligible = memoize(
   async (): Promise<Record<string, ScopedMcpServerConfig>> => {
     try {
-      if (getAPIProvider() !== 'firstParty') {
+      if (getAPIProvider() !== 'anthropic') {
         logForDebugging('[hawkai-mcp] Skipped: non-first-party provider')
         logEvent('tengu_hawkai_mcp_eligibility', {
           state:

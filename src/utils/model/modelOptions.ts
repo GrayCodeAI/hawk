@@ -32,6 +32,12 @@ import {
 } from './model.js'
 import { has1mContext } from '../context.js'
 import { getGlobalConfig } from '../config.js'
+import { getProviderCatalogEntries } from './providerCatalog.js'
+import {
+  isProviderConfigured,
+  loadProviderConfig,
+  type ProviderProfile,
+} from '../providerConfig.js'
 
 // @[MODEL LAUNCH]: Update all the available and default model option strings below.
 
@@ -40,6 +46,49 @@ export type ModelOption = {
   label: string
   description: string
   descriptionForModel?: string
+}
+
+function formatContextWindow(windowSize: number): string {
+  if (windowSize >= 1_000_000) {
+    return `${Math.round(windowSize / 1_000_000)}M context`
+  }
+  if (windowSize >= 1_000) {
+    return `${Math.round(windowSize / 1_000)}k context`
+  }
+  return `${windowSize} context`
+}
+
+function appendProviderCatalogOptions(options: ModelOption[]): void {
+  const provider = getAPIProvider()
+  const providerConfiguredInEnv =
+    provider === 'anthropic'
+      ? !!process.env.ANTHROPIC_API_KEY
+      : provider === 'openai'
+        ? !!process.env.OPENAI_API_KEY
+        : provider === 'grok'
+          ? !!(process.env.GROK_API_KEY || process.env.XAI_API_KEY)
+          : provider === 'gemini'
+            ? !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
+            : !!process.env.OLLAMA_BASE_URL
+  const providerConfiguredInFile = isProviderConfigured(
+    loadProviderConfig() ?? {},
+    provider as ProviderProfile,
+  )
+  if (!providerConfiguredInEnv && !providerConfiguredInFile) {
+    return
+  }
+
+  const catalogEntries = getProviderCatalogEntries(provider)
+  for (const entry of catalogEntries) {
+    if (options.some(existing => existing.value === entry.id)) {
+      continue
+    }
+    options.push({
+      value: entry.id,
+      label: entry.id,
+      description: formatContextWindow(entry.context_window),
+    })
+  }
 }
 
 export function getDefaultOptionForUser(fastMode = false): ModelOption {
@@ -65,7 +114,7 @@ export function getDefaultOptionForUser(fastMode = false): ModelOption {
   }
 
   // PAYG
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: null,
     label: 'Default (recommended)',
@@ -74,7 +123,7 @@ export function getDefaultOptionForUser(fastMode = false): ModelOption {
 }
 
 function getCustomSonnetOption(): ModelOption | undefined {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   const customSonnetModel = process.env.GRAYCODE_DEFAULT_SONNET_MODEL
   // When a 3P user has a custom sonnet model string, show it directly
   if (is3P && customSonnetModel) {
@@ -94,7 +143,7 @@ function getCustomSonnetOption(): ModelOption | undefined {
 // @[MODEL LAUNCH]: Update or add model option functions (getSonnetXXOption, getOpusXXOption, etc.)
 // with the new model's label and description. These appear in the /model picker.
 function getSonnet46Option(): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: is3P ? getModelStrings().sonnet46 : 'sonnet',
     label: 'Sonnet',
@@ -105,7 +154,7 @@ function getSonnet46Option(): ModelOption {
 }
 
 function getCustomOpusOption(): ModelOption | undefined {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   const customOpusModel = process.env.GRAYCODE_DEFAULT_OPUS_MODEL
   // When a 3P user has a custom opus model string, show it directly
   if (is3P && customOpusModel) {
@@ -131,7 +180,7 @@ function getOpus41Option(): ModelOption {
 }
 
 function getOpus46Option(fastMode = false): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: is3P ? getModelStrings().opus46 : 'opus',
     label: 'Opus',
@@ -141,7 +190,7 @@ function getOpus46Option(fastMode = false): ModelOption {
 }
 
 export function getSonnet46_1MOption(): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: is3P ? getModelStrings().sonnet46 + '[1m]' : 'sonnet[1m]',
     label: 'Sonnet (1M context)',
@@ -152,7 +201,7 @@ export function getSonnet46_1MOption(): ModelOption {
 }
 
 export function getOpus46_1MOption(fastMode = false): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: is3P ? getModelStrings().opus46 + '[1m]' : 'opus[1m]',
     label: 'Opus (1M context)',
@@ -163,7 +212,7 @@ export function getOpus46_1MOption(fastMode = false): ModelOption {
 }
 
 function getCustomHaikuOption(): ModelOption | undefined {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   const customHaikuModel = process.env.GRAYCODE_DEFAULT_HAIKU_MODEL
   // When a 3P user has a custom haiku model string, show it directly
   if (is3P && customHaikuModel) {
@@ -179,7 +228,7 @@ function getCustomHaikuOption(): ModelOption | undefined {
 }
 
 function getHaiku45Option(): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: 'haiku',
     label: 'Haiku',
@@ -190,7 +239,7 @@ function getHaiku45Option(): ModelOption {
 }
 
 function getHaiku35Option(): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: 'haiku',
     label: 'Haiku',
@@ -217,7 +266,7 @@ function getMaxOpusOption(fastMode = false): ModelOption {
 }
 
 export function getMaxSonnet46_1MOption(): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   const billingInfo = isHawkAISubscriber() ? ' · Billed as extra usage' : ''
   return {
     value: 'sonnet[1m]',
@@ -236,7 +285,7 @@ export function getMaxOpus46_1MOption(fastMode = false): ModelOption {
 }
 
 function getMergedOpus1MOption(fastMode = false): ModelOption {
-  const is3P = getAPIProvider() !== 'firstParty'
+  const is3P = getAPIProvider() !== 'anthropic'
   return {
     value: is3P ? getModelStrings().opus46 + '[1m]' : 'opus[1m]',
     label: 'Opus (1M context)',
@@ -340,7 +389,7 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
   }
 
   // PAYG 1P API: Default (Sonnet) + Sonnet 1M + Opus 4.6 + Opus 1M + Haiku
-  if (getAPIProvider() === 'firstParty') {
+  if (getAPIProvider() === 'anthropic') {
     const payg1POptions = [getDefaultOptionForUser(fastMode)]
     if (checkSonnet1mAccess()) {
       payg1POptions.push(getSonnet46_1MOption())
@@ -357,41 +406,16 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
     return payg1POptions
   }
 
-  // PAYG 3P: Default (Sonnet 4.5) + Sonnet (3P custom) or Sonnet 4.6/1M + Opus (3P custom) or Opus 4.1/Opus 4.6/Opus1M + Haiku + Opus 4.1
+  // PAYG 3P: keep only generic aliases here; concrete provider models are
+  // appended dynamically from the provider catalog.
   const payg3pOptions = [getDefaultOptionForUser(fastMode)]
 
   if (getAPIProvider() === 'openai') {
     payg3pOptions.push(getCodexPlanOption(), getCodexSparkOption())
   }
 
-  const customSonnet = getCustomSonnetOption()
-  if (customSonnet !== undefined) {
-    payg3pOptions.push(customSonnet)
-  } else {
-    // Add Sonnet 4.6 since Sonnet 4.5 is the default
-    payg3pOptions.push(getSonnet46Option())
-    if (checkSonnet1mAccess()) {
-      payg3pOptions.push(getSonnet46_1MOption())
-    }
-  }
-
-  const customOpus = getCustomOpusOption()
-  if (customOpus !== undefined) {
-    payg3pOptions.push(customOpus)
-  } else {
-    // Add Opus 4.1, Opus 4.6 and Opus 4.6 1M
-    payg3pOptions.push(getOpus41Option()) // This is the default opus
-    payg3pOptions.push(getOpus46Option(fastMode))
-    if (checkOpus1mAccess()) {
-      payg3pOptions.push(getOpus46_1MOption(fastMode))
-    }
-  }
-  const customHaiku = getCustomHaikuOption()
-  if (customHaiku !== undefined) {
-    payg3pOptions.push(customHaiku)
-  } else {
-    payg3pOptions.push(getHaikuOption())
-  }
+  // Non-Anthropic provider model IDs are loaded dynamically from the catalog.
+  // Keep only generic defaults/aliases here.
   return payg3pOptions
 }
 
@@ -409,11 +433,11 @@ function getModelFamilyInfo(
 
   // Sonnet family
   if (
-    canonical.includes('hawk-sonnet-4-6') ||
-    canonical.includes('hawk-sonnet-4-5') ||
-    canonical.includes('hawk-sonnet-4-') ||
-    canonical.includes('hawk-3-7-sonnet') ||
-    canonical.includes('hawk-3-5-sonnet')
+    canonical.includes('claude-sonnet-4-6') ||
+    canonical.includes('claude-sonnet-4-5') ||
+    canonical.includes('claude-sonnet-4-') ||
+    canonical.includes('claude-3-7-sonnet') ||
+    canonical.includes('claude-3-5-sonnet')
   ) {
     const currentName = getMarketingNameForModel(getDefaultSonnetModel())
     if (currentName) {
@@ -422,7 +446,7 @@ function getModelFamilyInfo(
   }
 
   // Opus family
-  if (canonical.includes('hawk-opus-4')) {
+  if (canonical.includes('claude-opus-4')) {
     const currentName = getMarketingNameForModel(getDefaultOpusModel())
     if (currentName) {
       return { alias: 'Opus', currentVersionName: currentName }
@@ -431,8 +455,8 @@ function getModelFamilyInfo(
 
   // Haiku family
   if (
-    canonical.includes('hawk-haiku') ||
-    canonical.includes('hawk-3-5-haiku')
+    canonical.includes('claude-haiku') ||
+    canonical.includes('claude-3-5-haiku')
   ) {
     const currentName = getMarketingNameForModel(getDefaultHaikuModel())
     if (currentName) {
@@ -503,6 +527,10 @@ export function getModelOptions(fastMode = false): ModelOption[] {
     }
   }
 
+  // Append model IDs from the provider catalog (cache/default immediately,
+  // refreshed in background).
+  appendProviderCatalogOptions(options)
+
   // Add custom model from either the current model value or the initial one
   // if it is not already in the options.
   let customModel: ModelSetting = null
@@ -521,12 +549,12 @@ export function getModelOptions(fastMode = false): ModelOption[] {
     return filterModelOptionsByAllowlist([...options, getCodexPlanOption()])
   } else if (customModel === 'codexspark') {
     return filterModelOptionsByAllowlist([...options, getCodexSparkOption()])
-  } else if (customModel === 'opus' && getAPIProvider() === 'firstParty') {
+  } else if (customModel === 'opus' && getAPIProvider() === 'anthropic') {
     return filterModelOptionsByAllowlist([
       ...options,
       getMaxOpusOption(fastMode),
     ])
-  } else if (customModel === 'opus[1m]' && getAPIProvider() === 'firstParty') {
+  } else if (customModel === 'opus[1m]' && getAPIProvider() === 'anthropic') {
     return filterModelOptionsByAllowlist([
       ...options,
       getMergedOpus1MOption(fastMode),

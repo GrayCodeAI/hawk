@@ -63,8 +63,8 @@ const hawkAiSubscriberExternalTokenNotice: StatusNoticeDefinition = {
         <Text color="warning">{figures.warning}</Text>
         <Text color="warning">
           Auth conflict: Using {authTokenInfo.source} instead of Hawk account
-          subscription token. Either unset {authTokenInfo.source}, or run
-          `hawk /logout`.
+          subscription token. Either unset {authTokenInfo.source}, or clear
+          account auth in /config.
         </Text>
       </Box>;
   }
@@ -90,7 +90,7 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
         <Text color="warning">{figures.warning}</Text>
         <Text color="warning">
           Auth conflict: Using {apiKeySource} instead of GrayCode Console key.
-          Either unset {apiKeySource}, or run `hawk /logout`.
+          Either unset {apiKeySource}, or clear account auth in /config.
         </Text>
       </Box>;
   }
@@ -127,11 +127,11 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
             · Trying to use{' '}
             {authTokenInfo.source === 'hawkai' ? 'hawkai' : authTokenInfo.source}
             ?{' '}
-            {apiKeySource === 'GRAYCODE_API_KEY' ? 'Unset the GRAYCODE_API_KEY (or GRAYCODE_API_KEY) environment variable, or hawk /logout then say "No" to the API key approval before login.' : apiKeySource === 'apiKeyHelper' ? 'Unset the apiKeyHelper setting.' : 'hawk /logout'}
+            {apiKeySource === 'GRAYCODE_API_KEY' ? 'Unset the GRAYCODE_API_KEY (or GRAYCODE_API_KEY) environment variable, or clear account auth in /config then say "No" to API key approval before reconnecting.' : apiKeySource === 'apiKeyHelper' ? 'Unset the apiKeyHelper setting.' : 'Clear account auth in /config'}
           </Text>
           <Text color="warning">
             · Trying to use {apiKeySource}?{' '}
-            {authTokenInfo.source === 'hawkai' ? 'hawk /logout to sign out of hawkai.' : `Unset the ${authTokenInfo.source} environment variable.`}
+            {authTokenInfo.source === 'hawkai' ? 'Use /config to sign out of hawkai.' : `Unset the ${authTokenInfo.source} environment variable.`}
           </Text>
         </Box>
       </Box>;

@@ -19,15 +19,15 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
         isMax20x = profile?.organization?.organization_type === 'hawk_max' && profile?.organization?.rate_limit_tier === 'default_hawk_max_20x';
       }
       if (isMax20x) {
-        setTimeout(onDone, 0, 'You are already on the highest Max subscription plan. For additional usage, run /login to switch to an API usage-billed account.');
+        setTimeout(onDone, 0, 'You are already on the highest Max subscription plan. For additional usage, use /config to switch to an API usage-billed account.');
         return null;
       }
     }
     const url = 'https://hawkai/upgrade/max';
     await openBrowser(url);
-    return <Login startingMessage={'Starting new login following /upgrade. Exit with Ctrl-C to use existing account.'} onDone={success => {
+    return <Login startingMessage={'Starting account authentication following /upgrade. Exit with Ctrl-C to use existing account.'} onDone={success => {
       context.onChangeAPIKey();
-      onDone(success ? 'Login successful' : 'Login interrupted');
+      onDone(success ? 'Authentication successful' : 'Authentication interrupted');
     }} />;
   } catch (error) {
     logError(error as Error);

@@ -6,7 +6,6 @@ import {
 } from 'src/services/analytics/growthbook.js'
 import { getIsNonInteractiveSession, getSdkBetas } from '../bootstrap/state.js'
 import {
-  BEDROCK_EXTRA_PARAMS_HEADERS,
   HAWK_CODE_20250219_BETA_HEADER,
   CLI_INTERNAL_BETA_HEADER,
   CONTEXT_1M_BETA_HEADER,
@@ -18,7 +17,6 @@ import {
   SUMMARIZE_CONNECTOR_TEXT_BETA_HEADER,
   TOKEN_EFFICIENT_TOOLS_BETA_HEADER,
   TOOL_SEARCH_BETA_HEADER_1P,
-  TOOL_SEARCH_BETA_HEADER_3P,
   WEB_SEARCH_BETA_HEADER,
 } from '../constants/betas.js'
 import { OAUTH_BETA_HEADER } from '../constants/oauth.js'
@@ -86,9 +84,6 @@ export function filterAllowedSdkBetas(
   return allowed.length > 0 ? allowed : undefined
 }
 
-// Generally, foundry supports all 1P features;
-// however out of an abundance of caution, we do not enable any which are behind an experiment
-
 export function modelSupportsISP(model: string): boolean {
   const supported3P = get3PModelCapabilityOverride(
     model,
@@ -99,42 +94,25 @@ export function modelSupportsISP(model: string): boolean {
   }
   const canonical = getCanonicalName(model)
   const provider = getAPIProvider()
-  // Foundry supports interleaved thinking for all models
-  if (provider === 'foundry') {
-    return true
-  }
-  if (provider === 'firstParty') {
-    return !canonical.includes('hawk-3-')
+  if (provider === 'anthropic') {
+    return !canonical.includes('claude-3-')
   }
   return (
-    canonical.includes('hawk-opus-4') || canonical.includes('hawk-sonnet-4')
+    canonical.includes('claude-opus-4') || canonical.includes('claude-sonnet-4')
   )
 }
 
-function vertexModelSupportsWebSearch(model: string): boolean {
-  const canonical = getCanonicalName(model)
-  // Web search only supported on Hawk 4.0+ models on Vertex
-  return (
-    canonical.includes('hawk-opus-4') ||
-    canonical.includes('hawk-sonnet-4') ||
-    canonical.includes('hawk-haiku-4')
-  )
-}
-
-// Context management is supported on Hawk 4+ models
+  // Context management is supported on Hawk 4+ models
 export function modelSupportsContextManagement(model: string): boolean {
   const canonical = getCanonicalName(model)
   const provider = getAPIProvider()
-  if (provider === 'foundry') {
-    return true
-  }
-  if (provider === 'firstParty') {
-    return !canonical.includes('hawk-3-')
+  if (provider === 'anthropic') {
+    return !canonical.includes('claude-3-')
   }
   return (
-    canonical.includes('hawk-opus-4') ||
-    canonical.includes('hawk-sonnet-4') ||
-    canonical.includes('hawk-haiku-4')
+    canonical.includes('claude-opus-4') ||
+    canonical.includes('claude-sonnet-4') ||
+    canonical.includes('claude-haiku-4')
   )
 }
 
@@ -142,17 +120,16 @@ export function modelSupportsContextManagement(model: string): boolean {
 export function modelSupportsStructuredOutputs(model: string): boolean {
   const canonical = getCanonicalName(model)
   const provider = getAPIProvider()
-  // Structured outputs only supported on firstParty and Foundry (not Bedrock/Vertex yet)
-  if (provider !== 'firstParty' && provider !== 'foundry') {
+  if (provider !== 'anthropic') {
     return false
   }
   return (
-    canonical.includes('hawk-sonnet-4-6') ||
-    canonical.includes('hawk-sonnet-4-5') ||
-    canonical.includes('hawk-opus-4-1') ||
-    canonical.includes('hawk-opus-4-5') ||
-    canonical.includes('hawk-opus-4-6') ||
-    canonical.includes('hawk-haiku-4-5')
+    canonical.includes('claude-sonnet-4-6') ||
+    canonical.includes('claude-sonnet-4-5') ||
+    canonical.includes('claude-opus-4-1') ||
+    canonical.includes('claude-opus-4-5') ||
+    canonical.includes('claude-opus-4-6') ||
+    canonical.includes('claude-haiku-4-5')
   )
 }
 
@@ -160,16 +137,14 @@ export function modelSupportsStructuredOutputs(model: string): boolean {
 export function modelSupportsAutoMode(model: string): boolean {
   if (feature('TRANSCRIPT_CLASSIFIER')) {
     const m = getCanonicalName(model)
-    // External: firstParty-only at launch (PI probes not wired for
-    // Bedrock/Vertex/Foundry yet). Checked before allowModels so the GB
+    // External: anthropic-only at launch. Checked before allowModels so the GB
     // override can't enable auto mode on unsupported providers.
-    if (process.env.USER_TYPE !== 'ant' && getAPIProvider() !== 'firstParty') {
+    if (process.env.USER_TYPE !== 'ant' && getAPIProvider() !== 'anthropic') {
       return false
     }
     // GrowthBook override: tengu_auto_mode_config.allowModels force-enables
     // auto mode for listed models, bypassing the denylist/allowlist below.
-    // Exact model IDs (e.g. "hawk-strudel-v6-p") match only that model;
-    // canonical names (e.g. "hawk-strudel") match the whole family.
+    // Exact model IDs match only that model; canonical names match a family.
     const config = getFeatureValue_CACHED_MAY_BE_STALE<{
       allowModels?: string[]
     }>('tengu_auto_mode_config', {})
@@ -182,51 +157,43 @@ export function modelSupportsAutoMode(model: string): boolean {
       return true
     }
     if (process.env.USER_TYPE === 'ant') {
-      // Denylist: block known-unsupported hawk models, allow everything else (ant-internal models etc.)
-      if (m.includes('hawk-3-')) return false
-      // hawk-*-4 not followed by -[6-9]: blocks bare -4, -4-YYYYMMDD, -4@, -4-0 thru -4-5
-      if (/hawk-(opus|sonnet|haiku)-4(?!-[6-9])/.test(m)) return false
+      // Denylist: block known-unsupported Claude models, allow everything else (ant-internal models etc.)
+      if (m.includes('claude-3-')) return false
+      // claude-*-4 not followed by -[6-9]: blocks bare -4, -4-YYYYMMDD, -4@, -4-0 thru -4-5
+      if (/claude-(opus|sonnet|haiku)-4(?!-[6-9])/.test(m)) return false
       return true
     }
-    // External allowlist (firstParty already checked above).
-    return /^hawk-(opus|sonnet)-4-6/.test(m)
+    // External allowlist (anthropic already checked above).
+    return /^claude-(opus|sonnet)-4-6/.test(m)
   }
   return false
 }
 
 /**
- * Get the correct tool search beta header for the current API provider.
- * - Hawk API / Foundry: advanced-tool-use-2025-11-20
- * - Vertex AI / Bedrock: tool-search-tool-2025-10-19
+ * Get the tool search beta header for the current API provider.
  */
 export function getToolSearchBetaHeader(): string {
-  const provider = getAPIProvider()
-  if (provider === 'vertex' || provider === 'bedrock') {
-    return TOOL_SEARCH_BETA_HEADER_3P
-  }
   return TOOL_SEARCH_BETA_HEADER_1P
 }
 
 /**
  * Check if experimental betas should be included.
- * These are betas that are only available on firstParty provider
+ * These are betas that are only available on anthropic provider
  * and may not be supported by proxies or other providers.
  */
 export function shouldIncludeFirstPartyOnlyBetas(): boolean {
   return (
-    (getAPIProvider() === 'firstParty' || getAPIProvider() === 'foundry') &&
+    getAPIProvider() === 'anthropic' &&
     !isEnvTruthy(process.env.HAWK_CODE_DISABLE_EXPERIMENTAL_BETAS)
   )
 }
 
 /**
- * Global-scope prompt caching is firstParty only. Foundry is excluded because
- * GrowthBook never bucketed Foundry users into the rollout experiment — the
- * treatment data is firstParty-only.
+ * Global-scope prompt caching is anthropic only.
  */
 export function shouldUseGlobalCacheScope(): boolean {
   return (
-    getAPIProvider() === 'firstParty' &&
+    getAPIProvider() === 'anthropic' &&
     !isEnvTruthy(process.env.HAWK_CODE_DISABLE_EXPERIMENTAL_BETAS)
   )
 }
@@ -314,7 +281,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
   // Gate on includeFirstPartyOnlyBetas: HAWK_CODE_DISABLE_EXPERIMENTAL_BETAS
   // already strips schema.strict from tool bodies at api.ts's choke point, but
   // this header was escaping that kill switch. Proxy gateways that look like
-  // firstParty but forward to Vertex reject this header with 400.
+  // anthropic-only; other providers may reject this header with 400.
   // github.com/deshaw/graycode-issues/issues/5
   const strictToolsEnabled =
     checkStatsigFeatureGate_CACHED_MAY_BE_STALE('tengu_tool_pear')
@@ -342,12 +309,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
     betaHeaders.push(TOKEN_EFFICIENT_TOOLS_BETA_HEADER)
   }
 
-  // Add web search beta for Vertex Hawk 4.0+ models only
-  if (provider === 'vertex' && vertexModelSupportsWebSearch(model)) {
-    betaHeaders.push(WEB_SEARCH_BETA_HEADER)
-  }
-  // Foundry only ships models that already support Web Search
-  if (provider === 'foundry') {
+  if (provider === 'anthropic') {
     betaHeaders.push(WEB_SEARCH_BETA_HEADER)
   }
 
@@ -369,19 +331,8 @@ export const getAllModelBetas = memoize((model: string): string[] => {
 })
 
 export const getModelBetas = memoize((model: string): string[] => {
-  const modelBetas = getAllModelBetas(model)
-  if (getAPIProvider() === 'bedrock') {
-    return modelBetas.filter(b => !BEDROCK_EXTRA_PARAMS_HEADERS.has(b))
-  }
-  return modelBetas
+  return getAllModelBetas(model)
 })
-
-export const getBedrockExtraBodyParamsBetas = memoize(
-  (model: string): string[] => {
-    const modelBetas = getAllModelBetas(model)
-    return modelBetas.filter(b => BEDROCK_EXTRA_PARAMS_HEADERS.has(b))
-  },
-)
 
 /**
  * Merge SDK-provided betas with auto-detected model betas.
@@ -430,5 +381,4 @@ export function getMergedBetas(
 export function clearBetasCaches(): void {
   getAllModelBetas.cache?.clear?.()
   getModelBetas.cache?.clear?.()
-  getBedrockExtraBodyParamsBetas.cache?.clear?.()
 }

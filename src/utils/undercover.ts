@@ -63,7 +63,7 @@ GOOD:
 
 BAD (never write these):
 - "Fix bug found while testing with Hawk Capybara"
-- "1-shotted by hawk-opus-4-6"
+- "1-shotted by claude-opus-4-6"
 - "Generated with Hawk"
 - "Co-Authored-By: Hawk Opus 4.6 <…>"
 `

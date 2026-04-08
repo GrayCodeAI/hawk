@@ -6,7 +6,6 @@ import type { MCPServerConnection } from '../services/mcp/types.js';
 import { getAccountInformation, isHawkAISubscriber } from './auth.js';
 import { getLargeMemoryFiles, getHawkMdFiles, MAX_MEMORY_CHARACTER_COUNT } from './hawkmd.js';
 import { getDoctorDiagnostic } from './doctorDiagnostic.js';
-import { getAWSRegion, getDefaultVertexRegion, isEnvTruthy } from './envUtils.js';
 import { getDisplayPath } from './file.js';
 import { formatNumber } from './format.js';
 import { getIdeClientName, type IDEExtensionInstallationStatus, isJetBrainsIde, toIDEDisplayName } from './ide.js';
@@ -240,84 +239,24 @@ export function buildAccountProperties(): Property[] {
 export function buildAPIProviderProperties(): Property[] {
   const apiProvider = getAPIProvider();
   const properties: Property[] = [];
-  if (apiProvider !== 'firstParty') {
+  if (apiProvider !== 'anthropic') {
     const providerLabel = {
-      bedrock: 'AWS Bedrock',
-      vertex: 'Google Vertex AI',
-      foundry: 'Microsoft Foundry'
+      openai: 'OpenAI',
+      grok: 'xAI Grok',
+      gemini: 'Google Gemini',
+      ollama: 'Ollama'
     }[apiProvider];
     properties.push({
       label: 'API provider',
       value: providerLabel
     });
   }
-  if (apiProvider === 'firstParty') {
-    const graycodeBaseUrl = process.env.GRAYCODE_BASE_URL;
-    if (graycodeBaseUrl) {
+  if (apiProvider === 'anthropic') {
+    const anthropicBaseUrl = process.env.ANTHROPIC_BASE_URL;
+    if (anthropicBaseUrl) {
       properties.push({
-        label: 'GrayCode base URL',
-        value: graycodeBaseUrl
-      });
-    }
-  } else if (apiProvider === 'bedrock') {
-    const bedrockBaseUrl = process.env.BEDROCK_BASE_URL;
-    if (bedrockBaseUrl) {
-      properties.push({
-        label: 'Bedrock base URL',
-        value: bedrockBaseUrl
-      });
-    }
-    properties.push({
-      label: 'AWS region',
-      value: getAWSRegion()
-    });
-    if (isEnvTruthy(process.env.HAWK_CODE_SKIP_BEDROCK_AUTH)) {
-      properties.push({
-        value: 'AWS auth skipped'
-      });
-    }
-  } else if (apiProvider === 'vertex') {
-    const vertexBaseUrl = process.env.VERTEX_BASE_URL;
-    if (vertexBaseUrl) {
-      properties.push({
-        label: 'Vertex base URL',
-        value: vertexBaseUrl
-      });
-    }
-    const gcpProject = process.env.GRAYCODE_VERTEX_PROJECT_ID;
-    if (gcpProject) {
-      properties.push({
-        label: 'GCP project',
-        value: gcpProject
-      });
-    }
-    properties.push({
-      label: 'Default region',
-      value: getDefaultVertexRegion()
-    });
-    if (isEnvTruthy(process.env.HAWK_CODE_SKIP_VERTEX_AUTH)) {
-      properties.push({
-        value: 'GCP auth skipped'
-      });
-    }
-  } else if (apiProvider === 'foundry') {
-    const foundryBaseUrl = process.env.GRAYCODE_FOUNDRY_BASE_URL;
-    if (foundryBaseUrl) {
-      properties.push({
-        label: 'Microsoft Foundry base URL',
-        value: foundryBaseUrl
-      });
-    }
-    const foundryResource = process.env.GRAYCODE_FOUNDRY_RESOURCE;
-    if (foundryResource) {
-      properties.push({
-        label: 'Microsoft Foundry resource',
-        value: foundryResource
-      });
-    }
-    if (isEnvTruthy(process.env.HAWK_CODE_SKIP_FOUNDRY_AUTH)) {
-      properties.push({
-        value: 'Microsoft Foundry auth skipped'
+        label: 'Anthropic base URL',
+        value: anthropicBaseUrl
       });
     }
   }

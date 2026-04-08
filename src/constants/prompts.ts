@@ -119,9 +119,9 @@ const FRONTIER_MODEL_NAME = 'Hawk Opus 4.6'
 
 // @[MODEL LAUNCH]: Update the model family IDs below to the latest in each tier.
 const HAWK_4_5_OR_4_6_MODEL_IDS = {
-  opus: 'hawk-opus-4-6',
-  sonnet: 'hawk-sonnet-4-6',
-  haiku: 'hawk-haiku-4-5-20251001',
+  opus: 'claude-opus-4-6',
+  sonnet: 'claude-sonnet-4-6',
+  haiku: 'claude-haiku-4-5-20251001',
 }
 
 function getHooksSection(): string {
@@ -712,17 +712,17 @@ export async function computeSimpleEnvInfo(
 // @[MODEL LAUNCH]: Add a knowledge cutoff date for the new model.
 function getKnowledgeCutoff(modelId: string): string | null {
   const canonical = getCanonicalName(modelId)
-  if (canonical.includes('hawk-sonnet-4-6')) {
+  if (canonical.includes('claude-sonnet-4-6')) {
     return 'August 2025'
-  } else if (canonical.includes('hawk-opus-4-6')) {
+  } else if (canonical.includes('claude-opus-4-6')) {
     return 'May 2025'
-  } else if (canonical.includes('hawk-opus-4-5')) {
+  } else if (canonical.includes('claude-opus-4-5')) {
     return 'May 2025'
-  } else if (canonical.includes('hawk-haiku-4')) {
+  } else if (canonical.includes('claude-haiku-4')) {
     return 'February 2025'
   } else if (
-    canonical.includes('hawk-opus-4') ||
-    canonical.includes('hawk-sonnet-4')
+    canonical.includes('claude-opus-4') ||
+    canonical.includes('claude-sonnet-4')
   ) {
     return 'January 2025'
   }

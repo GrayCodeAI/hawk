@@ -1,0 +1,403 @@
+import {
+  DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
+  DEFAULT_CODEX_BASE_URL,
+  DEFAULT_GEMINI_OPENAI_BASE_URL,
+  DEFAULT_GROK_OPENAI_BASE_URL,
+  DEFAULT_OPENAI_BASE_URL,
+  isLocalProviderUrl,
+  resolveOpenAICompatibleRuntime,
+  type ResolvedOpenAICompatibleRuntime,
+} from '@hawk/eyrie'
+import {
+  applyProviderConfigToEnv,
+  defaultProviderFromConfig,
+  getProviderConfigPath,
+  loadProviderConfig,
+  saveProviderConfig,
+  type ProviderConfig,
+} from '../src/utils/providerConfig.js'
+
+export type ProviderProfile =
+  | 'openai'
+  | 'ollama'
+  | 'codex'
+  | 'gemini'
+  | 'anthropic'
+  | 'grok'
+
+export type ProfileEnv = {
+  OPENAI_BASE_URL?: string
+  OPENAI_MODEL?: string
+  OPENAI_API_KEY?: string
+  OPENAI_API_BASE?: string
+  CODEX_API_KEY?: string
+  CODEX_ACCOUNT_ID?: string
+  CHATGPT_ACCOUNT_ID?: string
+  GEMINI_API_KEY?: string
+  GOOGLE_API_KEY?: string
+  GEMINI_MODEL?: string
+  GEMINI_BASE_URL?: string
+  ANTHROPIC_API_KEY?: string
+  ANTHROPIC_MODEL?: string
+  ANTHROPIC_BASE_URL?: string
+  ANTHROPIC_VERSION?: string
+  GROK_API_KEY?: string
+  GROK_MODEL?: string
+  GROK_BASE_URL?: string
+  XAI_API_KEY?: string
+  XAI_MODEL?: string
+  XAI_BASE_URL?: string
+}
+
+export type ProfileFile = {
+  profile: ProviderProfile
+  env?: ProfileEnv
+}
+
+export type ProfileInitOptions = {
+  model?: string | null
+  baseUrl?: string | null
+  apiKey?: string | null
+  anthropicVersion?: string | null
+}
+
+type ProfileDefinition = {
+  defaultModel: string
+  defaultBaseUrl: string
+  modelEnv: keyof ProfileEnv
+  baseUrlEnv: keyof ProfileEnv
+  keyEnv?: keyof ProfileEnv
+  keyFallbackEnv: Array<keyof ProfileEnv>
+  useFlag?: string
+}
+
+export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
+  anthropic: {
+    defaultModel: 'claude-3-5-sonnet-latest',
+    defaultBaseUrl: DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
+    modelEnv: 'ANTHROPIC_MODEL',
+    baseUrlEnv: 'ANTHROPIC_BASE_URL',
+    keyEnv: 'ANTHROPIC_API_KEY',
+    keyFallbackEnv: ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_ANTHROPIC',
+  },
+  grok: {
+    defaultModel: 'grok-2',
+    defaultBaseUrl: DEFAULT_GROK_OPENAI_BASE_URL,
+    modelEnv: 'GROK_MODEL',
+    baseUrlEnv: 'GROK_BASE_URL',
+    keyEnv: 'GROK_API_KEY',
+    keyFallbackEnv: ['GROK_API_KEY', 'XAI_API_KEY', 'OPENAI_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_GROK',
+  },
+  openai: {
+    defaultModel: 'gpt-4o',
+    defaultBaseUrl: DEFAULT_OPENAI_BASE_URL,
+    modelEnv: 'OPENAI_MODEL',
+    baseUrlEnv: 'OPENAI_BASE_URL',
+    keyEnv: 'OPENAI_API_KEY',
+    keyFallbackEnv: ['OPENAI_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_OPENAI',
+  },
+  gemini: {
+    defaultModel: 'gemini-2.0-flash',
+    defaultBaseUrl: DEFAULT_GEMINI_OPENAI_BASE_URL,
+    modelEnv: 'GEMINI_MODEL',
+    baseUrlEnv: 'GEMINI_BASE_URL',
+    keyEnv: 'GEMINI_API_KEY',
+    keyFallbackEnv: ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'OPENAI_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_GEMINI',
+  },
+  ollama: {
+    defaultModel: 'llama3.1:8b',
+    defaultBaseUrl: 'http://localhost:11434/v1',
+    modelEnv: 'OPENAI_MODEL',
+    baseUrlEnv: 'OPENAI_BASE_URL',
+    keyEnv: 'OPENAI_API_KEY',
+    keyFallbackEnv: ['OPENAI_API_KEY'],
+  },
+  codex: {
+    defaultModel: 'codexplan',
+    defaultBaseUrl: DEFAULT_CODEX_BASE_URL,
+    modelEnv: 'OPENAI_MODEL',
+    baseUrlEnv: 'OPENAI_BASE_URL',
+    keyEnv: 'CODEX_API_KEY',
+    keyFallbackEnv: ['CODEX_API_KEY'],
+  },
+}
+
+export const PROFILE_CHOICES = Object.keys(PROVIDER_PROFILES) as ProviderProfile[]
+
+function toProfileEnv(env: NodeJS.ProcessEnv): ProfileEnv {
+  const keys: Array<keyof ProfileEnv> = [
+    'OPENAI_BASE_URL',
+    'OPENAI_MODEL',
+    'OPENAI_API_KEY',
+    'OPENAI_API_BASE',
+    'CODEX_API_KEY',
+    'CODEX_ACCOUNT_ID',
+    'CHATGPT_ACCOUNT_ID',
+    'GEMINI_API_KEY',
+    'GOOGLE_API_KEY',
+    'GEMINI_MODEL',
+    'GEMINI_BASE_URL',
+    'ANTHROPIC_API_KEY',
+    'ANTHROPIC_MODEL',
+    'ANTHROPIC_BASE_URL',
+    'ANTHROPIC_VERSION',
+    'GROK_API_KEY',
+    'GROK_MODEL',
+    'GROK_BASE_URL',
+    'XAI_API_KEY',
+    'XAI_MODEL',
+    'XAI_BASE_URL',
+  ]
+  const profileEnv: ProfileEnv = {}
+  for (const key of keys) {
+    const value = env[key]
+    if (typeof value === 'string' && value.trim()) {
+      profileEnv[key] = value.trim()
+    }
+  }
+  return profileEnv
+}
+
+export function loadProviderProfileConfig(): ProfileFile | null {
+  const config = loadProviderConfig()
+  const profile = defaultProviderFromConfig(config) as ProviderProfile | null
+  if (!config || !profile) return null
+  const env: NodeJS.ProcessEnv = {}
+  applyProviderConfigToEnv(env, config)
+  return {
+    profile,
+    env: toProfileEnv(env),
+  }
+}
+
+export function saveProviderProfileConfig(
+  profile: ProviderProfile,
+  env: ProfileEnv,
+): string {
+  const config: ProviderConfig = loadProviderConfig() ?? {}
+  const model = env[PROVIDER_PROFILES[profile].modelEnv]
+
+  if (model) config.active_model = model
+
+  switch (profile) {
+    case 'anthropic':
+      config.anthropic_api_key = env.ANTHROPIC_API_KEY
+      config.anthropic_base_url = env.ANTHROPIC_BASE_URL
+      config.anthropic_version = env.ANTHROPIC_VERSION
+      break
+    case 'grok':
+      config.grok_api_key = env.GROK_API_KEY
+      config.xai_api_key = env.XAI_API_KEY
+      config.grok_base_url = env.GROK_BASE_URL
+      config.xai_base_url = env.XAI_BASE_URL
+      break
+    case 'openai':
+      config.openai_api_key = env.OPENAI_API_KEY
+      config.openai_base_url = env.OPENAI_BASE_URL
+      break
+    case 'gemini':
+      config.gemini_api_key = env.GEMINI_API_KEY
+      config.google_api_key = env.GOOGLE_API_KEY
+      config.gemini_base_url = env.GEMINI_BASE_URL
+      break
+    case 'ollama':
+      config.ollama_base_url = env.OPENAI_BASE_URL?.replace(/\/v1\/?$/, '')
+      break
+    case 'codex':
+      config.codex_api_key = env.CODEX_API_KEY
+      config.codex_account_id = env.CODEX_ACCOUNT_ID
+      config.chatgpt_account_id = env.CHATGPT_ACCOUNT_ID
+      break
+  }
+
+  saveProviderConfig(config)
+  return getProviderConfigPath()
+}
+
+export function isProviderProfile(value: string | undefined): value is ProviderProfile {
+  return !!value && value in PROVIDER_PROFILES
+}
+
+export async function hasLocalOllama(): Promise<boolean> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 1200)
+
+  try {
+    const response = await fetch('http://localhost:11434/api/tags', {
+      method: 'GET',
+      signal: controller.signal,
+    })
+    return response.ok
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export function sanitizeApiKey(key: string | null | undefined): string | undefined {
+  if (!key || key === 'SUA_CHAVE') return undefined
+  return key
+}
+
+function firstValue(
+  env: NodeJS.ProcessEnv | ProfileEnv,
+  keys: Array<keyof ProfileEnv>,
+): string | undefined {
+  for (const key of keys) {
+    const value = env[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return undefined
+}
+
+function setOpenAICompatMirror(env: ProfileEnv, definition: ProfileDefinition): void {
+  env.OPENAI_MODEL = env[definition.modelEnv]
+  env.OPENAI_BASE_URL = env[definition.baseUrlEnv]
+  if (definition.keyEnv && env[definition.keyEnv]) {
+    env.OPENAI_API_KEY = env[definition.keyEnv]
+  }
+}
+
+function clearProviderFlags(env: NodeJS.ProcessEnv): void {
+  delete env.HAWK_CODE_USE_GEMINI
+  delete env.HAWK_CODE_USE_GROK
+  delete env.HAWK_CODE_USE_ANTHROPIC
+}
+
+export function createProfileEnv(
+  profile: ProviderProfile,
+  options: ProfileInitOptions = {},
+  sourceEnv: NodeJS.ProcessEnv = process.env,
+): ProfileEnv {
+  const definition = PROVIDER_PROFILES[profile]
+  const env: ProfileEnv = {}
+  env[definition.modelEnv] =
+    options.model ||
+    firstValue(sourceEnv, [definition.modelEnv, 'OPENAI_MODEL']) ||
+    definition.defaultModel
+  env[definition.baseUrlEnv] =
+    options.baseUrl ||
+    firstValue(sourceEnv, [definition.baseUrlEnv, 'OPENAI_BASE_URL']) ||
+    definition.defaultBaseUrl
+
+  const key = sanitizeApiKey(
+    options.apiKey || firstValue(sourceEnv, definition.keyFallbackEnv),
+  )
+  if (key && definition.keyEnv) {
+    env[definition.keyEnv] = key
+  }
+
+  if (profile !== 'ollama' && profile !== 'codex') {
+    setOpenAICompatMirror(env, definition)
+  }
+
+  if (profile === 'anthropic') {
+    const anthropicVersion =
+      options.anthropicVersion || sourceEnv.ANTHROPIC_VERSION
+    if (anthropicVersion) env.ANTHROPIC_VERSION = anthropicVersion
+  }
+
+  return env
+}
+
+export function buildLaunchEnv(
+  profile: ProviderProfile,
+  persisted: ProfileFile | null,
+  sourceEnv: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  const definition = PROVIDER_PROFILES[profile]
+  const persistedEnv = persisted?.env ?? {}
+  const env: NodeJS.ProcessEnv = {
+    ...sourceEnv,
+    HAWK_CODE_USE_OPENAI: '1',
+  }
+  clearProviderFlags(env)
+
+  if (definition.useFlag && definition.useFlag !== 'HAWK_CODE_USE_OPENAI') {
+    env[definition.useFlag] = '1'
+  }
+
+  env[definition.modelEnv] =
+    sourceEnv[definition.modelEnv] ||
+    persistedEnv[definition.modelEnv] ||
+    sourceEnv.OPENAI_MODEL ||
+    definition.defaultModel
+  env[definition.baseUrlEnv] =
+    sourceEnv[definition.baseUrlEnv] ||
+    persistedEnv[definition.baseUrlEnv] ||
+    sourceEnv.OPENAI_BASE_URL ||
+    definition.defaultBaseUrl
+
+  const key = firstValue(sourceEnv, definition.keyFallbackEnv)
+    ?? firstValue(persistedEnv, definition.keyFallbackEnv)
+  if (key && definition.keyEnv) {
+    env[definition.keyEnv] = key
+  }
+
+  if (profile !== 'ollama' && profile !== 'codex') {
+    env.OPENAI_MODEL = env[definition.modelEnv]
+    env.OPENAI_BASE_URL = env[definition.baseUrlEnv]
+    if (definition.keyEnv && env[definition.keyEnv] && !sourceEnv.OPENAI_API_KEY) {
+      env.OPENAI_API_KEY = env[definition.keyEnv]
+    }
+  }
+
+  if (profile === 'ollama' && (!sourceEnv.OPENAI_API_KEY || sourceEnv.OPENAI_API_KEY === 'SUA_CHAVE')) {
+    delete env.OPENAI_API_KEY
+  }
+
+  if (profile === 'anthropic' && (sourceEnv.ANTHROPIC_VERSION || persistedEnv.ANTHROPIC_VERSION)) {
+    env.ANTHROPIC_VERSION = sourceEnv.ANTHROPIC_VERSION || persistedEnv.ANTHROPIC_VERSION
+  }
+
+  return env
+}
+
+export function resolveProfileRuntime(env: NodeJS.ProcessEnv): ResolvedOpenAICompatibleRuntime {
+  return resolveOpenAICompatibleRuntime({ env })
+}
+
+export function validateProfileRuntime(
+  profile: ProviderProfile,
+  runtime: ResolvedOpenAICompatibleRuntime,
+): string | null {
+  if (profile === 'codex') {
+    const credentials = runtime.codexCredentials
+    if (!credentials?.apiKey) {
+      const authHint = credentials?.authPath
+        ? ` or make sure ${credentials.authPath} exists`
+        : ''
+      return `CODEX_API_KEY is required for codex profile${authHint}. Run: bun run profile:init -- --provider codex --model codexplan`
+    }
+    if (!credentials.accountId) {
+      return 'Codex profile requires chatgpt_account_id. Re-login with Codex CLI or set CHATGPT_ACCOUNT_ID/CODEX_ACCOUNT_ID.'
+    }
+    return null
+  }
+
+  const keyLabel = profileKeyLabel(profile)
+  if (profile !== 'ollama' && runtime.apiKey === 'SUA_CHAVE') {
+    return `${keyLabel} is required for ${profile} profile and cannot be SUA_CHAVE. Run: bun run profile:init -- --provider ${profile} --api-key <key>`
+  }
+  if (
+    profile !== 'ollama' &&
+    !runtime.apiKey &&
+    !isLocalProviderUrl(runtime.request.baseUrl)
+  ) {
+    return `${keyLabel} is required for ${profile} profile. Run: bun run profile:init -- --provider ${profile} --api-key <key>`
+  }
+  return null
+}
+
+export function profileKeyLabel(profile: ProviderProfile): string {
+  if (profile === 'anthropic') return 'ANTHROPIC_API_KEY'
+  if (profile === 'grok') return 'GROK_API_KEY (or XAI_API_KEY)'
+  if (profile === 'gemini') return 'GEMINI_API_KEY'
+  if (profile === 'codex') return 'CODEX_API_KEY'
+  return 'OPENAI_API_KEY'
+}

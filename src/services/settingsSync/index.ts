@@ -210,7 +210,7 @@ async function doDownloadUserSettings(
  * download a no-op there. Upload is independently guarded by getIsInteractive().
  */
 function isUsingOAuth(): boolean {
-  if (getAPIProvider() !== 'firstParty' || !isFirstPartyGrayCodeBaseUrl()) {
+  if (getAPIProvider() !== 'anthropic' || !isFirstPartyGrayCodeBaseUrl()) {
     return false
   }
 

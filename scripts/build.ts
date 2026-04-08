@@ -150,6 +150,42 @@ export async function handleBgFlag() { throw new Error("Background sessions are 
 
         // NOTE: @opentelemetry/* kept as external deps (too many named exports to stub)
 
+        build.onResolve({ filter: /^punycode$/ }, () => ({
+          path: 'punycode',
+          namespace: 'punycode-shim',
+        }))
+        build.onLoad(
+          { filter: /.*/, namespace: 'punycode-shim' },
+          () => ({
+            contents: `
+import { domainToASCII, domainToUnicode } from 'node:url';
+
+function decodeUcs2(string) {
+  const output = [];
+  for (let counter = 0; counter < string.length; counter += 1) {
+    const value = string.charCodeAt(counter);
+    if (value >= 0xd800 && value <= 0xdbff && counter + 1 < string.length) {
+      const extra = string.charCodeAt(counter + 1);
+      if ((extra & 0xfc00) === 0xdc00) {
+        output.push(((value & 0x3ff) << 10) + (extra & 0x3ff) + 0x10000);
+        counter += 1;
+        continue;
+      }
+    }
+    output.push(value);
+  }
+  return output;
+}
+
+export const ucs2 = { decode: decodeUcs2 };
+export const toASCII = domainToASCII;
+export const toUnicode = domainToUnicode;
+export default { ucs2, toASCII, toUnicode };
+`,
+            loader: 'js',
+          }),
+        )
+
         // Resolve native addon and missing snapshot imports to stubs
         for (const mod of [
           'audio-capture-napi',

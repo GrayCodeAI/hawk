@@ -32,11 +32,14 @@ export function preconnectGrayCodeApi(): void {
   if (fired) return
   fired = true
 
-  // Skip if using a cloud provider — different endpoint + auth
+  // Skip if using an OpenAI-compatible provider — different endpoint, preconnect to Anthropic would be wasted
   if (
-    isEnvTruthy(process.env.HAWK_CODE_USE_BEDROCK) ||
-    isEnvTruthy(process.env.HAWK_CODE_USE_VERTEX) ||
-    isEnvTruthy(process.env.HAWK_CODE_USE_FOUNDRY)
+    process.env.OPENAI_API_KEY ||
+    process.env.GROK_API_KEY ||
+    process.env.XAI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.OLLAMA_BASE_URL
   ) {
     return
   }

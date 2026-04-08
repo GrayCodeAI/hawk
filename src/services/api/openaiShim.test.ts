@@ -6,6 +6,10 @@ type FetchType = typeof globalThis.fetch
 const originalEnv = {
   OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+  ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
+  ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL,
+  ANTHROPIC_VERSION: process.env.ANTHROPIC_VERSION,
 }
 
 const originalFetch = globalThis.fetch
@@ -44,6 +48,10 @@ beforeEach(() => {
 afterEach(() => {
   process.env.OPENAI_BASE_URL = originalEnv.OPENAI_BASE_URL
   process.env.OPENAI_API_KEY = originalEnv.OPENAI_API_KEY
+  process.env.ANTHROPIC_API_KEY = originalEnv.ANTHROPIC_API_KEY
+  process.env.ANTHROPIC_MODEL = originalEnv.ANTHROPIC_MODEL
+  process.env.ANTHROPIC_BASE_URL = originalEnv.ANTHROPIC_BASE_URL
+  process.env.ANTHROPIC_VERSION = originalEnv.ANTHROPIC_VERSION
   globalThis.fetch = originalFetch
 })
 
@@ -132,4 +140,70 @@ test('preserves usage from final OpenAI stream chunk with empty choices', async 
   expect(usageEvent).toBeDefined()
   expect(usageEvent?.usage?.input_tokens).toBe(123)
   expect(usageEvent?.usage?.output_tokens).toBe(45)
+})
+
+test('sends Anthropic compatibility headers in anthropic mode', async () => {
+  process.env.ANTHROPIC_API_KEY = 'anthropic-test-key'
+  process.env.ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
+  process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1'
+  process.env.ANTHROPIC_VERSION = '2023-06-01'
+
+  globalThis.fetch = (async (_input, init) => {
+    const url = typeof _input === 'string' ? _input : _input.url
+    expect(url).toBe('https://api.anthropic.com/v1/chat/completions')
+
+    const headers = init?.headers as Record<string, string>
+    expect(headers.Authorization).toBe('Bearer anthropic-test-key')
+    expect(headers['x-api-key']).toBe('anthropic-test-key')
+    expect(headers['anthropic-version']).toBe('2023-06-01')
+
+    return new Response(
+      JSON.stringify({
+        id: 'chatcmpl-anthropic-1',
+        model: 'claude-3-5-sonnet-latest',
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: 'hello from anthropic mode',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+        usage: {
+          prompt_tokens: 12,
+          completion_tokens: 7,
+          total_tokens: 19,
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+  }) as FetchType
+
+  const client = createOpenAIShimClient({}) as {
+    beta: {
+      messages: {
+        create: (
+          params: Record<string, unknown>,
+          options?: Record<string, unknown>,
+        ) => Promise<Record<string, unknown>>
+      }
+    }
+  }
+
+  const result = await client.beta.messages.create({
+    model: 'claude-3-5-sonnet-latest',
+    system: 'test system',
+    messages: [{ role: 'user', content: 'hello' }],
+    max_tokens: 64,
+    stream: false,
+  })
+
+  expect(result.stop_reason).toBe('end_turn')
 })

@@ -60,3 +60,7 @@ export const EXIT_REASONS = [
   'other',
   'bypass_permissions_disabled',
 ] as const
+
+// Note: HookEvent and ModelUsage types are now auto-generated in coreTypes.generated.ts
+// from the schemas. The const arrays above are used for runtime validation.
+// They are re-exported from coreTypes.generated.js above.

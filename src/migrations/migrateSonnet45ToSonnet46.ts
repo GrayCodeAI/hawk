@@ -27,7 +27,7 @@ import {
  * Idempotent: only writes if userSettings.model matches a Sonnet 4.5 string.
  */
 export function migrateSonnet45ToSonnet46(): void {
-  if (getAPIProvider() !== 'firstParty') {
+  if (getAPIProvider() !== 'anthropic') {
     return
   }
 
@@ -37,8 +37,8 @@ export function migrateSonnet45ToSonnet46(): void {
 
   const model = getSettingsForSource('userSettings')?.model
   if (
-    model !== 'hawk-sonnet-4-5-20250929' &&
-    model !== 'hawk-sonnet-4-5-20250929[1m]' &&
+    model !== 'claude-sonnet-4-5-20250929' &&
+    model !== 'claude-sonnet-4-5-20250929[1m]' &&
     model !== 'sonnet-4-5-20250929' &&
     model !== 'sonnet-4-5-20250929[1m]'
   ) {

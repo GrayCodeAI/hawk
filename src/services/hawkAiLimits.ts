@@ -12,7 +12,7 @@ import { isEssentialTrafficOnly } from '../utils/privacyLevel.js'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from './analytics/index.js'
 import { logEvent } from './analytics/index.js'
 import { getAPIMetadata } from './api/hawk.js'
-import { getGrayCodeClient } from './api/client.js'
+import { getLLMClient } from './api/client.js'
 import {
   processRateLimitHeaders,
   shouldProcessRateLimits,
@@ -199,7 +199,7 @@ export function emitStatusChange(limits: HawkAILimits) {
 
 async function makeTestQuery() {
   const model = getSmallFastModel()
-  const graycode = await getGrayCodeClient({
+  const graycode = await getLLMClient({
     maxRetries: 0,
     model,
     source: 'quota_check',
@@ -224,7 +224,7 @@ export async function checkQuotaStatus(): Promise<void> {
     return
   }
 
-  if (getAPIProvider() !== 'firstParty') {
+  if (getAPIProvider() !== 'anthropic') {
     return
   }
 

@@ -27,6 +27,8 @@ import { Dialog } from '../design-system/Dialog.js';
 import { Select } from '../CustomSelect/index.js';
 import { OutputStylePicker } from '../OutputStylePicker.js';
 import { LanguagePicker } from '../LanguagePicker.js';
+import { ProviderConfigDialog, providerLabel } from './ProviderConfigDialog.js';
+import { loadProviderConfig, defaultProviderFromConfig } from '../../utils/providerConfig.js';
 import { getExternalHawkMdIncludes, getHawkMdFiles, hasExternalHawkMdIncludes } from 'src/utils/hawkmd.js';
 import { KeyboardShortcutHint } from '../design-system/KeyboardShortcutHint.js';
 import { ConfigurableShortcutHint } from '../ConfigurableShortcutHint.js';
@@ -81,7 +83,7 @@ type Setting = (SettingBase & {
   onChange(value: string): void;
   type: 'managedEnum';
 });
-type SubMenu = 'Theme' | 'Model' | 'TeammateModel' | 'ExternalIncludes' | 'OutputStyle' | 'ChannelDowngrade' | 'Language' | 'EnableAutoUpdates';
+type SubMenu = 'Theme' | 'Model' | 'TeammateModel' | 'ExternalIncludes' | 'OutputStyle' | 'ChannelDowngrade' | 'Language' | 'EnableAutoUpdates' | 'ProviderConfig';
 export function Config({
   onClose,
   context,
@@ -106,7 +108,7 @@ export function Config({
   const initialLanguage = React.useRef(currentLanguage);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [isSearchMode, setIsSearchMode] = useState(true);
+  const [isSearchMode, setIsSearchMode] = useState(false);
   const isTerminalFocused = useTerminalFocus();
   const {
     rows
@@ -808,6 +810,16 @@ export function Config({
       });
     }
   }, {
+    id: 'providerConfig',
+    label: 'Provider API',
+    value: (() => {
+      const cfg = loadProviderConfig()
+      const provider = defaultProviderFromConfig(cfg)
+      return provider ? providerLabel(provider) : 'Not configured'
+    })(),
+    type: 'managedEnum' as const,
+    onChange() {}
+  }, {
     id: 'model',
     label: 'Model',
     value: mainLoopModel === null ? 'Default (recommended)' : mainLoopModel,
@@ -1297,7 +1309,7 @@ export function Config({
       }
       return;
     }
-    if (setting_0.id === 'theme' || setting_0.id === 'model' || setting_0.id === 'teammateDefaultModel' || setting_0.id === 'showExternalIncludesDialog' || setting_0.id === 'outputStyle' || setting_0.id === 'language') {
+    if (setting_0.id === 'theme' || setting_0.id === 'model' || setting_0.id === 'teammateDefaultModel' || setting_0.id === 'showExternalIncludesDialog' || setting_0.id === 'outputStyle' || setting_0.id === 'language' || setting_0.id === 'providerConfig') {
       // managedEnum items open a submenu — isDirty is set by the submenu's
       // completion callback, not here (submenu may be cancelled).
       switch (setting_0.id) {
@@ -1323,6 +1335,10 @@ export function Config({
           return;
         case 'language':
           setShowSubmenu('Language');
+          setTabsHidden(true);
+          return;
+        case 'providerConfig':
+          setShowSubmenu('ProviderConfig');
           setTabsHidden(true);
           return;
       }
@@ -1426,10 +1442,10 @@ export function Config({
       }
       return;
     }
-    // List mode: left/right/tab cycle the selected option's value. These
-    // keys used to switch tabs; now they only do so when the tab row is
-    // explicitly focused (see headerFocused in Settings.tsx).
-    if (e.key === 'left' || e.key === 'right' || e.key === 'tab') {
+    // List mode: left/right cycle the selected option's value. Tab switches
+    // between Settings tabs (Status/Config/Usage) — handled by the Tabs
+    // component's keybinding when navFromContent is enabled.
+    if (e.key === 'left' || e.key === 'right') {
       e.preventDefault();
       toggleSetting();
       return;
@@ -1580,6 +1596,25 @@ export function Config({
               <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
             </Byline>
           </Text>
+        </> : showSubmenu === 'ProviderConfig' ? <>
+          <ProviderConfigDialog onComplete={summary => {
+        isDirty.current = true;
+        setChanges(prev_28 => ({
+          ...prev_28,
+          providerConfig: summary
+        }));
+        setShowSubmenu(null);
+        setTabsHidden(false);
+      }} onCancel={() => {
+        setShowSubmenu(null);
+        setTabsHidden(false);
+      }} />
+          <Text dimColor>
+            <Byline>
+              <KeyboardShortcutHint shortcut="Enter" action="next/save" />
+              <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
+            </Byline>
+          </Text>
         </> : showSubmenu === 'EnableAutoUpdates' ? <Dialog title="Enable Auto-Updates" onCancel={() => {
       setShowSubmenu(null);
       setTabsHidden(false);
@@ -1721,13 +1756,14 @@ export function Config({
               <Byline>
                 <Text>Type to filter</Text>
                 <KeyboardShortcutHint shortcut="Enter/↓" action="select" />
-                <KeyboardShortcutHint shortcut="↑" action="tabs" />
+                <KeyboardShortcutHint shortcut="Tab" action="switch tab" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="clear" />
               </Byline>
             </Text> : <Text dimColor>
               <Byline>
                 <ConfigurableShortcutHint action="select:accept" context="Settings" fallback="Space" description="change" />
                 <ConfigurableShortcutHint action="settings:close" context="Settings" fallback="Enter" description="save" />
+                <KeyboardShortcutHint shortcut="Tab" action="switch tab" />
                 <ConfigurableShortcutHint action="settings:search" context="Settings" fallback="/" description="search" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
               </Byline>

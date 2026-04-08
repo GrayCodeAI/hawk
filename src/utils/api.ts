@@ -197,7 +197,7 @@ export async function toolToAPISchema(
     // Gated to direct api.graycode.com: proxies (LiteLLM etc.) and Bedrock/Vertex
     // with Hawk 4.5 reject this field with 400. See GH#32742, PR #21729.
     if (
-      getAPIProvider() === 'firstParty' &&
+      getAPIProvider() === 'anthropic' &&
       isFirstPartyGrayCodeBaseUrl() &&
       (getFeatureValue_CACHED_MAY_BE_STALE('tengu_fgts', false) ||
         isEnvTruthy(process.env.HAWK_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING))

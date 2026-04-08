@@ -142,11 +142,11 @@ export async function initReplBridge(
   // for v1, tengu_bridge_repl_v2_config.min_version for v2).
 
   // 2. Check OAuth — must be signed in with hawkai. Runs before the
-  // policy check so console-auth users get the actionable "/login" hint
+  // policy check so console-auth users get the actionable "/config" hint
   // instead of a misleading policy error from a stale/wrong-org cache.
   if (!getBridgeAccessToken()) {
     logBridgeSkip('no_oauth', '[bridge:repl] Skipping: no OAuth tokens')
-    onStateChange?.('failed', '/login')
+    onStateChange?.('failed', '/config')
     return null
   }
 
@@ -172,7 +172,7 @@ export async function initReplBridge(
     // server 5xx, lockfile errors per auth.ts:1437/1444/1485): each process
     // independently retries until 3 consecutive failures prove the token dead.
     // Mirrors useReplBridge's MAX_CONSECUTIVE_INIT_FAILURES for in-process.
-    // The expiresAt key is content-addressed: /login → new token → new expiresAt
+    // The expiresAt key is content-addressed: /config auth refresh -> new token -> new expiresAt
     // → this stops matching without any explicit clear.
     const cfg = getGlobalConfig()
     if (
@@ -221,7 +221,7 @@ export async function initReplBridge(
         'oauth_expired_unrefreshable',
         '[bridge:repl] Skipping: OAuth token expired and refresh failed (re-login required)',
       )
-      onStateChange?.('failed', '/login')
+      onStateChange?.('failed', '/config')
       // Persist for the next process. Increments failCount when re-discovering
       // the same dead token (matched by expiresAt); resets to 1 for a different
       // token. Once count reaches 3, step 2a's early-return fires and this path
@@ -390,7 +390,7 @@ export async function initReplBridge(
   const orgUUID = await getOrganizationUUID()
   if (!orgUUID) {
     logBridgeSkip('no_org_uuid', '[bridge:repl] Skipping: no org UUID')
-    onStateChange?.('failed', '/login')
+    onStateChange?.('failed', '/config')
     return null
   }
 

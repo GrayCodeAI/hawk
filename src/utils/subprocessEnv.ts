@@ -17,7 +17,6 @@ const GHA_SUBPROCESS_SCRUB = [
   'GRAYCODE_API_KEY',
   'HAWK_CODE_OAUTH_TOKEN',
   'GRAYCODE_AUTH_TOKEN',
-  'GRAYCODE_FOUNDRY_API_KEY',
   'GRAYCODE_CUSTOM_HEADERS',
 
   // OTLP exporter headers — documented to carry Authorization=Bearer tokens
@@ -27,10 +26,9 @@ const GHA_SUBPROCESS_SCRUB = [
   'OTEL_EXPORTER_OTLP_METRICS_HEADERS',
   'OTEL_EXPORTER_OTLP_TRACES_HEADERS',
 
-  // Cloud provider creds — same pattern (lazy SDK reads)
+  // Cloud creds that should not bleed into subprocess shells
   'AWS_SECRET_ACCESS_KEY',
   'AWS_SESSION_TOKEN',
-  'AWS_BEARER_TOKEN_BEDROCK',
   'GOOGLE_APPLICATION_CREDENTIALS',
   'AZURE_CLIENT_SECRET',
   'AZURE_CLIENT_CERTIFICATE_PATH',

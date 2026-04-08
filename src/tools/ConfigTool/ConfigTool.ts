@@ -243,7 +243,7 @@ export const ConfigTool = buildTool({
           data: {
             success: false,
             error: !isGrayCodeAuthEnabled()
-              ? 'Voice mode requires a Hawk.ai account. Please run /login to sign in.'
+              ? 'Voice mode requires a Hawk.ai account. Please use /config to sign in.'
               : 'Voice mode is not available.',
           },
         }
@@ -273,7 +273,7 @@ export const ConfigTool = buildTool({
           data: {
             success: false,
             error:
-              'Voice mode requires a Hawk.ai account. Please run /login to sign in.',
+              'Voice mode requires a Hawk.ai account. Please use /config to sign in.',
           },
         }
       }

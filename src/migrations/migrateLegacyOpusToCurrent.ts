@@ -27,7 +27,7 @@ import {
  * project.
  */
 export function migrateLegacyOpusToCurrent(): void {
-  if (getAPIProvider() !== 'firstParty') {
+  if (getAPIProvider() !== 'anthropic') {
     return
   }
 
@@ -37,10 +37,10 @@ export function migrateLegacyOpusToCurrent(): void {
 
   const model = getSettingsForSource('userSettings')?.model
   if (
-    model !== 'hawk-opus-4-20250514' &&
-    model !== 'hawk-opus-4-1-20250805' &&
-    model !== 'hawk-opus-4-0' &&
-    model !== 'hawk-opus-4-1'
+    model !== 'claude-opus-4-20250514' &&
+    model !== 'claude-opus-4-1-20250805' &&
+    model !== 'claude-opus-4-0' &&
+    model !== 'claude-opus-4-1'
   ) {
     return
   }

@@ -94,11 +94,35 @@ export function buildInheritedCliFlags(options?: {
  * parent's env, so we forward any that are set in the current process.
  */
 const TEAMMATE_ENV_VARS = [
-  // API provider selection — without these, teammates default to firstParty
-  // and send requests to the wrong endpoint (GitHub issue #23561)
-  'HAWK_CODE_USE_BEDROCK',
-  'HAWK_CODE_USE_VERTEX',
-  'HAWK_CODE_USE_FOUNDRY',
+  // Provider API keys — eyrie detects the active provider from whichever is set
+  'ANTHROPIC_API_KEY',
+  'OPENAI_API_KEY',
+  'GROK_API_KEY',
+  'XAI_API_KEY',
+  'GEMINI_API_KEY',
+  'GOOGLE_API_KEY',
+  'OLLAMA_BASE_URL',
+  // OpenAI-compatible provider config
+  'OPENAI_BASE_URL',
+  'OPENAI_API_BASE',
+  'OPENAI_MODEL',
+  'CODEX_API_KEY',
+  'CODEX_ACCOUNT_ID',
+  'CHATGPT_ACCOUNT_ID',
+  'GEMINI_BASE_URL',
+  'GEMINI_MODEL',
+  'GEMINI_API_KEY',
+  'GOOGLE_API_KEY',
+  'GROK_BASE_URL',
+  'GROK_MODEL',
+  'GROK_API_KEY',
+  'XAI_BASE_URL',
+  'XAI_MODEL',
+  'XAI_API_KEY',
+  'ANTHROPIC_BASE_URL',
+  'ANTHROPIC_MODEL',
+  'ANTHROPIC_API_KEY',
+  'ANTHROPIC_VERSION',
   // Custom API endpoint
   'GRAYCODE_BASE_URL',
   // Config directory override

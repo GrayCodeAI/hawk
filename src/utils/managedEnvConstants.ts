@@ -4,39 +4,18 @@
  *
  * When HAWK_CODE_PROVIDER_MANAGED_BY_HOST is truthy in the spawn env, these
  * are stripped from settings-sourced env so the host's routing config isn't
- * overridden by a user's ~/.hawk/settings.json — e.g. a Bedrock setup for
- * terminal CLI that would break a host that only supports first-party auth.
- *
- * @[MODEL LAUNCH]: New models usually don't need changes here —
- * VERTEX_REGION_HAWK_* is prefix-matched. New providers or new routing
- * config vars (endpoint, project, region, auth) do.
+ * overridden by a user's ~/.hawk/settings.json.
  */
 const PROVIDER_MANAGED_ENV_VARS = new Set([
   // The flag itself — settings can't unset it once the host set it
   'HAWK_CODE_PROVIDER_MANAGED_BY_HOST',
-  // Provider selection
-  'HAWK_CODE_USE_BEDROCK',
-  'HAWK_CODE_USE_VERTEX',
-  'HAWK_CODE_USE_FOUNDRY',
-  // Endpoint config (base URLs, project/resource identifiers)
+  // Endpoint config
   'GRAYCODE_BASE_URL',
-  'GRAYCODE_BEDROCK_BASE_URL',
-  'GRAYCODE_VERTEX_BASE_URL',
-  'GRAYCODE_FOUNDRY_BASE_URL',
-  'GRAYCODE_FOUNDRY_RESOURCE',
-  'GRAYCODE_VERTEX_PROJECT_ID',
-  // Region routing (per-model VERTEX_REGION_HAWK_* handled by prefix below)
-  'CLOUD_ML_REGION',
-  // Auth
   'GRAYCODE_API_KEY',
+  // Auth
   'GRAYCODE_AUTH_TOKEN',
   'HAWK_CODE_OAUTH_TOKEN',
-  'AWS_BEARER_TOKEN_BEDROCK',
-  'GRAYCODE_FOUNDRY_API_KEY',
-  'HAWK_CODE_SKIP_BEDROCK_AUTH',
-  'HAWK_CODE_SKIP_VERTEX_AUTH',
-  'HAWK_CODE_SKIP_FOUNDRY_AUTH',
-  // Model defaults — often set to provider-specific ID formats
+  // Model defaults
   'GRAYCODE_MODEL',
   'GRAYCODE_DEFAULT_HAIKU_MODEL',
   'GRAYCODE_DEFAULT_HAIKU_MODEL_DESCRIPTION',
@@ -51,15 +30,10 @@ const PROVIDER_MANAGED_ENV_VARS = new Set([
   'GRAYCODE_DEFAULT_SONNET_MODEL_NAME',
   'GRAYCODE_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES',
   'GRAYCODE_SMALL_FAST_MODEL',
-  'GRAYCODE_SMALL_FAST_MODEL_AWS_REGION',
   'HAWK_CODE_SUBAGENT_MODEL',
 ])
 
-const PROVIDER_MANAGED_ENV_PREFIXES = [
-  // Per-model Vertex region overrides — scales with model releases, so
-  // prefix-matched to avoid drift on each launch.
-  'VERTEX_REGION_HAWK_',
-]
+const PROVIDER_MANAGED_ENV_PREFIXES: string[] = []
 
 export function isProviderManagedEnvVar(key: string): boolean {
   const upper = key.toUpperCase()
@@ -98,7 +72,7 @@ export const DANGEROUS_SHELL_SETTINGS = [
  * Dangerous env vars (NOT in this list):
  *
  * === REDIRECT TO ATTACKER-CONTROLLED SERVER ===
- * - GRAYCODE_BASE_URL, GRAYCODE_BEDROCK_BASE_URL, GRAYCODE_FOUNDRY_BASE_URL, GRAYCODE_VERTEX_BASE_URL
+ * - GRAYCODE_BASE_URL
  * - HTTP_PROXY, HTTPS_PROXY, NO_PROXY, http_proxy, https_proxy, no_proxy
  * - OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_LOGS_ENDPOINT, OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
  *
@@ -107,9 +81,7 @@ export const DANGEROUS_SHELL_SETTINGS = [
  * - NODE_EXTRA_CA_CERTS
  *
  * === SWITCH TO ATTACKER-CONTROLLED PROJECT ===
- * - GRAYCODE_FOUNDRY_RESOURCE
  * - GRAYCODE_API_KEY, GRAYCODE_AUTH_TOKEN
- * - AWS_BEARER_TOKEN_BEDROCK
  */
 export const SAFE_ENV_VARS = new Set([
   'GRAYCODE_CUSTOM_HEADERS',
@@ -128,9 +100,7 @@ export const SAFE_ENV_VARS = new Set([
   'GRAYCODE_DEFAULT_SONNET_MODEL_DESCRIPTION',
   'GRAYCODE_DEFAULT_SONNET_MODEL_NAME',
   'GRAYCODE_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES',
-  'GRAYCODE_FOUNDRY_API_KEY',
   'GRAYCODE_MODEL',
-  'GRAYCODE_SMALL_FAST_MODEL_AWS_REGION',
   'GRAYCODE_SMALL_FAST_MODEL',
   'AWS_DEFAULT_REGION',
   'AWS_PROFILE',
@@ -147,13 +117,7 @@ export const SAFE_ENV_VARS = new Set([
   'HAWK_CODE_EXPERIMENTAL_AGENT_TEAMS',
   'HAWK_CODE_IDE_SKIP_AUTO_INSTALL',
   'HAWK_CODE_MAX_OUTPUT_TOKENS',
-  'HAWK_CODE_SKIP_BEDROCK_AUTH',
-  'HAWK_CODE_SKIP_FOUNDRY_AUTH',
-  'HAWK_CODE_SKIP_VERTEX_AUTH',
   'HAWK_CODE_SUBAGENT_MODEL',
-  'HAWK_CODE_USE_BEDROCK',
-  'HAWK_CODE_USE_FOUNDRY',
-  'HAWK_CODE_USE_VERTEX',
   'DISABLE_AUTOUPDATER',
   'DISABLE_BUG_COMMAND',
   'DISABLE_COST_WARNINGS',
@@ -185,15 +149,6 @@ export const SAFE_ENV_VARS = new Set([
   'OTEL_METRICS_INCLUDE_VERSION',
   'OTEL_RESOURCE_ATTRIBUTES',
   'USE_BUILTIN_RIPGREP',
-  'VERTEX_REGION_HAWK_3_5_HAIKU',
-  'VERTEX_REGION_HAWK_3_5_SONNET',
-  'VERTEX_REGION_HAWK_3_7_SONNET',
-  'VERTEX_REGION_HAWK_4_0_OPUS',
-  'VERTEX_REGION_HAWK_4_0_SONNET',
-  'VERTEX_REGION_HAWK_4_1_OPUS',
-  'VERTEX_REGION_HAWK_4_5_SONNET',
-  'VERTEX_REGION_HAWK_4_6_SONNET',
-  'VERTEX_REGION_HAWK_HAIKU_4_5',
 ])
 
 export function isSafeEnvVar(key: string): boolean {

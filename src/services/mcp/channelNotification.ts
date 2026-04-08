@@ -223,7 +223,7 @@ export function gateChannelServer(
     return {
       action: 'skip',
       kind: 'auth',
-      reason: 'channels requires hawkai authentication (run /login)',
+      reason: 'channels requires hawkai authentication (use /config)',
     }
   }
 

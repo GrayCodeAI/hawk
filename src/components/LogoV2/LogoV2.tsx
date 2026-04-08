@@ -48,7 +48,7 @@ const LEFT_PANEL_MAX_WIDTH = 100;
 export function LogoV2() {
   const $ = _c(94);
   const activities = getRecentActivitySync();
-  const showAccountIdentity = getAPIProvider() === 'firstParty';
+  const showAccountIdentity = getAPIProvider() === 'anthropic';
   const username = showAccountIdentity ? getGlobalConfig().oauthAccount?.displayName ?? "" : "";
   const {
     columns

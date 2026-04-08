@@ -221,7 +221,7 @@ export function logEventTo1P(
     return
   }
 
-  if (!firstPartyEventLogger || isSinkKilled('firstParty')) {
+  if (!firstPartyEventLogger || isSinkKilled('anthropic')) {
     return
   }
 
@@ -259,7 +259,7 @@ export function logGrowthBookExperimentTo1P(
     return
   }
 
-  if (!firstPartyEventLogger || isSinkKilled('firstParty')) {
+  if (!firstPartyEventLogger || isSinkKilled('anthropic')) {
     return
   }
 
@@ -365,7 +365,7 @@ export function initialize1PEventLogging(): void {
     maxAttempts: batchConfig.maxAttempts,
     path: batchConfig.path,
     baseUrl: batchConfig.baseUrl,
-    isKilled: () => isSinkKilled('firstParty'),
+    isKilled: () => isSinkKilled('anthropic'),
   })
   firstPartyEventLoggerProvider = new LoggerProvider({
     resource,

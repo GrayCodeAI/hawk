@@ -3,24 +3,15 @@ import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
-  DEFAULT_CODEX_BASE_URL,
-  resolveCodexApiCredentials,
-} from '@hawk/eyrie'
-
-type ProviderProfile = 'openai' | 'ollama' | 'codex' | 'gemini'
-
-type ProfileFile = {
-  profile: ProviderProfile
-  env?: {
-    OPENAI_BASE_URL?: string
-    OPENAI_MODEL?: string
-    OPENAI_API_KEY?: string
-    CODEX_API_KEY?: string
-    GEMINI_API_KEY?: string
-    GEMINI_MODEL?: string
-    GEMINI_BASE_URL?: string
-  }
-}
+  buildLaunchEnv,
+  hasLocalOllama,
+  isProviderProfile,
+  loadProviderProfileConfig,
+  resolveProfileRuntime,
+  validateProfileRuntime,
+  type ProfileFile,
+  type ProviderProfile,
+} from './provider-profiles.js'
 
 type LaunchOptions = {
   requestedProfile: ProviderProfile | 'auto' | null
@@ -40,7 +31,7 @@ function parseLaunchOptions(argv: string[]): LaunchOptions {
       continue
     }
 
-    if ((lower === 'auto' || lower === 'openai' || lower === 'ollama' || lower === 'codex' || lower === 'gemini') && requestedProfile === 'auto') {
+    if ((lower === 'auto' || isProviderProfile(lower)) && requestedProfile === 'auto') {
       requestedProfile = lower as ProviderProfile | 'auto'
       continue
     }
@@ -67,30 +58,15 @@ function parseLaunchOptions(argv: string[]): LaunchOptions {
 
 function loadPersistedProfile(): ProfileFile | null {
   const path = resolve(process.cwd(), '.hawk-profile.json')
-  if (!existsSync(path)) return null
   try {
-    const parsed = JSON.parse(readFileSync(path, 'utf8')) as ProfileFile
-    if (parsed.profile === 'openai' || parsed.profile === 'ollama' || parsed.profile === 'codex' || parsed.profile === 'gemini') {
-      return parsed
+    if (existsSync(path)) {
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as ProfileFile
+      return isProviderProfile(parsed.profile) ? parsed : null
     }
-    return null
   } catch {
-    return null
+    // Fall through to the Herm-style global provider config.
   }
-}
-
-async function hasLocalOllama(): Promise<boolean> {
-  const endpoint = 'http://localhost:11434/api/tags'
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 1200)
-  try {
-    const response = await fetch(endpoint, { signal: controller.signal })
-    return response.ok
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timeout)
-  }
+  return loadProviderProfileConfig()
 }
 
 function runCommand(command: string, env: NodeJS.ProcessEnv): Promise<number> {
@@ -105,57 +81,6 @@ function runCommand(command: string, env: NodeJS.ProcessEnv): Promise<number> {
     child.on('close', code => resolve(code ?? 1))
     child.on('error', () => resolve(1))
   })
-}
-
-function buildEnv(profile: ProviderProfile, persisted: ProfileFile | null): NodeJS.ProcessEnv {
-  const persistedEnv = persisted?.env ?? {}
-
-  if (profile === 'gemini') {
-    const env: NodeJS.ProcessEnv = {
-      ...process.env,
-      HAWK_CODE_USE_GEMINI: '1',
-    }
-    delete env.HAWK_CODE_USE_OPENAI
-    env.GEMINI_MODEL = process.env.GEMINI_MODEL || persistedEnv.GEMINI_MODEL || 'gemini-2.0-flash'
-    env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || persistedEnv.GEMINI_API_KEY
-    if (persistedEnv.GEMINI_BASE_URL || process.env.GEMINI_BASE_URL) {
-      env.GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || persistedEnv.GEMINI_BASE_URL
-    }
-    return env
-  }
-
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    HAWK_CODE_USE_OPENAI: '1',
-  }
-
-  if (profile === 'ollama') {
-    env.OPENAI_BASE_URL = persistedEnv.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || 'http://localhost:11434/v1'
-    env.OPENAI_MODEL = persistedEnv.OPENAI_MODEL || process.env.OPENAI_MODEL || 'llama3.1:8b'
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'SUA_CHAVE') {
-      delete env.OPENAI_API_KEY
-    }
-    return env
-  }
-
-  if (profile === 'codex') {
-    env.OPENAI_BASE_URL =
-      process.env.OPENAI_BASE_URL ||
-      persistedEnv.OPENAI_BASE_URL ||
-      DEFAULT_CODEX_BASE_URL
-    env.OPENAI_MODEL =
-      process.env.OPENAI_MODEL ||
-      persistedEnv.OPENAI_MODEL ||
-      'codexplan'
-    env.CODEX_API_KEY =
-      process.env.CODEX_API_KEY || persistedEnv.CODEX_API_KEY
-    return env
-  }
-
-  env.OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || persistedEnv.OPENAI_BASE_URL || 'https://api.openai.com/v1'
-  env.OPENAI_MODEL = process.env.OPENAI_MODEL || persistedEnv.OPENAI_MODEL || 'gpt-4o'
-  env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || persistedEnv.OPENAI_API_KEY
-  return env
 }
 
 function applyFastFlags(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
@@ -174,66 +99,50 @@ function quoteArg(arg: string): string {
 }
 
 function printSummary(profile: ProviderProfile, env: NodeJS.ProcessEnv): void {
+  const runtime = resolveProfileRuntime(env)
+  const prefix =
+    runtime.mode === 'anthropic'
+      ? 'ANTHROPIC'
+      : runtime.mode === 'grok'
+        ? 'GROK'
+        : runtime.mode === 'gemini'
+          ? 'GEMINI'
+          : runtime.mode === 'codex'
+            ? 'CODEX'
+            : 'OPENAI'
+
   console.log(`Launching profile: ${profile}`)
-  if (profile === 'gemini') {
-    console.log(`GEMINI_MODEL=${env.GEMINI_MODEL}`)
-    console.log(`GEMINI_API_KEY_SET=${Boolean(env.GEMINI_API_KEY)}`)
-  } else if (profile === 'codex') {
-    console.log(`OPENAI_BASE_URL=${env.OPENAI_BASE_URL}`)
-    console.log(`OPENAI_MODEL=${env.OPENAI_MODEL}`)
-    console.log(`CODEX_API_KEY_SET=${Boolean(resolveCodexApiCredentials(env).apiKey)}`)
-  } else {
-    console.log(`OPENAI_BASE_URL=${env.OPENAI_BASE_URL}`)
-    console.log(`OPENAI_MODEL=${env.OPENAI_MODEL}`)
-    console.log(`OPENAI_API_KEY_SET=${Boolean(env.OPENAI_API_KEY)}`)
+  console.log(`OPENAI_BASE_URL=${runtime.request.baseUrl}`)
+  console.log(`OPENAI_MODEL=${runtime.request.requestedModel}`)
+  console.log(`${prefix}_API_KEY_SET=${Boolean(runtime.apiKey)}`)
+  console.log(`${prefix}_API_KEY_SOURCE=${runtime.apiKeySource}`)
+  if (runtime.mode === 'codex') {
+    console.log(`CODEX_ACCOUNT_ID_SET=${Boolean(runtime.codexCredentials?.accountId)}`)
   }
 }
 
 async function main(): Promise<void> {
   const options = parseLaunchOptions(process.argv.slice(2))
-  const requestedProfile = options.requestedProfile
-  if (!requestedProfile) {
-    console.error('Usage: bun run scripts/provider-launch.ts [openai|ollama|codex|gemini|auto] [--fast] [-- <cli args>]')
+  if (!options.requestedProfile) {
+    console.error('Usage: bun run scripts/provider-launch.ts [openai|ollama|codex|gemini|anthropic|grok|auto] [--fast] [-- <cli args>]')
     process.exit(1)
   }
 
   const persisted = loadPersistedProfile()
-  let profile: ProviderProfile
+  const profile =
+    options.requestedProfile === 'auto'
+      ? persisted?.profile ?? ((await hasLocalOllama()) ? 'ollama' : 'openai')
+      : options.requestedProfile
 
-  if (requestedProfile === 'auto') {
-    if (persisted) {
-      profile = persisted.profile
-    } else {
-      profile = (await hasLocalOllama()) ? 'ollama' : 'openai'
-    }
-  } else {
-    profile = requestedProfile
-  }
-
-  const env = buildEnv(profile, persisted)
+  const env = buildLaunchEnv(profile, persisted)
   if (options.fast) {
     applyFastFlags(env)
   }
 
-  if (profile === 'gemini' && !env.GEMINI_API_KEY) {
-    console.error('GEMINI_API_KEY is required for gemini profile. Run: bun run profile:init -- --provider gemini --api-key <key>')
+  const validationError = validateProfileRuntime(profile, resolveProfileRuntime(env))
+  if (validationError) {
+    console.error(validationError)
     process.exit(1)
-  }
-
-  if (profile === 'openai' && (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === 'SUA_CHAVE')) {
-    console.error('OPENAI_API_KEY is required for openai profile and cannot be SUA_CHAVE. Run: bun run profile:init -- --provider openai --api-key <key>')
-    process.exit(1)
-  }
-
-  if (profile === 'codex') {
-    const credentials = resolveCodexApiCredentials(env)
-    if (!credentials.apiKey) {
-      const authHint = credentials.authPath
-        ? ` or make sure ${credentials.authPath} exists`
-        : ''
-      console.error(`CODEX_API_KEY is required for codex profile${authHint}. Run: bun run profile:init -- --provider codex --model codexplan`)
-      process.exit(1)
-    }
   }
 
   printSummary(profile, env)

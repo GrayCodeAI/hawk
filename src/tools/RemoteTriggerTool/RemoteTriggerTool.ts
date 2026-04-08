@@ -80,7 +80,7 @@ export const RemoteTriggerTool = buildTool({
     const accessToken = getHawkAIOAuthTokens()?.accessToken
     if (!accessToken) {
       throw new Error(
-        'Not authenticated with a hawkai account. Run /login and try again.',
+        'Not authenticated with a hawkai account. Use /config and try again.',
       )
     }
     const orgUUID = await getOrganizationUUID()

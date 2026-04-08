@@ -185,7 +185,7 @@ export async function prepareApiRequest(): Promise<{
   const accessToken = getHawkAIOAuthTokens()?.accessToken
   if (accessToken === undefined) {
     throw new Error(
-      'Hawk web sessions require authentication with a Hawk.ai account. API key authentication is not sufficient. Please run /login to authenticate, or check your authentication status with /status.',
+      'Hawk web sessions require authentication with a Hawk.ai account. API key authentication is not sufficient. Please use /config to authenticate, or check your authentication status with /status.',
     )
   }
 
@@ -314,7 +314,7 @@ export async function fetchSession(
     }
 
     if (response.status === 401) {
-      throw new Error('Session expired. Please run /login to sign in again.')
+      throw new Error('Session expired. Please use /config to sign in again.')
     }
 
     throw new Error(

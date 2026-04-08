@@ -6,11 +6,11 @@
  * in the GrayCode streaming format so the rest of the codebase is unaware.
  *
  * Supports: OpenAI, Azure OpenAI, Ollama, LM Studio, OpenRouter,
- * Together, Groq, Fireworks, DeepSeek, Mistral, and any OpenAI-compatible API.
+ * Grok/xAI, Together, Groq, Fireworks, DeepSeek, Mistral, and any
+ * OpenAI-compatible API.
  *
  * Environment variables:
- *   HAWK_CODE_USE_OPENAI=1          — enable this provider
- *   OPENAI_API_KEY=sk-...             — API key (optional for local models)
+ *   OPENAI_API_KEY=sk-...             — API key (required to enable OpenAI provider)
  *   OPENAI_BASE_URL=http://...        — base URL (default: https://api.openai.com/v1)
  *   OPENAI_MODEL=gpt-4o              — default model override
  *   CODEX_API_KEY / ~/.codex/auth.json — Codex auth for codexplan/codexspark
@@ -25,8 +25,7 @@ import {
   type ShimCreateParams,
 } from './codexShim.js'
 import {
-  resolveCodexApiCredentials,
-  resolveProviderRequest,
+  resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
 
 // ---------------------------------------------------------------------------
@@ -509,27 +508,27 @@ class OpenAIShimMessages {
     const self = this
 
     const promise = (async () => {
-      const request = resolveProviderRequest({ model: params.model })
-      const response = await self._doRequest(request, params, options)
+      const runtime = resolveOpenAICompatibleRuntime({ model: params.model })
+      const response = await self._doRequest(runtime, params, options)
 
       if (params.stream) {
         return new OpenAIShimStream(
-          request.transport === 'codex_responses'
-            ? codexStreamToGrayCode(response, request.resolvedModel)
-            : openaiStreamToGrayCode(response, request.resolvedModel),
+          runtime.request.transport === 'codex_responses'
+            ? codexStreamToGrayCode(response, runtime.request.resolvedModel)
+            : openaiStreamToGrayCode(response, runtime.request.resolvedModel),
         )
       }
 
-      if (request.transport === 'codex_responses') {
+      if (runtime.request.transport === 'codex_responses') {
         const data = await collectCodexCompletedResponse(response)
         return convertCodexResponseToGrayCodeMessage(
           data,
-          request.resolvedModel,
+          runtime.request.resolvedModel,
         )
       }
 
       const data = await response.json()
-      return self._convertNonStreamingResponse(data, request.resolvedModel)
+      return self._convertNonStreamingResponse(data, runtime.request.resolvedModel)
     })()
 
     ;(promise as unknown as Record<string, unknown>).withResponse =
@@ -546,18 +545,21 @@ class OpenAIShimMessages {
   }
 
   private async _doRequest(
-    request: ReturnType<typeof resolveProviderRequest>,
+    runtime: ReturnType<typeof resolveOpenAICompatibleRuntime>,
     params: ShimCreateParams,
     options?: { signal?: AbortSignal; headers?: Record<string, string> },
   ): Promise<Response> {
-    if (request.transport === 'codex_responses') {
-      const credentials = resolveCodexApiCredentials()
+    if (runtime.request.transport === 'codex_responses') {
+      const credentials = runtime.codexCredentials ?? {
+        apiKey: '',
+        source: 'none' as const,
+      }
       if (!credentials.apiKey) {
         const authHint = credentials.authPath
           ? ` or place a Codex auth.json at ${credentials.authPath}`
           : ''
         throw new Error(
-          `Codex auth is required for ${request.requestedModel}. Set CODEX_API_KEY${authHint}.`,
+          `Codex auth is required for ${runtime.request.requestedModel}. Set CODEX_API_KEY${authHint}.`,
         )
       }
       if (!credentials.accountId) {
@@ -567,7 +569,7 @@ class OpenAIShimMessages {
       }
 
       return performCodexRequest({
-        request,
+        request: runtime.request,
         credentials,
         params,
         defaultHeaders: {
@@ -578,14 +580,15 @@ class OpenAIShimMessages {
       })
     }
 
-    return this._doOpenAIRequest(request, params, options)
+    return this._doOpenAIRequest(runtime, params, options)
   }
 
   private async _doOpenAIRequest(
-    request: ReturnType<typeof resolveProviderRequest>,
+    runtime: ReturnType<typeof resolveOpenAICompatibleRuntime>,
     params: ShimCreateParams,
     options?: { signal?: AbortSignal; headers?: Record<string, string> },
   ): Promise<Response> {
+    const request = runtime.request
     const openaiMessages = convertMessages(
       params.messages as Array<{
         role: string
@@ -641,9 +644,17 @@ class OpenAIShimMessages {
       ...(options?.headers ?? {}),
     }
 
-    const apiKey = process.env.OPENAI_API_KEY ?? ''
+    const apiKey = runtime.apiKey
     if (apiKey) {
       headers.Authorization = `Bearer ${apiKey}`
+      if (runtime.mode === 'anthropic') {
+        headers['x-api-key'] = apiKey
+      }
+    }
+
+    if (runtime.mode === 'anthropic') {
+      headers['anthropic-version'] =
+        process.env.ANTHROPIC_VERSION?.trim() || '2023-06-01'
     }
 
     const response = await fetch(`${request.baseUrl}/chat/completions`, {
@@ -745,22 +756,6 @@ export function createOpenAIShimClient(options: {
   maxRetries?: number
   timeout?: number
 }): unknown {
-  // When Gemini provider is active, map Gemini env vars to OpenAI-compatible ones
-  // so eyrie's provider resolution utilities pick them up correctly.
-  if (
-    process.env.HAWK_CODE_USE_GEMINI === '1' ||
-    process.env.HAWK_CODE_USE_GEMINI === 'true'
-  ) {
-    process.env.OPENAI_BASE_URL ??=
-      process.env.GEMINI_BASE_URL ??
-      'https://generativelanguage.googleapis.com/v1beta/openai'
-    process.env.OPENAI_API_KEY ??=
-      process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? ''
-    if (process.env.GEMINI_MODEL && !process.env.OPENAI_MODEL) {
-      process.env.OPENAI_MODEL = process.env.GEMINI_MODEL
-    }
-  }
-
   const beta = new OpenAIShimBeta({
     ...(options.defaultHeaders ?? {}),
   })

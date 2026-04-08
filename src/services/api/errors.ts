@@ -35,7 +35,7 @@ import {
   API_PDF_MAX_PAGES,
   PDF_TARGET_RAW_SIZE,
 } from '@hawk/eyrie'
-import { isEnvTruthy } from '../../utils/envUtils.js'
+import { isEnvTruthy, isProviderApiModeEnabled } from '../../utils/envUtils.js'
 import { formatFileSize } from '../../utils/format.js'
 import { ImageResizeError } from '../../utils/imageResizer.js'
 import { ImageSizeError } from '../../utils/imageValidation.js'
@@ -56,6 +56,8 @@ export const API_ERROR_MESSAGE_PREFIX = 'API Error'
 export function startsWithApiErrorPrefix(text: string): boolean {
   return (
     text.startsWith(API_ERROR_MESSAGE_PREFIX) ||
+    text.startsWith(`Use /config · ${API_ERROR_MESSAGE_PREFIX}`) ||
+    text.startsWith(`Check provider API config · ${API_ERROR_MESSAGE_PREFIX}`) ||
     text.startsWith(`Please run /login · ${API_ERROR_MESSAGE_PREFIX}`)
   )
 }
@@ -152,15 +154,14 @@ export function isMediaSizeErrorMessage(msg: AssistantMessage): boolean {
   )
 }
 export const CREDIT_BALANCE_TOO_LOW_ERROR_MESSAGE = 'Credit balance is too low'
-export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Please run /login'
+export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Use /config'
 export const INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL =
   'Invalid API key · Fix external API key'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH =
   'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Unset the environment variable to use your subscription instead'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY =
   'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Update or unset the environment variable'
-export const TOKEN_REVOKED_ERROR_MESSAGE =
-  'OAuth token revoked · Please run /login'
+export const TOKEN_REVOKED_ERROR_MESSAGE = 'OAuth token revoked · Use /config'
 export const CCR_AUTH_ERROR_MESSAGE =
   'Authentication error · This may be a temporary network issue, please try again'
 export const REPEATED_529_ERROR_MESSAGE = 'Repeated 529 Overloaded errors'
@@ -195,7 +196,7 @@ export function getRequestTooLargeErrorMessage(): string {
     : `Request too large (${limits}). Double press esc to go back and try with a smaller file.`
 }
 export const OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE =
-  'Your account does not have access to Hawk. Please run /login.'
+  'Your account does not have access to Hawk. Please use /config.'
 
 export function getTokenRevokedErrorMessage(): string {
   return getIsNonInteractiveSession()
@@ -212,7 +213,7 @@ export function getOauthOrgNotAllowedErrorMessage(): string {
 /**
  * Check if we're in CCR (Hawk Remote) mode.
  * In CCR mode, auth is handled via JWTs provided by the infrastructure,
- * not via /login. Transient auth errors should suggest retrying, not logging in.
+ * not via /config. Transient auth errors should suggest retrying, not logging in.
  */
 function isCCRMode(): boolean {
   return isEnvTruthy(process.env.HAWK_CODE_REMOTE)
@@ -742,7 +743,7 @@ export function getAssistantMessageFromError(
   ) {
     return createAssistantAPIErrorMessage({
       content:
-        'Hawk Opus is not available with the Hawk Pro plan. If you have updated your subscription plan recently, run /logout and /login for the plan to take effect.',
+        'Hawk Opus is not available with the Hawk Pro plan. If you have updated your subscription plan recently, re-open /config and refresh your account auth for the plan to take effect.',
       error: 'invalid_request',
     })
   }
@@ -878,14 +879,13 @@ export function getAssistantMessageFromError(
       error: 'authentication_failed',
       content: getIsNonInteractiveSession()
         ? `Failed to authenticate. ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`
-        : `Please run /login · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`,
+        : isProviderApiModeEnabled()
+          ? `Check provider API config · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`
+          : `Use /config · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`,
     })
   }
 
-  // Bedrock errors like "403 You don't have access to the model with the specified model ID."
-  // don't contain the actual model ID
-  if (
-    isEnvTruthy(process.env.HAWK_CODE_USE_BEDROCK) &&
+  if (false && // Bedrock removed
     error instanceof Error &&
     error.message.toLowerCase().includes('model id')
   ) {
@@ -938,7 +938,7 @@ export function getAssistantMessageFromError(
  * Returns a model name suggestion, or undefined if no suggestion is applicable.
  */
 function get3PModelFallbackSuggestion(model: string): string | undefined {
-  if (getAPIProvider() === 'firstParty') {
+  if (getAPIProvider() === 'anthropic') {
     return undefined
   }
   // @[MODEL LAUNCH]: Add a fallback suggestion chain for the new model → previous version for 3P
@@ -1132,14 +1132,6 @@ export function classifyAPIError(error: unknown): string {
     return 'auth_error'
   }
 
-  // Bedrock-specific errors
-  if (
-    isEnvTruthy(process.env.HAWK_CODE_USE_BEDROCK) &&
-    error instanceof Error &&
-    error.message.toLowerCase().includes('model id')
-  ) {
-    return 'bedrock_model_access'
-  }
 
   // Status code based fallbacks
   if (error instanceof APIError) {
@@ -1196,8 +1188,8 @@ export function getErrorMessageIfRefusal(
     : `${API_ERROR_MESSAGE_PREFIX}: Hawk is unable to respond to this request, which appears to violate our Usage Policy (https://www.graycode.com/legal/aup). Please double press esc to edit your last message or start a new session for Hawk to assist with a different task.`
 
   const modelSuggestion =
-    model !== 'hawk-sonnet-4-20250514'
-      ? ' If you are seeing this refusal repeatedly, try running /model hawk-sonnet-4-20250514 to switch models.'
+    model !== 'claude-sonnet-4-20250514'
+      ? ' If you are seeing this refusal repeatedly, try running /model claude-sonnet-4-20250514 to switch models.'
       : ''
 
   return createAssistantAPIErrorMessage({

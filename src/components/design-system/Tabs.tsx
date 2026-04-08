@@ -182,11 +182,12 @@ export function Tabs(t0) {
   useKeybindings({
     "tabs:next": () => {
       handleTabChange(1);
-      setHeaderFocused(true);
+      // Keep content focus when switching tabs from within content
+      setHeaderFocused(false);
     },
     "tabs:previous": () => {
       handleTabChange(-1);
-      setHeaderFocused(true);
+      setHeaderFocused(false);
     }
   }, t10);
   const titleWidth = title ? stringWidth(title) + 1 : 0;

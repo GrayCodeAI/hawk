@@ -19,7 +19,7 @@ import type { Message } from '../../types/message.js';
 import { getApiKeyHelperElapsedMs, getConfiguredApiKeyHelper, getSubscriptionType } from '../../utils/auth.js';
 import type { AutoUpdaterResult } from '../../utils/autoUpdater.js';
 import { getExternalEditor } from '../../utils/editor.js';
-import { isEnvTruthy } from '../../utils/envUtils.js';
+import { isEnvTruthy, isProviderApiModeEnabled } from '../../utils/envUtils.js';
 import { formatDuration } from '../../utils/format.js';
 import { setEnvHookNotifier } from '../../utils/hooks/fileChangedWatcher.js';
 import { toIDEDisplayName } from '../../utils/ide.js';
@@ -38,6 +38,23 @@ const VoiceIndicator: typeof import('./VoiceIndicator.js').VoiceIndicator = feat
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export const FOOTER_TEMPORARY_STATUS_TIMEOUT = 5000;
+
+function getAuthStatusMessage(apiKeyStatus: VerificationStatus): string {
+  if (isEnvTruthy(process.env.HAWK_CODE_REMOTE)) {
+    return 'Authentication error · Try again';
+  }
+
+  if (!isProviderApiModeEnabled()) {
+    return 'Not logged in · Use /config';
+  }
+
+  if (apiKeyStatus === 'invalid') {
+    return 'Provider API key rejected · Check your configured key';
+  }
+
+  return 'Provider API key missing · Run profile:init or set a provider key';
+}
+
 type Props = {
   apiKeyStatus: VerificationStatus;
   autoUpdaterResult: AutoUpdaterResult | null;
@@ -305,7 +322,7 @@ function NotificationContent({
         </Box>}
       {(apiKeyStatus === 'invalid' || apiKeyStatus === 'missing') && <Box>
           <Text color="error" wrap="truncate">
-            {isEnvTruthy(process.env.HAWK_CODE_REMOTE) ? 'Authentication error · Try again' : 'Not logged in · Run /login'}
+            {getAuthStatusMessage(apiKeyStatus)}
           </Text>
         </Box>}
       {debug && <Box>

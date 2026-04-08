@@ -5,7 +5,7 @@ import memoize from 'lodash-es/memoize.js'
 import { join } from 'path'
 import { z } from 'zod/v4'
 import { OAUTH_BETA_HEADER } from '../../constants/oauth.js'
-import { getGrayCodeClient } from '../../services/api/client.js'
+import { getLLMClient } from '../../services/api/client.js'
 import { isHawkAISubscriber } from '../auth.js'
 import { logForDebugging } from '../debug.js'
 import { getHawkConfigHomeDir } from '../envUtils.js'
@@ -45,7 +45,7 @@ function getCachePath(): string {
 
 function isModelCapabilitiesEligible(): boolean {
   if (process.env.USER_TYPE !== 'ant') return false
-  if (getAPIProvider() !== 'firstParty') return false
+  if (getAPIProvider() !== 'anthropic') return false
   if (!isFirstPartyGrayCodeBaseUrl()) return false
   return true
 }
@@ -87,7 +87,7 @@ export async function refreshModelCapabilities(): Promise<void> {
   if (isEssentialTrafficOnly()) return
 
   try {
-    const graycode = await getGrayCodeClient({ maxRetries: 1 })
+    const graycode = await getLLMClient({ maxRetries: 1 })
     const betas = isHawkAISubscriber() ? [OAUTH_BETA_HEADER] : undefined
     const parsed: ModelCapability[] = []
     for await (const entry of graycode.models.list({ betas })) {

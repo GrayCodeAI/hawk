@@ -95,7 +95,7 @@ function Web({
           logEvent('tengu_remote_setup_result', {
             result: 'not_signed_in' as SafeString
           });
-          onDone('Not signed in to Hawk. Run /login first.');
+          onDone('Not signed in to Hawk. Use /config first.');
           return;
         case 'gh_not_installed':
         case 'gh_not_authenticated':
