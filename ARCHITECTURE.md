@@ -8,7 +8,7 @@ flowchart LR
   H --> C[Command + Tool Loop]
   C --> CFG[Provider Config<br/>~/.hawk/provider.json]
   C --> CAT[Model Catalog Cache<br/>~/.hawk/model_catalog.json]
-  C --> E[@hawk/eyrie]
+  C --> E["eyrie package"]
   C --> MCP[MCP + Local Tools]
 ```
 
@@ -16,7 +16,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  C[Hawk Runtime] --> E[@hawk/eyrie]
+  C[Hawk Runtime] --> E["eyrie package"]
   E --> R[Runtime Resolver<br/>provider/key/model/base URL]
   R --> S[OpenAI-Compatible Request Shaping]
 
