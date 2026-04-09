@@ -65,17 +65,6 @@ function getHawkConfigHomeDir(): string {
   return (process.env.HAWK_CONFIG_DIR ?? join(homedir(), '.hawk')).normalize('NFC')
 }
 
-function isTruthy(value: string | undefined): boolean {
-  if (!value) return false
-  const normalized = value.trim().toLowerCase()
-  return (
-    normalized === '1' ||
-    normalized === 'true' ||
-    normalized === 'yes' ||
-    normalized === 'on'
-  )
-}
-
 function normalizeOllamaOpenAIBaseUrl(baseUrl: string | undefined): string | undefined {
   if (!baseUrl) return undefined
   const trimmed = baseUrl.replace(/\/+$/, '')
@@ -85,18 +74,6 @@ function normalizeOllamaOpenAIBaseUrl(baseUrl: string | undefined): string | und
 function setIfMissing(env: NodeJS.ProcessEnv, key: string, value: string | undefined): void {
   if (!value || env[key]) return
   env[key] = value
-}
-
-function hasExplicitProviderFlag(env: NodeJS.ProcessEnv): boolean {
-  return !!(
-    env.ANTHROPIC_API_KEY ||
-    env.OPENAI_API_KEY ||
-    env.OPENROUTER_API_KEY ||
-    env.GROK_API_KEY ||
-    env.XAI_API_KEY ||
-    env.GEMINI_API_KEY ||
-    env.OLLAMA_BASE_URL
-  )
 }
 
 export function getProviderConfigPath(): string {
@@ -191,7 +168,7 @@ export function applyProviderConfigToEnv(
   env: NodeJS.ProcessEnv = process.env,
   config: ProviderConfig | null = loadProviderConfig(),
 ): ProviderProfile | null {
-  if (!config || hasExplicitProviderFlag(env)) {
+  if (!config) {
     return null
   }
 
