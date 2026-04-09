@@ -16,12 +16,12 @@ jobs:
         working-directory: hawk
     steps:
       - name: Checkout Hawk
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: hawk
 
       - name: Checkout Eyrie (local dependency)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: GrayCodeAI/eyrie
           path: eyrie
