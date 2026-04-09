@@ -45,6 +45,7 @@ function buildFetch(
  *   ANTHROPIC_API_KEY              → Anthropic SDK
  *   GROK_API_KEY / XAI_API_KEY     → OpenAI shim (xAI)
  *   GEMINI_API_KEY                 → OpenAI shim (Google)
+ *   OPENROUTER_API_KEY             → OpenAI shim (OpenRouter)
  *   OPENAI_API_KEY                 → OpenAI shim
  *   OLLAMA_BASE_URL                → OpenAI shim (local)
  */

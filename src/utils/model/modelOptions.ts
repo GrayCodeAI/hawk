@@ -65,6 +65,8 @@ function appendProviderCatalogOptions(options: ModelOption[]): void {
       ? !!process.env.ANTHROPIC_API_KEY
       : provider === 'openai'
         ? !!process.env.OPENAI_API_KEY
+        : provider === 'openrouter'
+          ? !!process.env.OPENROUTER_API_KEY
         : provider === 'grok'
           ? !!(process.env.GROK_API_KEY || process.env.XAI_API_KEY)
           : provider === 'gemini'

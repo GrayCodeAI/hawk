@@ -70,6 +70,7 @@ Hawk stores provider configuration in `~/.hawk/provider.json` and loads it on st
 | Provider | Base URL | Notes |
 |----------|---------|-------|
 | OpenAI | `https://api.openai.com/v1` | Default |
+| OpenRouter | `https://openrouter.ai/api/v1` | Stores `openrouter_api_key` |
 | Anthropic (OpenAI-compatible) | `https://api.anthropic.com/v1` | Stores `anthropic_api_key` |
 | Grok / xAI | `https://api.x.ai/v1` | Stores `grok_api_key` or `xai_api_key` |
 | DeepSeek | `https://api.deepseek.com/v1` | |
@@ -88,12 +89,13 @@ Provider config is stored at `~/.hawk/provider.json`.
 |-------|-------------|
 | `anthropic_api_key` | Anthropic key |
 | `openai_api_key` | OpenAI or OpenAI-compatible key |
+| `openrouter_api_key` | OpenRouter key |
 | `grok_api_key` / `xai_api_key` | Grok / xAI key |
-| `gemini_api_key` / `google_api_key` | Gemini key |
+| `gemini_api_key` | Gemini key |
 | `ollama_base_url` | Ollama host, for example `http://localhost:11434` |
 | `active_model` | Default model |
 
-If multiple providers are configured, Hawk uses the Herm-style priority: Anthropic, OpenAI, Grok, Gemini, Ollama, Codex.
+If multiple providers are configured, Hawk uses this priority: Anthropic, OpenAI, OpenRouter, Grok, Gemini, Ollama.
 
 ## Usage Examples
 

@@ -3,6 +3,7 @@ import {
   DEFAULT_GEMINI_OPENAI_BASE_URL,
   DEFAULT_GROK_OPENAI_BASE_URL,
   DEFAULT_OPENAI_BASE_URL,
+  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
 } from '@hawk/eyrie'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -12,6 +13,7 @@ import { getPreferredProviderModel } from './model/configs.js'
 export type ProviderProfile =
   | 'anthropic'
   | 'openai'
+  | 'openrouter'
   | 'grok'
   | 'gemini'
   | 'ollama'
@@ -22,6 +24,7 @@ export type ProviderConfig = {
   grok_api_key?: string
   xai_api_key?: string
   openai_api_key?: string
+  openrouter_api_key?: string
   gemini_api_key?: string
   codex_api_key?: string
   codex_account_id?: string
@@ -31,11 +34,13 @@ export type ProviderConfig = {
   grok_base_url?: string
   xai_base_url?: string
   openai_base_url?: string
+  openrouter_base_url?: string
   gemini_base_url?: string
   anthropic_model?: string
   openai_model?: string
   grok_model?: string
   xai_model?: string
+  openrouter_model?: string
   gemini_model?: string
   ollama_model?: string
   codex_model?: string
@@ -47,6 +52,7 @@ export type ProviderConfig = {
 const PROVIDER_PRIORITY: ProviderProfile[] = [
   'anthropic',
   'openai',
+  'openrouter',
   'grok',
   'gemini',
   'ollama',
@@ -86,6 +92,7 @@ function hasExplicitProviderFlag(env: NodeJS.ProcessEnv): boolean {
   return !!(
     env.ANTHROPIC_API_KEY ||
     env.OPENAI_API_KEY ||
+    env.OPENROUTER_API_KEY ||
     env.GROK_API_KEY ||
     env.XAI_API_KEY ||
     env.GEMINI_API_KEY ||
@@ -118,6 +125,8 @@ export function isProviderConfigured(config: ProviderConfig, provider: ProviderP
       return !!asNonEmptyString(config.anthropic_api_key)
     case 'openai':
       return !!asNonEmptyString(config.openai_api_key)
+    case 'openrouter':
+      return !!asNonEmptyString(config.openrouter_api_key)
     case 'grok':
       return !!(asNonEmptyString(config.grok_api_key) || asNonEmptyString(config.xai_api_key))
     case 'gemini':
@@ -143,6 +152,7 @@ function hasProviderScopedModel(config: ProviderConfig): boolean {
   return !!(
     asNonEmptyString(config.anthropic_model) ||
     asNonEmptyString(config.openai_model) ||
+    asNonEmptyString(config.openrouter_model) ||
     asNonEmptyString(config.grok_model) ||
     asNonEmptyString(config.xai_model) ||
     asNonEmptyString(config.gemini_model) ||
@@ -159,6 +169,8 @@ export function getProviderActiveModel(
       ? asNonEmptyString(config.anthropic_model)
       : provider === 'openai'
         ? asNonEmptyString(config.openai_model)
+      : provider === 'openrouter'
+        ? asNonEmptyString(config.openrouter_model)
       : provider === 'grok'
         ? asNonEmptyString(config.grok_model) ?? asNonEmptyString(config.xai_model)
       : provider === 'gemini'
@@ -202,6 +214,25 @@ export function applyProviderConfigToEnv(
       setIfMissing(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key))
       setIfMissing(env, 'OPENAI_MODEL', activeModel ?? getPreferredProviderModel('openai', 'sonnet'))
       setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? DEFAULT_OPENAI_BASE_URL)
+      return provider
+    case 'openrouter':
+      {
+        const openrouterApiKey = asNonEmptyString(config.openrouter_api_key)
+        const openrouterBaseUrl =
+          asNonEmptyString(config.openrouter_base_url) ??
+          DEFAULT_OPENROUTER_OPENAI_BASE_URL
+        const openrouterModel =
+          activeModel ?? getPreferredProviderModel('openrouter', 'sonnet')
+
+        setIfMissing(env, 'OPENROUTER_API_KEY', openrouterApiKey)
+        setIfMissing(env, 'OPENROUTER_MODEL', openrouterModel)
+        setIfMissing(env, 'OPENROUTER_BASE_URL', openrouterBaseUrl)
+
+        // OpenAI-compatible shim compatibility.
+        setIfMissing(env, 'OPENAI_API_KEY', openrouterApiKey)
+        setIfMissing(env, 'OPENAI_MODEL', openrouterModel)
+        setIfMissing(env, 'OPENAI_BASE_URL', openrouterBaseUrl)
+      }
       return provider
     case 'grok':
       {

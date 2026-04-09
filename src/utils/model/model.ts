@@ -42,7 +42,7 @@ export function getSmallFastModel(): ModelName {
     return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
   }
   // For OpenAI provider, use OPENAI_MODEL or a sensible default
-  if (getAPIProvider() === 'openai') {
+  if (getAPIProvider() === 'openai' || getAPIProvider() === 'openrouter') {
     return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'haiku')
   }
   return getPreferredProviderModel(getAPIProvider(), 'haiku')
@@ -126,7 +126,7 @@ export function getDefaultOpusModel(): ModelName {
     return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'opus')
   }
   // OpenAI provider: use user-specified model or default
-  if (getAPIProvider() === 'openai') {
+  if (getAPIProvider() === 'openai' || getAPIProvider() === 'openrouter') {
     return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'opus')
   }
   return getPreferredProviderModel(getAPIProvider(), 'opus')
@@ -142,7 +142,7 @@ export function getDefaultSonnetModel(): ModelName {
     return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
   }
   // OpenAI provider
-  if (getAPIProvider() === 'openai') {
+  if (getAPIProvider() === 'openai' || getAPIProvider() === 'openrouter') {
     return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'sonnet')
   }
   return getPreferredProviderModel(getAPIProvider(), 'sonnet')
@@ -158,7 +158,7 @@ export function getDefaultHaikuModel(): ModelName {
     return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
   }
   // OpenAI provider
-  if (getAPIProvider() === 'openai') {
+  if (getAPIProvider() === 'openai' || getAPIProvider() === 'openrouter') {
     return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'haiku')
   }
   return getPreferredProviderModel(getAPIProvider(), 'haiku')
@@ -208,7 +208,7 @@ export function getDefaultMainLoopModelSetting(): ModelName | ModelAlias {
     return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
   }
   // OpenAI provider: always use the configured OpenAI model
-  if (getAPIProvider() === 'openai') {
+  if (getAPIProvider() === 'openai' || getAPIProvider() === 'openrouter') {
     return process.env.OPENAI_MODEL || getPreferredProviderModel('openai', 'sonnet')
   }
 

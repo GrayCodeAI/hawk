@@ -3,6 +3,7 @@ import {
   DEFAULT_GEMINI_OPENAI_BASE_URL,
   DEFAULT_GROK_OPENAI_BASE_URL,
   DEFAULT_OPENAI_BASE_URL,
+  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
 } from '@hawk/eyrie'
 import React, { useState } from 'react'
 import figures from 'figures'
@@ -32,6 +33,7 @@ type Step = 'provider' | 'apiKey' | 'model' | 'baseUrl'
 const PROVIDERS: ProviderProfile[] = [
   'anthropic',
   'openai',
+  'openrouter',
   'grok',
   'gemini',
   'ollama',
@@ -45,6 +47,7 @@ function getDefaultProviderModel(provider: ProviderProfile): string {
 const DEFAULT_BASE_URLS: Record<ProviderProfile, string> = {
   anthropic: DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
   openai: DEFAULT_OPENAI_BASE_URL,
+  openrouter: DEFAULT_OPENROUTER_OPENAI_BASE_URL,
   grok: DEFAULT_GROK_OPENAI_BASE_URL,
   gemini: DEFAULT_GEMINI_OPENAI_BASE_URL,
   ollama: 'http://localhost:11434',
@@ -57,6 +60,8 @@ function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile
       return config.anthropic_api_key ?? ''
     case 'openai':
       return config.openai_api_key ?? ''
+    case 'openrouter':
+      return config.openrouter_api_key ?? ''
     case 'grok':
       return config.grok_api_key ?? config.xai_api_key ?? ''
     case 'gemini':
@@ -73,6 +78,8 @@ function existingBaseUrl(config: ProviderConfig | null, provider: ProviderProfil
       return config.anthropic_base_url ?? DEFAULT_BASE_URLS[provider]
     case 'openai':
       return config.openai_base_url ?? DEFAULT_BASE_URLS[provider]
+    case 'openrouter':
+      return config.openrouter_base_url ?? DEFAULT_BASE_URLS[provider]
     case 'grok':
       return config.grok_base_url ?? config.xai_base_url ?? DEFAULT_BASE_URLS[provider]
     case 'gemini':
@@ -114,6 +121,11 @@ function applyProviderSelection(
       next.openai_model = trimmedModel || getDefaultProviderModel(provider)
       next.openai_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
       break
+    case 'openrouter':
+      if (key) next.openrouter_api_key = key
+      next.openrouter_model = trimmedModel || getDefaultProviderModel(provider)
+      next.openrouter_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      break
     case 'grok':
       if (key) next.grok_api_key = key
       next.grok_model = trimmedModel || getDefaultProviderModel(provider)
@@ -139,6 +151,8 @@ export function providerLabel(provider: ProviderProfile): string {
       return 'Anthropic'
     case 'openai':
       return 'OpenAI'
+    case 'openrouter':
+      return 'OpenRouter'
     case 'grok':
       return 'Grok / xAI'
     case 'gemini':
@@ -260,7 +274,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
           }}
           focus
           showCursor
-          placeholder={DEFAULT_MODELS[provider]}
+          placeholder={getDefaultProviderModel(provider)}
           columns={72}
           cursorOffset={cursorOffset}
           onChangeCursorOffset={setCursorOffset}

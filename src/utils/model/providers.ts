@@ -5,7 +5,13 @@ import {
   loadProviderConfig,
 } from '../providerConfig.js'
 
-export type APIProvider = 'anthropic' | 'openai' | 'grok' | 'gemini' | 'ollama'
+export type APIProvider =
+  | 'anthropic'
+  | 'openai'
+  | 'openrouter'
+  | 'grok'
+  | 'gemini'
+  | 'ollama'
 
 export function getAPIProvider(): APIProvider {
   const configuredProvider = defaultProviderFromConfig(loadProviderConfig())

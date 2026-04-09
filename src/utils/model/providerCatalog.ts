@@ -81,6 +81,7 @@ export function getProviderCatalogDebugSnapshot(): ProviderCatalogDebugSnapshot 
   const providers: APIProvider[] = [
     'anthropic',
     'openai',
+    'openrouter',
     'grok',
     'gemini',
     'ollama',

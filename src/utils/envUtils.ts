@@ -57,9 +57,12 @@ export function isProviderApiModeEnabled(): boolean {
   return (
     hasNonEmptyEnv(
       'OPENAI_API_KEY',
+      'OPENROUTER_API_KEY',
       'OPENAI_MODEL',
       'OPENAI_BASE_URL',
       'OPENAI_API_BASE',
+      'OPENROUTER_MODEL',
+      'OPENROUTER_BASE_URL',
       'GEMINI_API_KEY',
       'GEMINI_MODEL',
       'GEMINI_BASE_URL',
@@ -178,4 +181,3 @@ export function isInProtectedNamespace(): boolean {
   }
   return false
 }
-

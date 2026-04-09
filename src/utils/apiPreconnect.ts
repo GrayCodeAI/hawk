@@ -35,6 +35,7 @@ export function preconnectGrayCodeApi(): void {
   // Skip if using an OpenAI-compatible provider — different endpoint, preconnect to Anthropic would be wasted
   if (
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||

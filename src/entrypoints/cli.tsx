@@ -49,6 +49,7 @@ function isLocalProviderUrl(baseUrl: string | undefined): boolean {
 function isOpenAICompatibleModeEnabled(): boolean {
   return !!(
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
@@ -86,6 +87,8 @@ function validateProviderEnvOrExit(): void {
         ? 'GEMINI_API_KEY'
         : runtime.mode === 'anthropic'
           ? 'ANTHROPIC_API_KEY'
+          : runtime.mode === 'openrouter'
+            ? 'OPENROUTER_API_KEY'
           : runtime.mode === 'grok'
             ? 'GROK_API_KEY/XAI_API_KEY'
             : 'OPENAI_API_KEY'
@@ -100,6 +103,10 @@ function validateProviderEnvOrExit(): void {
     }
     if (runtime.mode === 'grok') {
       console.error('GROK_API_KEY (or XAI_API_KEY) is required when GROK_BASE_URL is not local.')
+      process.exit(1)
+    }
+    if (runtime.mode === 'openrouter') {
+      console.error('OPENROUTER_API_KEY is required when OPENROUTER_BASE_URL is not local.')
       process.exit(1)
     }
     console.error('OPENAI_API_KEY is required when OPENAI_BASE_URL is not local.')

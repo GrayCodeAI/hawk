@@ -97,6 +97,7 @@ const TEAMMATE_ENV_VARS = [
   // Provider API keys — eyrie detects the active provider from whichever is set
   'ANTHROPIC_API_KEY',
   'OPENAI_API_KEY',
+  'OPENROUTER_API_KEY',
   'GROK_API_KEY',
   'XAI_API_KEY',
   'GEMINI_API_KEY',
@@ -105,6 +106,9 @@ const TEAMMATE_ENV_VARS = [
   'OPENAI_BASE_URL',
   'OPENAI_API_BASE',
   'OPENAI_MODEL',
+  'OPENROUTER_BASE_URL',
+  'OPENROUTER_MODEL',
+  'OPENROUTER_API_KEY',
   'CODEX_API_KEY',
   'CODEX_ACCOUNT_ID',
   'CHATGPT_ACCOUNT_ID',

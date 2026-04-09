@@ -114,6 +114,7 @@ export function isGrayCodeAuthEnabled(): boolean {
 
   const is3P =
     !!(process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
@@ -1103,6 +1104,7 @@ export function is1PApiCustomer(): boolean {
   // Exclude third-party provider users
   if (
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
@@ -1244,6 +1246,7 @@ export function getSubscriptionName(): string {
 export function isUsing3PServices(): boolean {
   return !!(
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||

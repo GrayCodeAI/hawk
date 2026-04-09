@@ -78,6 +78,7 @@ export function getContextWindowForModel(
   // OpenAI-compatible provider — use known context windows for the model
   if (
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
@@ -183,6 +184,7 @@ export function getModelMaxOutputTokens(model: string): {
   // OpenAI-compatible provider — use known output limits to avoid 400 errors
   if (
     process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||

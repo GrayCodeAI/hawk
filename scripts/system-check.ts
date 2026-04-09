@@ -146,7 +146,7 @@ function checkGeminiEnv(): CheckResult[] {
   results.push(pass('GEMINI_BASE_URL', baseUrl))
 
   if (!runtime.apiKey) {
-    results.push(fail('GEMINI_API_KEY', 'Missing. Set GEMINI_API_KEY or GOOGLE_API_KEY.'))
+    results.push(fail('GEMINI_API_KEY', 'Missing. Set GEMINI_API_KEY.'))
   } else {
     results.push(pass('GEMINI_API_KEY', 'Configured.'))
   }

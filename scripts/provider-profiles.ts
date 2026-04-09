@@ -4,6 +4,7 @@ import {
   DEFAULT_GEMINI_OPENAI_BASE_URL,
   DEFAULT_GROK_OPENAI_BASE_URL,
   DEFAULT_OPENAI_BASE_URL,
+  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
   isLocalProviderUrl,
   resolveOpenAICompatibleRuntime,
   type ResolvedOpenAICompatibleRuntime,
@@ -21,20 +22,23 @@ export type ProviderProfile =
   | 'openai'
   | 'ollama'
   | 'codex'
+  | 'openrouter'
   | 'gemini'
   | 'anthropic'
   | 'grok'
 
 export type ProfileEnv = {
   OPENAI_BASE_URL?: string
+  OPENROUTER_BASE_URL?: string
   OPENAI_MODEL?: string
+  OPENROUTER_MODEL?: string
   OPENAI_API_KEY?: string
+  OPENROUTER_API_KEY?: string
   OPENAI_API_BASE?: string
   CODEX_API_KEY?: string
   CODEX_ACCOUNT_ID?: string
   CHATGPT_ACCOUNT_ID?: string
   GEMINI_API_KEY?: string
-  GOOGLE_API_KEY?: string
   GEMINI_MODEL?: string
   GEMINI_BASE_URL?: string
   ANTHROPIC_API_KEY?: string
@@ -99,13 +103,22 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     keyFallbackEnv: ['OPENAI_API_KEY'],
     useFlag: 'HAWK_CODE_USE_OPENAI',
   },
+  openrouter: {
+    defaultModel: 'openai/gpt-4o-mini',
+    defaultBaseUrl: DEFAULT_OPENROUTER_OPENAI_BASE_URL,
+    modelEnv: 'OPENROUTER_MODEL',
+    baseUrlEnv: 'OPENROUTER_BASE_URL',
+    keyEnv: 'OPENROUTER_API_KEY',
+    keyFallbackEnv: ['OPENROUTER_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_OPENAI',
+  },
   gemini: {
     defaultModel: 'gemini-2.0-flash',
     defaultBaseUrl: DEFAULT_GEMINI_OPENAI_BASE_URL,
     modelEnv: 'GEMINI_MODEL',
     baseUrlEnv: 'GEMINI_BASE_URL',
     keyEnv: 'GEMINI_API_KEY',
-    keyFallbackEnv: ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'OPENAI_API_KEY'],
+    keyFallbackEnv: ['GEMINI_API_KEY', 'OPENAI_API_KEY'],
     useFlag: 'HAWK_CODE_USE_GEMINI',
   },
   ollama: {
@@ -131,14 +144,16 @@ export const PROFILE_CHOICES = Object.keys(PROVIDER_PROFILES) as ProviderProfile
 function toProfileEnv(env: NodeJS.ProcessEnv): ProfileEnv {
   const keys: Array<keyof ProfileEnv> = [
     'OPENAI_BASE_URL',
+    'OPENROUTER_BASE_URL',
     'OPENAI_MODEL',
+    'OPENROUTER_MODEL',
     'OPENAI_API_KEY',
+    'OPENROUTER_API_KEY',
     'OPENAI_API_BASE',
     'CODEX_API_KEY',
     'CODEX_ACCOUNT_ID',
     'CHATGPT_ACCOUNT_ID',
     'GEMINI_API_KEY',
-    'GOOGLE_API_KEY',
     'GEMINI_MODEL',
     'GEMINI_BASE_URL',
     'ANTHROPIC_API_KEY',
@@ -199,9 +214,13 @@ export function saveProviderProfileConfig(
       config.openai_api_key = env.OPENAI_API_KEY
       config.openai_base_url = env.OPENAI_BASE_URL
       break
+    case 'openrouter':
+      config.openrouter_api_key = env.OPENROUTER_API_KEY
+      config.openrouter_base_url = env.OPENROUTER_BASE_URL
+      config.openrouter_model = env.OPENROUTER_MODEL
+      break
     case 'gemini':
       config.gemini_api_key = env.GEMINI_API_KEY
-      config.google_api_key = env.GOOGLE_API_KEY
       config.gemini_base_url = env.GEMINI_BASE_URL
       break
     case 'ollama':
