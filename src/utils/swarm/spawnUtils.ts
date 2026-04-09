@@ -100,7 +100,6 @@ const TEAMMATE_ENV_VARS = [
   'GROK_API_KEY',
   'XAI_API_KEY',
   'GEMINI_API_KEY',
-  'GOOGLE_API_KEY',
   'OLLAMA_BASE_URL',
   // OpenAI-compatible provider config
   'OPENAI_BASE_URL',
@@ -112,7 +111,6 @@ const TEAMMATE_ENV_VARS = [
   'GEMINI_BASE_URL',
   'GEMINI_MODEL',
   'GEMINI_API_KEY',
-  'GOOGLE_API_KEY',
   'GROK_BASE_URL',
   'GROK_MODEL',
   'GROK_API_KEY',

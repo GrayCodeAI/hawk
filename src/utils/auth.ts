@@ -117,7 +117,6 @@ export function isGrayCodeAuthEnabled(): boolean {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL)
 
   // Check if user has configured an external API key source
@@ -1107,7 +1106,6 @@ export function is1PApiCustomer(): boolean {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   ) {
     return false
@@ -1249,7 +1247,6 @@ export function isUsing3PServices(): boolean {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   )
 }

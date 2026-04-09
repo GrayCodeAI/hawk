@@ -38,7 +38,6 @@ export function preconnectGrayCodeApi(): void {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   ) {
     return

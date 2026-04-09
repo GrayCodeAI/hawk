@@ -61,7 +61,6 @@ export function isProviderApiModeEnabled(): boolean {
       'OPENAI_BASE_URL',
       'OPENAI_API_BASE',
       'GEMINI_API_KEY',
-      'GOOGLE_API_KEY',
       'GEMINI_MODEL',
       'GEMINI_BASE_URL',
       'ANTHROPIC_API_KEY',
@@ -179,5 +178,4 @@ export function isInProtectedNamespace(): boolean {
   }
   return false
 }
-
 

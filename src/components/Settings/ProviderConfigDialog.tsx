@@ -60,7 +60,7 @@ function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile
     case 'grok':
       return config.grok_api_key ?? config.xai_api_key ?? ''
     case 'gemini':
-      return config.gemini_api_key ?? config.google_api_key ?? ''
+      return config.gemini_api_key ?? ''
     case 'ollama':
       return ''
   }

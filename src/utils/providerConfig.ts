@@ -23,7 +23,6 @@ export type ProviderConfig = {
   xai_api_key?: string
   openai_api_key?: string
   gemini_api_key?: string
-  google_api_key?: string
   codex_api_key?: string
   codex_account_id?: string
   chatgpt_account_id?: string
@@ -85,11 +84,11 @@ function setIfMissing(env: NodeJS.ProcessEnv, key: string, value: string | undef
 
 function hasExplicitProviderFlag(env: NodeJS.ProcessEnv): boolean {
   return !!(
+    env.ANTHROPIC_API_KEY ||
     env.OPENAI_API_KEY ||
     env.GROK_API_KEY ||
     env.XAI_API_KEY ||
     env.GEMINI_API_KEY ||
-    env.GOOGLE_API_KEY ||
     env.OLLAMA_BASE_URL
   )
 }
@@ -122,7 +121,7 @@ export function isProviderConfigured(config: ProviderConfig, provider: ProviderP
     case 'grok':
       return !!(asNonEmptyString(config.grok_api_key) || asNonEmptyString(config.xai_api_key))
     case 'gemini':
-      return !!(asNonEmptyString(config.gemini_api_key) || asNonEmptyString(config.google_api_key))
+      return !!asNonEmptyString(config.gemini_api_key)
     case 'ollama':
       return !!asNonEmptyString(config.ollama_base_url)
   }
@@ -205,25 +204,49 @@ export function applyProviderConfigToEnv(
       setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? DEFAULT_OPENAI_BASE_URL)
       return provider
     case 'grok':
-      setIfMissing(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key))
-      setIfMissing(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key))
-      setIfMissing(env, 'GROK_MODEL', activeModel ?? getPreferredProviderModel('grok', 'sonnet'))
-      setIfMissing(env, 'GROK_BASE_URL', asNonEmptyString(config.grok_base_url) ?? asNonEmptyString(config.xai_base_url) ?? DEFAULT_GROK_OPENAI_BASE_URL)
-      break
+      {
+        const grokApiKey =
+          asNonEmptyString(config.grok_api_key) ??
+          asNonEmptyString(config.xai_api_key)
+        const grokBaseUrl =
+          asNonEmptyString(config.grok_base_url) ??
+          asNonEmptyString(config.xai_base_url) ??
+          DEFAULT_GROK_OPENAI_BASE_URL
+        const grokModel = activeModel ?? getPreferredProviderModel('grok', 'sonnet')
+
+        setIfMissing(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key))
+        setIfMissing(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key))
+        setIfMissing(env, 'GROK_MODEL', grokModel)
+        setIfMissing(env, 'GROK_BASE_URL', grokBaseUrl)
+
+        // OpenAI-compatible shim compatibility.
+        setIfMissing(env, 'OPENAI_API_KEY', grokApiKey)
+        setIfMissing(env, 'OPENAI_MODEL', grokModel)
+        setIfMissing(env, 'OPENAI_BASE_URL', grokBaseUrl)
+      }
+      return provider
     case 'gemini':
-      setIfMissing(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key))
-      setIfMissing(env, 'GOOGLE_API_KEY', asNonEmptyString(config.google_api_key))
-      setIfMissing(env, 'GEMINI_MODEL', activeModel ?? getPreferredProviderModel('gemini', 'sonnet'))
-      setIfMissing(env, 'GEMINI_BASE_URL', asNonEmptyString(config.gemini_base_url) ?? DEFAULT_GEMINI_OPENAI_BASE_URL)
-      break
+      {
+        const geminiApiKey = asNonEmptyString(config.gemini_api_key)
+        const geminiBaseUrl =
+          asNonEmptyString(config.gemini_base_url) ??
+          DEFAULT_GEMINI_OPENAI_BASE_URL
+        const geminiModel =
+          activeModel ?? getPreferredProviderModel('gemini', 'sonnet')
+
+        setIfMissing(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key))
+        setIfMissing(env, 'GEMINI_MODEL', geminiModel)
+        setIfMissing(env, 'GEMINI_BASE_URL', geminiBaseUrl)
+
+        // OpenAI-compatible shim compatibility.
+        setIfMissing(env, 'OPENAI_API_KEY', geminiApiKey)
+        setIfMissing(env, 'OPENAI_MODEL', geminiModel)
+        setIfMissing(env, 'OPENAI_BASE_URL', geminiBaseUrl)
+      }
+      return provider
     case 'ollama':
       setIfMissing(env, 'OPENAI_MODEL', activeModel ?? 'llama3.1:8b')
       setIfMissing(env, 'OPENAI_BASE_URL', normalizeOllamaOpenAIBaseUrl(asNonEmptyString(config.ollama_base_url)) ?? 'http://localhost:11434/v1')
       return provider
   }
-
-  setIfMissing(env, 'OPENAI_MODEL', env[`${provider.toUpperCase()}_MODEL`] ?? activeModel)
-  setIfMissing(env, 'OPENAI_BASE_URL', env[`${provider.toUpperCase()}_BASE_URL`])
-  setIfMissing(env, 'OPENAI_API_KEY', env[`${provider.toUpperCase()}_API_KEY`])
-  return provider
 }

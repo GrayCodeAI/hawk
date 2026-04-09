@@ -52,7 +52,6 @@ function isOpenAICompatibleModeEnabled(): boolean {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   )
 }
@@ -84,7 +83,7 @@ function validateProviderEnvOrExit(): void {
   if (runtime.apiKey === 'SUA_CHAVE') {
     const keyLabel =
       runtime.mode === 'gemini'
-        ? 'GEMINI_API_KEY/GOOGLE_API_KEY'
+        ? 'GEMINI_API_KEY'
         : runtime.mode === 'anthropic'
           ? 'ANTHROPIC_API_KEY'
           : runtime.mode === 'grok'
@@ -96,7 +95,7 @@ function validateProviderEnvOrExit(): void {
 
   if (!runtime.apiKey && !isLocalProviderUrl(request.baseUrl)) {
     if (runtime.mode === 'gemini') {
-      console.error('GEMINI_API_KEY (or GOOGLE_API_KEY) is required when GEMINI_BASE_URL is not local.')
+      console.error('GEMINI_API_KEY is required when GEMINI_BASE_URL is not local.')
       process.exit(1)
     }
     if (runtime.mode === 'grok') {

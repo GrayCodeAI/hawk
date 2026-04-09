@@ -44,7 +44,7 @@ function buildFetch(
  * Provider is chosen by which env var is set (first match wins):
  *   ANTHROPIC_API_KEY              → Anthropic SDK
  *   GROK_API_KEY / XAI_API_KEY     → OpenAI shim (xAI)
- *   GEMINI_API_KEY / GOOGLE_API_KEY → OpenAI shim (Google)
+ *   GEMINI_API_KEY                 → OpenAI shim (Google)
  *   OPENAI_API_KEY                 → OpenAI shim
  *   OLLAMA_BASE_URL                → OpenAI shim (local)
  */

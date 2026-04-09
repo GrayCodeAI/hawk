@@ -81,7 +81,6 @@ export function getContextWindowForModel(
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   ) {
     const openaiWindow = getOpenAIContextWindow(model)
@@ -187,7 +186,6 @@ export function getModelMaxOutputTokens(model: string): {
     process.env.GROK_API_KEY ||
     process.env.XAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
     process.env.OLLAMA_BASE_URL
   ) {
     const openaiMax = getOpenAIMaxOutputTokens(model)

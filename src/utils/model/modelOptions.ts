@@ -68,7 +68,7 @@ function appendProviderCatalogOptions(options: ModelOption[]): void {
         : provider === 'grok'
           ? !!(process.env.GROK_API_KEY || process.env.XAI_API_KEY)
           : provider === 'gemini'
-            ? !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
+            ? !!process.env.GEMINI_API_KEY
             : !!process.env.OLLAMA_BASE_URL
   const providerConfiguredInFile = isProviderConfigured(
     loadProviderConfig() ?? {},
