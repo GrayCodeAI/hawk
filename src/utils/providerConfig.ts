@@ -8,7 +8,10 @@ import {
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { getPreferredProviderModel } from './model/configs.js'
+import {
+  getPreferredProviderModel,
+  getProviderDefaultModel,
+} from './model/configs.js'
 
 export type ProviderProfile =
   | 'anthropic'
@@ -208,7 +211,7 @@ export function applyProviderConfigToEnv(
       return provider
     case 'openai':
       setIfMissing(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key))
-      setIfMissing(env, 'OPENAI_MODEL', activeModel ?? getPreferredProviderModel('openai', 'sonnet'))
+      setIfMissing(env, 'OPENAI_MODEL', activeModel ?? getProviderDefaultModel('openai'))
       setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? DEFAULT_OPENAI_BASE_URL)
       return provider
     case 'openrouter':
@@ -218,7 +221,7 @@ export function applyProviderConfigToEnv(
           asNonEmptyString(config.openrouter_base_url) ??
           DEFAULT_OPENROUTER_OPENAI_BASE_URL
         const openrouterModel =
-          activeModel ?? getPreferredProviderModel('openrouter', 'sonnet')
+          activeModel ?? getProviderDefaultModel('openrouter')
 
         setIfMissing(env, 'OPENROUTER_API_KEY', openrouterApiKey)
         setIfMissing(env, 'OPENROUTER_MODEL', openrouterModel)
@@ -239,7 +242,7 @@ export function applyProviderConfigToEnv(
           asNonEmptyString(config.grok_base_url) ??
           asNonEmptyString(config.xai_base_url) ??
           DEFAULT_GROK_OPENAI_BASE_URL
-        const grokModel = activeModel ?? getPreferredProviderModel('grok', 'sonnet')
+        const grokModel = activeModel ?? getProviderDefaultModel('grok')
 
         setIfMissing(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key))
         setIfMissing(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key))
@@ -259,7 +262,7 @@ export function applyProviderConfigToEnv(
           asNonEmptyString(config.gemini_base_url) ??
           DEFAULT_GEMINI_OPENAI_BASE_URL
         const geminiModel =
-          activeModel ?? getPreferredProviderModel('gemini', 'sonnet')
+          activeModel ?? getProviderDefaultModel('gemini')
 
         setIfMissing(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key))
         setIfMissing(env, 'GEMINI_MODEL', geminiModel)

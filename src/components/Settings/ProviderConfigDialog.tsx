@@ -19,7 +19,10 @@ import {
   type ProviderConfig,
   type ProviderProfile,
 } from '../../utils/providerConfig.js'
-import { getPreferredProviderModel } from '../../utils/model/configs.js'
+import {
+  getPreferredProviderModel,
+  getProviderDefaultModel,
+} from '../../utils/model/configs.js'
 import {
   getProviderCatalogEntries,
   refreshProviderCatalogNow,
@@ -47,7 +50,9 @@ function getDefaultProviderModel(provider: ProviderProfile): string {
   if (provider === 'ollama') return 'llama3.1:8b'
   const catalogModel = getProviderCatalogEntries(provider)[0]?.id
   if (catalogModel) return catalogModel
-  return getPreferredProviderModel(provider, 'sonnet')
+  return provider === 'anthropic'
+    ? getPreferredProviderModel(provider, 'sonnet')
+    : getProviderDefaultModel(provider)
 }
 
 const DEFAULT_BASE_URLS: Record<ProviderProfile, string> = {

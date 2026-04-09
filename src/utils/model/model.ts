@@ -28,7 +28,10 @@ import { LIGHTNING_BOLT } from '../../constants/figures.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { type ModelAlias, isModelAlias } from './aliases.js'
 import { capitalize } from '../stringUtils.js'
-import { getPreferredProviderModel } from './configs.js'
+import {
+  getPreferredProviderModel,
+  getProviderDefaultModel,
+} from './configs.js'
 import { resolveProviderModelEnvOverride } from '@hawk/eyrie'
 
 export type ModelShortName = string
@@ -50,13 +53,15 @@ export function getSmallFastModel(): ModelName {
   const provider = getAPIProvider()
   // For Gemini provider, use a fast model
   if (provider === 'gemini') {
-    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
+    return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // For OpenAI provider, use OPENAI_MODEL or a sensible default
   if (provider === 'openai' || provider === 'openrouter') {
-    return getOpenAICompatibleProviderModelEnv(provider) || getPreferredProviderModel(provider, 'haiku')
+    return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
-  return getPreferredProviderModel(provider, 'haiku')
+  return provider === 'anthropic'
+    ? getPreferredProviderModel(provider, 'haiku')
+    : getProviderDefaultModel(provider)
 }
 
 export function isNonCustomOpusModel(model: ModelName): boolean {
@@ -135,13 +140,15 @@ export function getDefaultOpusModel(): ModelName {
   const provider = getAPIProvider()
   // Gemini provider
   if (provider === 'gemini') {
-    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'opus')
+    return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider: use user-specified model or default
   if (provider === 'openai' || provider === 'openrouter') {
-    return getOpenAICompatibleProviderModelEnv(provider) || getPreferredProviderModel(provider, 'opus')
+    return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
-  return getPreferredProviderModel(provider, 'opus')
+  return provider === 'anthropic'
+    ? getPreferredProviderModel(provider, 'opus')
+    : getProviderDefaultModel(provider)
 }
 
 // @[MODEL LAUNCH]: Update the default Sonnet model.
@@ -152,13 +159,15 @@ export function getDefaultSonnetModel(): ModelName {
   const provider = getAPIProvider()
   // Gemini provider
   if (provider === 'gemini') {
-    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
+    return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider
   if (provider === 'openai' || provider === 'openrouter') {
-    return getOpenAICompatibleProviderModelEnv(provider) || getPreferredProviderModel(provider, 'sonnet')
+    return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
-  return getPreferredProviderModel(provider, 'sonnet')
+  return provider === 'anthropic'
+    ? getPreferredProviderModel(provider, 'sonnet')
+    : getProviderDefaultModel(provider)
 }
 
 // @[MODEL LAUNCH]: Update the default Haiku model.
@@ -169,13 +178,15 @@ export function getDefaultHaikuModel(): ModelName {
   const provider = getAPIProvider()
   // Gemini provider
   if (provider === 'gemini') {
-    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'haiku')
+    return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider
   if (provider === 'openai' || provider === 'openrouter') {
-    return getOpenAICompatibleProviderModelEnv(provider) || getPreferredProviderModel(provider, 'haiku')
+    return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
-  return getPreferredProviderModel(provider, 'haiku')
+  return provider === 'anthropic'
+    ? getPreferredProviderModel(provider, 'haiku')
+    : getProviderDefaultModel(provider)
 }
 
 /**
@@ -220,11 +231,11 @@ export function getDefaultMainLoopModelSetting(): ModelName | ModelAlias {
   const provider = getAPIProvider()
   // Gemini provider: always use the configured Gemini model
   if (provider === 'gemini') {
-    return process.env.GEMINI_MODEL || getPreferredProviderModel('gemini', 'sonnet')
+    return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider: always use the configured OpenAI model
   if (provider === 'openai' || provider === 'openrouter') {
-    return getOpenAICompatibleProviderModelEnv(provider) || getPreferredProviderModel(provider, 'sonnet')
+    return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
 
   // Ants default to defaultModel from flag config, or Opus 1M if not configured

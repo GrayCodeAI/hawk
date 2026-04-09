@@ -264,6 +264,9 @@ export function getPreferredProviderModel(
   provider: APIProvider,
   tier: ModelTier,
 ): ModelName {
+  if (provider !== 'anthropic') {
+    return getProviderDefaultModel(provider)
+  }
   const candidates = getProviderModelCandidates(provider, tier)
   const catalogIds = getProviderCatalogModelIds(provider)
   if (catalogIds && catalogIds.size > 0) {
@@ -286,6 +289,19 @@ export function getPreferredProviderModel(
   if (pool.length > 0) {
     return pool[0]
   }
+
+  return ALL_MODEL_CONFIGS.sonnet46[provider]
+}
+
+export function getProviderDefaultModel(provider: APIProvider): ModelName {
+  const catalogIds = getProviderCatalogModelIds(provider)
+  if (catalogIds && catalogIds.size > 0) {
+    const firstCatalogModel = catalogIds.values().next().value
+    if (firstCatalogModel) return firstCatalogModel
+  }
+
+  const pool = getProviderModelPool(provider)
+  if (pool.length > 0) return pool[0]
 
   return ALL_MODEL_CONFIGS.sonnet46[provider]
 }
