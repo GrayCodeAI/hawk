@@ -28,6 +28,10 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install Eyrie deps
+        working-directory: eyrie
+        run: npm ci
+
       - name: Install
         run: bun install
 
