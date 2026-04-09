@@ -92,3 +92,8 @@ sequenceDiagram
 - Hawk owns product runtime: CLI UX, command system, tool orchestration, app/session state, and local persistence.
 - Eyrie owns provider/runtime concerns: provider detection, base URL/model/key resolution, provider catalogs, and compatibility shaping.
 - The integration boundary is intentionally narrow: Hawk calls eyrie for provider/runtime/model intelligence and keeps product logic local.
+
+## 6) Detailed Design
+
+- See [COMPONENTS.md](./COMPONENTS.md) for C4-L3 component diagrams of Hawk critical modules.
+- See ADRs in [docs/adr](./docs/adr/) for key architecture decisions.
