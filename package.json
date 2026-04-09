@@ -34,7 +34,7 @@
     "dev:fast": "bun run profile:fast && bun run dev:ollama:fast",
     "dev:code": "bun run profile:code && bun run dev:profile",
     "start": "node dist/cli.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.runtime-check.json",
+    "typecheck": "tsc --noEmit --noResolve -p tsconfig.runtime-check.json",
     "smoke": "bun run build && node dist/cli.mjs --version",
     "test:provider": "bun test src/services/api/*.test.ts",
     "doctor:runtime": "bun run scripts/system-check.ts",

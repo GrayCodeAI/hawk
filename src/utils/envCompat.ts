@@ -19,16 +19,6 @@ export function applyGrayCodeEnvCompat(
       if (env[graycodeKey] == null) {
         env[graycodeKey] = value
       }
-      continue
-    }
-
-    if (key.startsWith('GRAYCODE_')) {
-      const suffix = key.slice('GRAYCODE_'.length)
-      if (!suffix) continue
-      const grayCodeKey = `GRAYCODE_${suffix}`
-      if (env[grayCodeKey] == null) {
-        env[grayCodeKey] = value
-      }
     }
   }
 }
