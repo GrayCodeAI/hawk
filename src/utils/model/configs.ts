@@ -267,14 +267,14 @@ export function getPreferredProviderModel(
   const candidates = getProviderModelCandidates(provider, tier)
   const catalogIds = getProviderCatalogModelIds(provider)
   if (catalogIds && catalogIds.size > 0) {
+    const firstCatalogModel = catalogIds.values().next().value
+    if (firstCatalogModel) {
+      return firstCatalogModel
+    }
     for (const candidate of candidates) {
       if (catalogIds.has(candidate)) {
         return candidate
       }
-    }
-    const firstCatalogModel = catalogIds.values().next().value
-    if (firstCatalogModel) {
-      return firstCatalogModel
     }
   }
 

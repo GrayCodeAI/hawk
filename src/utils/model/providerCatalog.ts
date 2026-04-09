@@ -5,6 +5,7 @@ import {
   type ModelCatalog,
   type ModelCatalogEntry,
 } from '@hawk/eyrie'
+import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'os'
 import { join } from 'path'
 import type { APIProvider } from './providers.js'
@@ -22,13 +23,40 @@ function getModelCatalogCachePath(): string {
   return join(getHawkConfigHomeDir(), 'model_catalog.json')
 }
 
+function getProviderConfigPath(): string {
+  return join(getHawkConfigHomeDir(), 'provider.json')
+}
+
+function getCatalogRefreshEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env }
+  if (env.OPENROUTER_API_KEY) return env
+
+  try {
+    const path = getProviderConfigPath()
+    if (!existsSync(path)) return env
+    const parsed = JSON.parse(readFileSync(path, 'utf8')) as {
+      openrouter_api_key?: string
+      openrouter_base_url?: string
+    }
+    const key = parsed?.openrouter_api_key?.trim()
+    if (!key) return env
+    env.OPENROUTER_API_KEY = key
+    if (!env.OPENROUTER_BASE_URL && parsed.openrouter_base_url?.trim()) {
+      env.OPENROUTER_BASE_URL = parsed.openrouter_base_url.trim()
+    }
+  } catch {
+    // Best effort only.
+  }
+  return env
+}
+
 function ensureCatalogInitialized(): void {
   if (cachedCatalog === null) {
     cachedCatalog = loadModelCatalogSync(getModelCatalogCachePath())
   }
   if (!refreshStarted) {
     refreshStarted = true
-    void fetchModelCatalog(getModelCatalogCachePath()).then(
+    void fetchModelCatalog(getModelCatalogCachePath(), undefined, getCatalogRefreshEnv()).then(
       latest => {
         cachedCatalog = latest
       },
@@ -69,7 +97,11 @@ export type ProviderCatalogDebugSnapshot = {
 }
 
 export async function refreshProviderCatalogNow(): Promise<void> {
-  const latest = await fetchModelCatalog(getModelCatalogCachePath())
+  const latest = await fetchModelCatalog(
+    getModelCatalogCachePath(),
+    undefined,
+    getCatalogRefreshEnv(),
+  )
   cachedCatalog = latest
   refreshStarted = true
 }

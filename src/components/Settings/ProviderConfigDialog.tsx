@@ -45,6 +45,8 @@ const PROVIDERS: ProviderProfile[] = [
 
 function getDefaultProviderModel(provider: ProviderProfile): string {
   if (provider === 'ollama') return 'llama3.1:8b'
+  const catalogModel = getProviderCatalogEntries(provider)[0]?.id
+  if (catalogModel) return catalogModel
   return getPreferredProviderModel(provider, 'sonnet')
 }
 
