@@ -8,9 +8,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hawk
     steps:
-      - name: Checkout
+      - name: Checkout Hawk
         uses: actions/checkout@v4
+        with:
+          path: hawk
+
+      - name: Checkout Eyrie (local dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: GrayCodeAI/eyrie
+          path: eyrie
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
