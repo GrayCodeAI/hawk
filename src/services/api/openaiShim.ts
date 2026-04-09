@@ -13,17 +13,8 @@
  *   OPENAI_API_KEY=sk-...             — API key (required to enable OpenAI provider)
  *   OPENAI_BASE_URL=http://...        — base URL (default: https://api.openai.com/v1)
  *   OPENAI_MODEL=gpt-4o              — default model override
- *   CODEX_API_KEY / ~/.codex/auth.json — Codex auth for codexplan/codexspark
  */
 
-import {
-  codexStreamToGrayCode,
-  collectCodexCompletedResponse,
-  convertCodexResponseToGrayCodeMessage,
-  performCodexRequest,
-  type GrayCodeStreamEvent,
-  type ShimCreateParams,
-} from './codexShim.js'
 import {
   resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
@@ -31,6 +22,36 @@ import {
 // ---------------------------------------------------------------------------
 // Types — minimal subset of GrayCode SDK types we need to produce
 // ---------------------------------------------------------------------------
+
+interface GrayCodeUsage {
+  input_tokens: number
+  output_tokens: number
+  cache_creation_input_tokens: number
+  cache_read_input_tokens: number
+}
+
+interface GrayCodeStreamEvent {
+  type: string
+  message?: Record<string, unknown>
+  index?: number
+  content_block?: Record<string, unknown>
+  delta?: Record<string, unknown>
+  usage?: Partial<GrayCodeUsage>
+}
+
+interface ShimCreateParams {
+  model: string
+  messages: Array<Record<string, unknown>>
+  system?: unknown
+  tools?: Array<Record<string, unknown>>
+  max_tokens: number
+  stream?: boolean
+  temperature?: number
+  top_p?: number
+  tool_choice?: unknown
+  metadata?: unknown
+  [key: string]: unknown
+}
 
 // ---------------------------------------------------------------------------
 // Message format conversion: GrayCode → OpenAI
@@ -513,17 +534,7 @@ class OpenAIShimMessages {
 
       if (params.stream) {
         return new OpenAIShimStream(
-          runtime.request.transport === 'codex_responses'
-            ? codexStreamToGrayCode(response, runtime.request.resolvedModel)
-            : openaiStreamToGrayCode(response, runtime.request.resolvedModel),
-        )
-      }
-
-      if (runtime.request.transport === 'codex_responses') {
-        const data = await collectCodexCompletedResponse(response)
-        return convertCodexResponseToGrayCodeMessage(
-          data,
-          runtime.request.resolvedModel,
+          openaiStreamToGrayCode(response, runtime.request.resolvedModel),
         )
       }
 
@@ -549,37 +560,6 @@ class OpenAIShimMessages {
     params: ShimCreateParams,
     options?: { signal?: AbortSignal; headers?: Record<string, string> },
   ): Promise<Response> {
-    if (runtime.request.transport === 'codex_responses') {
-      const credentials = runtime.codexCredentials ?? {
-        apiKey: '',
-        source: 'none' as const,
-      }
-      if (!credentials.apiKey) {
-        const authHint = credentials.authPath
-          ? ` or place a Codex auth.json at ${credentials.authPath}`
-          : ''
-        throw new Error(
-          `Codex auth is required for ${runtime.request.requestedModel}. Set CODEX_API_KEY${authHint}.`,
-        )
-      }
-      if (!credentials.accountId) {
-        throw new Error(
-          'Codex auth is missing chatgpt_account_id. Re-login with the Codex CLI or set CHATGPT_ACCOUNT_ID/CODEX_ACCOUNT_ID.',
-        )
-      }
-
-      return performCodexRequest({
-        request: runtime.request,
-        credentials,
-        params,
-        defaultHeaders: {
-          ...this.defaultHeaders,
-          ...(options?.headers ?? {}),
-        },
-        signal: options?.signal,
-      })
-    }
-
     return this._doOpenAIRequest(runtime, params, options)
   }
 

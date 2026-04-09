@@ -1,6 +1,5 @@
 import { feature } from 'bun:bundle';
 import {
-  resolveCodexApiCredentials,
   resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
 import { applyProviderConfigToEnv } from '../utils/providerConfig.js'
@@ -64,22 +63,6 @@ function validateProviderEnvOrExit(): void {
 
   const runtime = resolveOpenAICompatibleRuntime()
   const request = runtime.request
-
-  if (request.transport === 'codex_responses') {
-    const credentials = resolveCodexApiCredentials()
-    if (!credentials.apiKey) {
-      const authHint = credentials.authPath
-        ? ` or put auth.json at ${credentials.authPath}`
-        : ''
-      console.error(`Codex auth is required for ${request.requestedModel}. Set CODEX_API_KEY${authHint}.`)
-      process.exit(1)
-    }
-    if (!credentials.accountId) {
-      console.error('Codex auth is missing chatgpt_account_id. Re-login with Codex or set CHATGPT_ACCOUNT_ID/CODEX_ACCOUNT_ID.')
-      process.exit(1)
-    }
-    return
-  }
 
   if (runtime.apiKey === 'SUA_CHAVE') {
     const keyLabel =

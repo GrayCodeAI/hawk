@@ -26,9 +26,6 @@ export type ProviderConfig = {
   openai_api_key?: string
   openrouter_api_key?: string
   gemini_api_key?: string
-  codex_api_key?: string
-  codex_account_id?: string
-  chatgpt_account_id?: string
   ollama_base_url?: string
   anthropic_base_url?: string
   grok_base_url?: string
@@ -43,7 +40,6 @@ export type ProviderConfig = {
   openrouter_model?: string
   gemini_model?: string
   ollama_model?: string
-  codex_model?: string
   active_model?: string
   exploration_model?: string
   anthropic_version?: string

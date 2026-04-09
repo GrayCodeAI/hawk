@@ -75,9 +75,6 @@ export function isProviderApiModeEnabled(): boolean {
       'XAI_MODEL',
       'GROK_BASE_URL',
       'XAI_BASE_URL',
-      'CODEX_API_KEY',
-      'CODEX_ACCOUNT_ID',
-      'CHATGPT_ACCOUNT_ID',
     )
   )
 }

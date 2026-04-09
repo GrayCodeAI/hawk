@@ -107,24 +107,19 @@ function printSummary(profile: ProviderProfile, env: NodeJS.ProcessEnv): void {
         ? 'GROK'
         : runtime.mode === 'gemini'
           ? 'GEMINI'
-          : runtime.mode === 'codex'
-            ? 'CODEX'
-            : 'OPENAI'
+          : 'OPENAI'
 
   console.log(`Launching profile: ${profile}`)
   console.log(`OPENAI_BASE_URL=${runtime.request.baseUrl}`)
   console.log(`OPENAI_MODEL=${runtime.request.requestedModel}`)
   console.log(`${prefix}_API_KEY_SET=${Boolean(runtime.apiKey)}`)
   console.log(`${prefix}_API_KEY_SOURCE=${runtime.apiKeySource}`)
-  if (runtime.mode === 'codex') {
-    console.log(`CODEX_ACCOUNT_ID_SET=${Boolean(runtime.codexCredentials?.accountId)}`)
-  }
 }
 
 async function main(): Promise<void> {
   const options = parseLaunchOptions(process.argv.slice(2))
   if (!options.requestedProfile) {
-    console.error('Usage: bun run scripts/provider-launch.ts [openai|ollama|codex|gemini|anthropic|grok|auto] [--fast] [-- <cli args>]')
+    console.error('Usage: bun run scripts/provider-launch.ts [openai|ollama|openrouter|gemini|anthropic|grok|auto] [--fast] [-- <cli args>]')
     process.exit(1)
   }
 

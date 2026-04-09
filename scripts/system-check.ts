@@ -174,12 +174,10 @@ function checkOpenAIEnv(): CheckResult[] {
   results.push(
     pass(
       'Provider mode',
-      runtime.mode === 'codex'
-        ? 'Codex responses backend enabled.'
-        : runtime.mode === 'anthropic'
-          ? 'Anthropic provider enabled.'
-          : runtime.mode === 'grok'
-            ? 'Grok provider enabled.'
+      runtime.mode === 'anthropic'
+        ? 'Anthropic provider enabled.'
+        : runtime.mode === 'grok'
+          ? 'Grok provider enabled.'
         : 'OpenAI-compatible provider enabled.',
     ),
   )
@@ -191,24 +189,6 @@ function checkOpenAIEnv(): CheckResult[] {
   }
 
   results.push(pass('OPENAI_BASE_URL', request.baseUrl))
-
-  if (runtime.mode === 'codex') {
-    const credentials = runtime.codexCredentials ?? { apiKey: '', source: 'none' as const }
-    if (!credentials.apiKey) {
-      const authHint = credentials.authPath
-        ? `Missing CODEX_API_KEY and no usable auth.json at ${credentials.authPath}.`
-        : 'Missing CODEX_API_KEY and auth.json fallback.'
-      results.push(fail('CODEX auth', authHint))
-    } else if (!credentials.accountId) {
-      results.push(fail('CHATGPT_ACCOUNT_ID', 'Missing chatgpt_account_id in Codex auth.'))
-    } else {
-      const detail = credentials.source === 'env'
-        ? 'Using CODEX_API_KEY.'
-        : `Using ${credentials.authPath}.`
-      results.push(pass('CODEX auth', detail))
-    }
-    return results
-  }
 
   const key = runtime.apiKey
   if (runtime.mode === 'anthropic') {
@@ -260,42 +240,14 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
 
   const runtime = resolveRuntime()
   const request = runtime.request
-  const endpoint = request.transport === 'codex_responses'
-    ? `${request.baseUrl}/responses`
-    : `${request.baseUrl}/models`
+  const endpoint = `${request.baseUrl}/models`
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 4000)
 
   try {
     const headers: Record<string, string> = {}
-    let method = 'GET'
-    let body: string | undefined
-
-    if (runtime.mode === 'codex') {
-      const credentials = runtime.codexCredentials ?? { apiKey: '', source: 'none' as const }
-      if (credentials.apiKey) {
-        headers.Authorization = `Bearer ${credentials.apiKey}`
-      }
-      if (credentials.accountId) {
-        headers['chatgpt-account-id'] = credentials.accountId
-      }
-      headers['Content-Type'] = 'application/json'
-      method = 'POST'
-      body = JSON.stringify({
-        model: request.resolvedModel,
-        instructions: 'Runtime doctor probe.',
-        input: [
-          {
-            type: 'message',
-            role: 'user',
-            content: [{ type: 'input_text', text: 'ping' }],
-          },
-        ],
-        store: false,
-        stream: true,
-      })
-    } else if (runtime.mode === 'anthropic') {
+    if (runtime.mode === 'anthropic') {
       if (runtime.apiKey) {
         headers.Authorization = `Bearer ${runtime.apiKey}`
         headers['x-api-key'] = runtime.apiKey
@@ -307,9 +259,8 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
     }
 
     const response = await fetch(endpoint, {
-      method,
+      method: 'GET',
       headers,
-      body,
       signal: controller.signal,
     })
 
@@ -412,10 +363,6 @@ function serializeSafeEnvSummary(): Record<string, string | boolean> {
     OPENAI_MODEL: process.env.OPENAI_MODEL ?? '(unset)',
     OPENAI_BASE_URL: runtime.request.baseUrl,
     OPENAI_API_KEY_SET: runtime.mode === 'openai' ? Boolean(runtime.apiKey) : false,
-    CODEX_API_KEY_SET:
-      runtime.mode === 'codex'
-        ? Boolean(runtime.codexCredentials?.apiKey)
-        : false,
   }
 }
 

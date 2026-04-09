@@ -337,12 +337,6 @@ export function renderDefaultModelSetting(
   if (setting === 'opusplan') {
     return 'Opus 4.6 in plan mode, else Sonnet 4.6'
   }
-  if (setting === 'codexplan') {
-    return 'Codex Plan (GPT-5.4 high reasoning)'
-  }
-  if (setting === 'codexspark') {
-    return 'Codex Spark (GPT-5.3 Codex Spark)'
-  }
   return renderModelName(parseUserSpecifiedModel(setting))
 }
 
@@ -377,12 +371,6 @@ export function renderModelSetting(setting: ModelName | ModelAlias): string {
   if (setting === 'opusplan') {
     return 'Opus Plan'
   }
-  if (setting === 'codexplan') {
-    return 'Codex Plan'
-  }
-  if (setting === 'codexspark') {
-    return 'Codex Spark'
-  }
   if (isModelAlias(setting)) {
     return capitalize(setting)
   }
@@ -400,10 +388,6 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
     return null
   }
   switch (model) {
-    case 'gpt-5.4':
-      return 'GPT-5.4'
-    case 'gpt-5.3-codex-spark':
-      return 'GPT-5.3 Codex Spark'
     case getModelStrings().opus46:
       return 'Opus 4.6'
     case getModelStrings().opus46 + '[1m]':
@@ -511,10 +495,6 @@ export function parseUserSpecifiedModel(
 
   if (isModelAlias(modelString)) {
     switch (modelString) {
-      case 'codexplan':
-        return modelInputTrimmed
-      case 'codexspark':
-        return modelInputTrimmed
       case 'opusplan':
         return getDefaultSonnetModel() + (has1mTag ? '[1m]' : '') // Sonnet is default, Opus in plan mode
       case 'sonnet':

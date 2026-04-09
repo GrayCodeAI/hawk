@@ -1,6 +1,5 @@
 import {
   DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
-  DEFAULT_CODEX_BASE_URL,
   DEFAULT_GEMINI_OPENAI_BASE_URL,
   DEFAULT_GROK_OPENAI_BASE_URL,
   DEFAULT_OPENAI_BASE_URL,
@@ -21,7 +20,6 @@ import {
 export type ProviderProfile =
   | 'openai'
   | 'ollama'
-  | 'codex'
   | 'openrouter'
   | 'gemini'
   | 'anthropic'
@@ -35,9 +33,6 @@ export type ProfileEnv = {
   OPENAI_API_KEY?: string
   OPENROUTER_API_KEY?: string
   OPENAI_API_BASE?: string
-  CODEX_API_KEY?: string
-  CODEX_ACCOUNT_ID?: string
-  CHATGPT_ACCOUNT_ID?: string
   GEMINI_API_KEY?: string
   GEMINI_MODEL?: string
   GEMINI_BASE_URL?: string
@@ -129,14 +124,6 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     keyEnv: 'OPENAI_API_KEY',
     keyFallbackEnv: ['OPENAI_API_KEY'],
   },
-  codex: {
-    defaultModel: 'codexplan',
-    defaultBaseUrl: DEFAULT_CODEX_BASE_URL,
-    modelEnv: 'OPENAI_MODEL',
-    baseUrlEnv: 'OPENAI_BASE_URL',
-    keyEnv: 'CODEX_API_KEY',
-    keyFallbackEnv: ['CODEX_API_KEY'],
-  },
 }
 
 export const PROFILE_CHOICES = Object.keys(PROVIDER_PROFILES) as ProviderProfile[]
@@ -150,9 +137,6 @@ function toProfileEnv(env: NodeJS.ProcessEnv): ProfileEnv {
     'OPENAI_API_KEY',
     'OPENROUTER_API_KEY',
     'OPENAI_API_BASE',
-    'CODEX_API_KEY',
-    'CODEX_ACCOUNT_ID',
-    'CHATGPT_ACCOUNT_ID',
     'GEMINI_API_KEY',
     'GEMINI_MODEL',
     'GEMINI_BASE_URL',
@@ -225,11 +209,6 @@ export function saveProviderProfileConfig(
       break
     case 'ollama':
       config.ollama_base_url = env.OPENAI_BASE_URL?.replace(/\/v1\/?$/, '')
-      break
-    case 'codex':
-      config.codex_api_key = env.CODEX_API_KEY
-      config.codex_account_id = env.CODEX_ACCOUNT_ID
-      config.chatgpt_account_id = env.CHATGPT_ACCOUNT_ID
       break
   }
 
@@ -311,7 +290,7 @@ export function createProfileEnv(
     env[definition.keyEnv] = key
   }
 
-  if (profile !== 'ollama' && profile !== 'codex') {
+  if (profile !== 'ollama') {
     setOpenAICompatMirror(env, definition)
   }
 
@@ -358,7 +337,7 @@ export function buildLaunchEnv(
     env[definition.keyEnv] = key
   }
 
-  if (profile !== 'ollama' && profile !== 'codex') {
+  if (profile !== 'ollama') {
     env.OPENAI_MODEL = env[definition.modelEnv]
     env.OPENAI_BASE_URL = env[definition.baseUrlEnv]
     if (definition.keyEnv && env[definition.keyEnv] && !sourceEnv.OPENAI_API_KEY) {
@@ -385,20 +364,6 @@ export function validateProfileRuntime(
   profile: ProviderProfile,
   runtime: ResolvedOpenAICompatibleRuntime,
 ): string | null {
-  if (profile === 'codex') {
-    const credentials = runtime.codexCredentials
-    if (!credentials?.apiKey) {
-      const authHint = credentials?.authPath
-        ? ` or make sure ${credentials.authPath} exists`
-        : ''
-      return `CODEX_API_KEY is required for codex profile${authHint}. Run: bun run profile:init -- --provider codex --model codexplan`
-    }
-    if (!credentials.accountId) {
-      return 'Codex profile requires chatgpt_account_id. Re-login with Codex CLI or set CHATGPT_ACCOUNT_ID/CODEX_ACCOUNT_ID.'
-    }
-    return null
-  }
-
   const keyLabel = profileKeyLabel(profile)
   if (profile !== 'ollama' && runtime.apiKey === 'SUA_CHAVE') {
     return `${keyLabel} is required for ${profile} profile and cannot be SUA_CHAVE. Run: bun run profile:init -- --provider ${profile} --api-key <key>`
@@ -417,6 +382,5 @@ export function profileKeyLabel(profile: ProviderProfile): string {
   if (profile === 'anthropic') return 'ANTHROPIC_API_KEY'
   if (profile === 'grok') return 'GROK_API_KEY (or XAI_API_KEY)'
   if (profile === 'gemini') return 'GEMINI_API_KEY'
-  if (profile === 'codex') return 'CODEX_API_KEY'
   return 'OPENAI_API_KEY'
 }
