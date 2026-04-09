@@ -6,6 +6,16 @@ type FetchType = typeof globalThis.fetch
 const originalEnv = {
   OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+  OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  GEMINI_MODEL: process.env.GEMINI_MODEL,
+  GEMINI_BASE_URL: process.env.GEMINI_BASE_URL,
+  GROK_API_KEY: process.env.GROK_API_KEY,
+  XAI_API_KEY: process.env.XAI_API_KEY,
+  GROK_MODEL: process.env.GROK_MODEL,
+  GROK_BASE_URL: process.env.GROK_BASE_URL,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
   ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL,
@@ -41,6 +51,20 @@ function makeStreamChunks(chunks: unknown[]): string[] {
 }
 
 beforeEach(() => {
+  process.env.OPENROUTER_API_KEY = ''
+  process.env.OPENROUTER_MODEL = ''
+  process.env.OPENROUTER_BASE_URL = ''
+  process.env.GEMINI_API_KEY = ''
+  process.env.GEMINI_MODEL = ''
+  process.env.GEMINI_BASE_URL = ''
+  process.env.GROK_API_KEY = ''
+  process.env.XAI_API_KEY = ''
+  process.env.GROK_MODEL = ''
+  process.env.GROK_BASE_URL = ''
+  process.env.ANTHROPIC_API_KEY = ''
+  process.env.ANTHROPIC_MODEL = ''
+  process.env.ANTHROPIC_BASE_URL = ''
+  process.env.ANTHROPIC_VERSION = ''
   process.env.OPENAI_BASE_URL = 'http://example.test/v1'
   process.env.OPENAI_API_KEY = 'test-key'
 })
@@ -48,6 +72,16 @@ beforeEach(() => {
 afterEach(() => {
   process.env.OPENAI_BASE_URL = originalEnv.OPENAI_BASE_URL
   process.env.OPENAI_API_KEY = originalEnv.OPENAI_API_KEY
+  process.env.OPENROUTER_API_KEY = originalEnv.OPENROUTER_API_KEY
+  process.env.OPENROUTER_MODEL = originalEnv.OPENROUTER_MODEL
+  process.env.OPENROUTER_BASE_URL = originalEnv.OPENROUTER_BASE_URL
+  process.env.GEMINI_API_KEY = originalEnv.GEMINI_API_KEY
+  process.env.GEMINI_MODEL = originalEnv.GEMINI_MODEL
+  process.env.GEMINI_BASE_URL = originalEnv.GEMINI_BASE_URL
+  process.env.GROK_API_KEY = originalEnv.GROK_API_KEY
+  process.env.XAI_API_KEY = originalEnv.XAI_API_KEY
+  process.env.GROK_MODEL = originalEnv.GROK_MODEL
+  process.env.GROK_BASE_URL = originalEnv.GROK_BASE_URL
   process.env.ANTHROPIC_API_KEY = originalEnv.ANTHROPIC_API_KEY
   process.env.ANTHROPIC_MODEL = originalEnv.ANTHROPIC_MODEL
   process.env.ANTHROPIC_BASE_URL = originalEnv.ANTHROPIC_BASE_URL
@@ -143,6 +177,8 @@ test('preserves usage from final OpenAI stream chunk with empty choices', async 
 })
 
 test('sends Anthropic compatibility headers in anthropic mode', async () => {
+  process.env.OPENAI_API_KEY = ''
+  process.env.OPENAI_BASE_URL = ''
   process.env.ANTHROPIC_API_KEY = 'anthropic-test-key'
   process.env.ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
   process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1'

@@ -65,6 +65,8 @@ hawk
 
 Hawk stores provider configuration in `~/.hawk/provider.json` and loads it on startup, similar to Herm. Environment variables are still supported as explicit overrides.
 
+Provider resolution is provider-scoped (Herm/Langdag style): OpenRouter, Grok/xAI, and Gemini keys are preferred over `OPENAI_API_KEY` when those providers are configured.
+
 ## Supported Providers
 
 | Provider | Base URL | Notes |
@@ -96,6 +98,14 @@ Provider config is stored at `~/.hawk/provider.json`.
 | `active_model` | Default model |
 
 If multiple providers are configured, Hawk uses this priority: Anthropic, OpenAI, OpenRouter, Grok, Gemini, Ollama.
+
+## Model Catalog
+
+Hawk model lists are dynamic and provider-scoped:
+
+- `/refresh-model-catalog` refreshes the local cache at `~/.hawk/model_catalog.json`.
+- `/debug-model-catalog` shows source, timestamp, and per-provider counts.
+- OpenRouter model catalog entries are fetched live when an OpenRouter key is configured.
 
 ## Usage Examples
 
