@@ -20,6 +20,7 @@ import {
   type ProviderProfile,
 } from '../../utils/providerConfig.js'
 import { getPreferredProviderModel } from '../../utils/model/configs.js'
+import { getProviderCatalogEntries } from '../../utils/model/providerCatalog.js'
 import { Select } from '../CustomSelect/index.js'
 import TextInput from '../TextInput.js'
 
@@ -212,6 +213,31 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
     )
   }
 
+  const providerCatalogOptions = getProviderCatalogEntries(provider).map(entry => ({
+    label: entry.id,
+    value: entry.id,
+    description:
+      entry.context_window >= 1_000_000
+        ? `${Math.round(entry.context_window / 1_000_000)}M context`
+        : `${Math.round(entry.context_window / 1_000)}k context`,
+  }))
+  const modelOptions =
+    providerCatalogOptions.length > 0
+      ? providerCatalogOptions
+      : [{
+          label: model,
+          value: model,
+          description: 'Custom model',
+        }]
+  const hasSelectedModel = modelOptions.some(option => option.value === model)
+  if (!hasSelectedModel && model.trim()) {
+    modelOptions.push({
+      label: model.trim(),
+      value: model.trim(),
+      description: 'Custom model',
+    })
+  }
+
   if (step === 'provider') {
     return <Box flexDirection="column" gap={1}>
       <Text>Choose provider API configuration:</Text>
@@ -258,28 +284,45 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
   }
 
   if (step === 'model') {
+    if (providerCatalogOptions.length === 0) {
+      return <Box flexDirection="column" gap={1}>
+        <Text>{providerLabel(provider)} model:</Text>
+        <Box flexDirection="row" gap={1}>
+          <Text>{figures.pointer}</Text>
+          <TextInput
+            value={model}
+            onChange={value => {
+              setModel(value)
+              setCursorOffset(value.length)
+            }}
+            onSubmit={() => {
+              setStep('baseUrl')
+              resetCursor(baseUrl)
+            }}
+            focus
+            showCursor
+            placeholder={getDefaultProviderModel(provider)}
+            columns={72}
+            cursorOffset={cursorOffset}
+            onChangeCursorOffset={setCursorOffset}
+          />
+        </Box>
+      </Box>
+    }
+
     return <Box flexDirection="column" gap={1}>
       <Text>{providerLabel(provider)} model:</Text>
-      <Box flexDirection="row" gap={1}>
-        <Text>{figures.pointer}</Text>
-        <TextInput
-          value={model}
-          onChange={value => {
-            setModel(value)
-            setCursorOffset(value.length)
-          }}
-          onSubmit={() => {
-            setStep('baseUrl')
-            resetCursor(baseUrl)
-          }}
-          focus
-          showCursor
-          placeholder={getDefaultProviderModel(provider)}
-          columns={72}
-          cursorOffset={cursorOffset}
-          onChangeCursorOffset={setCursorOffset}
-        />
-      </Box>
+      <Select
+        options={modelOptions}
+        defaultValue={modelOptions[0]?.value ?? model}
+        defaultFocusValue={model}
+        onChange={value => {
+          setModel(value)
+          setStep('baseUrl')
+          resetCursor(baseUrl)
+        }}
+        onCancel={onCancel}
+      />
     </Box>
   }
 
