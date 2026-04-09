@@ -1,34 +1,94 @@
 # Hawk Architecture
 
-## System Overview
+This document reflects the current code paths in `hawk` and the `@hawk/eyrie` integration used for provider/runtime and model catalog behavior.
+
+## 1) Context (C4-L1)
 
 ```mermaid
 flowchart LR
-  U[User / CLI Session] --> H[Hawk CLI]
-  H --> C[Command + Tool Loop]
-  C --> CFG[Provider Config<br/>~/.hawk/provider.json]
-  C --> CAT[Model Catalog Cache<br/>~/.hawk/model_catalog.json]
-  C --> E["eyrie package"]
-  C --> MCP[MCP + Local Tools]
+  DEV[Developer] --> CLI[Hawk CLI]
+  CLI --> FS[Local Filesystem<br/>workspace + ~/.hawk]
+  CLI --> MCP[MCP Servers]
+  CLI --> E["eyrie package"]
+  E --> PROVIDERS[LLM Provider APIs]
 ```
 
-## Provider Request Flow
+## 2) Containers (C4-L2)
 
 ```mermaid
-flowchart LR
-  C[Hawk Runtime] --> E["eyrie package"]
-  E --> R[Runtime Resolver<br/>provider/key/model/base URL]
-  R --> S[OpenAI-Compatible Request Shaping]
+flowchart TB
+  subgraph HawkCLI["Hawk CLI Application"]
+    ENTRY["CLI Entrypoint<br/>src/entrypoints/cli.tsx"]
+    INIT["Bootstrap / Init<br/>src/entrypoints/init.ts"]
+    APP["UI + Commands Layer<br/>screens, commands, components"]
+    QE["Query Engine<br/>src/QueryEngine.ts"]
+    TOOLS["Tool Runtime<br/>src/tools/*"]
+    API["API Orchestration<br/>src/services/api/*"]
+    CFG["Provider Config Adapter<br/>src/utils/providerConfig.ts"]
+    CATALOG["Provider Catalog Adapter<br/>src/utils/model/providerCatalog.ts"]
+    STATE["State + Session Store<br/>src/state/* + src/bootstrap/state.ts"]
+  end
 
-  S --> OAI[OpenAI]
-  S --> OR[OpenRouter]
-  S --> ANT[Anthropic compatible]
-  S --> GX[xAI / Grok]
-  S --> GEM[Gemini compatible]
-  S --> OLL[Ollama]
+  ENTRY --> CFG
+  ENTRY --> INIT
+  INIT --> APP
+  APP --> QE
+  QE --> TOOLS
+  QE --> API
+  API --> E["eyrie package"]
+  APP --> CATALOG
+  CATALOG --> E
+  APP --> STATE
 ```
 
-## Responsibility Split
+## 3) Core Runtime Flow (request path)
 
-- Hawk owns CLI UX, command routing, tools, sessions, and local persistence.
-- Eyrie owns provider/runtime resolution, model catalog integration, and request shaping.
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant C as CLI / REPL
+  participant Q as QueryEngine
+  participant A as API Layer (hawk.ts + client.ts)
+  participant E as eyrie Runtime Resolver
+  participant P as Provider API
+
+  U->>C: Prompt / command
+  C->>Q: submitMessage(...)
+  Q->>A: query(...) / getLLMClient(...)
+  A->>E: detect provider + resolve runtime
+  E-->>A: mode + base URL + model + key source
+  A->>P: Chat request (stream/non-stream)
+  P-->>A: Tokens / tool calls / deltas
+  A-->>Q: normalized events
+  Q-->>C: messages + tool execution events
+  C-->>U: rendered response
+```
+
+## 4) Provider Config + Model Catalog Flow
+
+```mermaid
+sequenceDiagram
+  participant CLI as CLI Startup
+  participant CFG as providerConfig.ts
+  participant HOME as ~/.hawk/provider.json
+  participant CAT as providerCatalog.ts
+  participant E as eyrie catalog
+  participant CACHE as ~/.hawk/model_catalog.json
+
+  CLI->>CFG: applyProviderConfigToEnv()
+  CFG->>HOME: load provider profile
+  HOME-->>CFG: provider + keys + model
+  CFG-->>CLI: env hydrated (provider-scoped + compat vars)
+
+  CLI->>CAT: getProviderCatalogEntries(...)
+  CAT->>CACHE: load cached catalog
+  CAT->>E: fetchModelCatalog(...) in background
+  E->>CACHE: write refreshed catalog
+  E-->>CAT: provider catalog
+```
+
+## 5) Responsibilities
+
+- Hawk owns product runtime: CLI UX, command system, tool orchestration, app/session state, and local persistence.
+- Eyrie owns provider/runtime concerns: provider detection, base URL/model/key resolution, provider catalogs, and compatibility shaping.
+- The integration boundary is intentionally narrow: Hawk calls eyrie for provider/runtime/model intelligence and keeps product logic local.
