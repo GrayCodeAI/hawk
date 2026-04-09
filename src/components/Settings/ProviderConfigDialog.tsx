@@ -5,7 +5,7 @@ import {
   DEFAULT_OPENAI_BASE_URL,
   DEFAULT_OPENROUTER_OPENAI_BASE_URL,
 } from '@hawk/eyrie'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import figures from 'figures'
 import { Box, Text } from '../../ink.js'
 import { useKeybinding } from '../../keybindings/useKeybinding.js'
@@ -20,8 +20,10 @@ import {
   type ProviderProfile,
 } from '../../utils/providerConfig.js'
 import { getPreferredProviderModel } from '../../utils/model/configs.js'
-import { getUserSpecifiedModelSetting } from '../../utils/model/model.js'
-import { getProviderCatalogEntries } from '../../utils/model/providerCatalog.js'
+import {
+  getProviderCatalogEntries,
+  refreshProviderCatalogNow,
+} from '../../utils/model/providerCatalog.js'
 import { Select } from '../CustomSelect/index.js'
 import TextInput from '../TextInput.js'
 
@@ -173,6 +175,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
   const [model, setModel] = useState(getDefaultProviderModel(initialProvider))
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS[initialProvider])
   const [cursorOffset, setCursorOffset] = useState(0)
+  const [, setCatalogRefreshTick] = useState(0)
 
   useKeybinding('confirm:no', onCancel, { context: 'Settings' })
 
@@ -214,6 +217,24 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
     )
   }
 
+  useEffect(() => {
+    if (step !== 'model') return
+    let cancelled = false
+    void refreshProviderCatalogNow().then(
+      () => {
+        if (!cancelled) {
+          setCatalogRefreshTick(value => value + 1)
+        }
+      },
+      () => {
+        // Keep current catalog entries on refresh failures.
+      },
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [provider, step])
+
   const providerCatalogOptions = getProviderCatalogEntries(provider).map(entry => ({
     label: entry.id,
     value: entry.id,
@@ -236,18 +257,6 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       label: model.trim(),
       value: model.trim(),
       description: 'Custom model',
-    })
-  }
-  const currentSessionModel = getUserSpecifiedModelSetting()
-  if (
-    typeof currentSessionModel === 'string' &&
-    currentSessionModel.trim() &&
-    !modelOptions.some(option => option.value === currentSessionModel)
-  ) {
-    modelOptions.push({
-      label: currentSessionModel,
-      value: currentSessionModel,
-      description: 'Current model',
     })
   }
 
@@ -327,11 +336,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       <Text>{providerLabel(provider)} model:</Text>
       <Select
         options={modelOptions}
-        defaultValue={
-          modelOptions.some(option => option.value === model)
-            ? model
-            : modelOptions[0]?.value ?? model
-        }
+        defaultValue={modelOptions.some(option => option.value === model) ? model : modelOptions[0]?.value ?? model}
         defaultFocusValue={model}
         onChange={value => {
           setModel(value)
