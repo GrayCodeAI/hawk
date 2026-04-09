@@ -67,6 +67,10 @@ Hawk stores provider configuration in `~/.hawk/provider.json` and loads it on st
 
 Provider resolution is provider-scoped (Herm/Langdag style): OpenRouter, Grok/xAI, and Gemini keys are preferred over `OPENAI_API_KEY` when those providers are configured.
 
+## Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for system and request-flow diagrams.
+
 ## Supported Providers
 
 | Provider | Base URL | Notes |
