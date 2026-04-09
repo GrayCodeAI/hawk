@@ -20,6 +20,7 @@ import {
   type ProviderProfile,
 } from '../../utils/providerConfig.js'
 import { getPreferredProviderModel } from '../../utils/model/configs.js'
+import { getUserSpecifiedModelSetting } from '../../utils/model/model.js'
 import { getProviderCatalogEntries } from '../../utils/model/providerCatalog.js'
 import { Select } from '../CustomSelect/index.js'
 import TextInput from '../TextInput.js'
@@ -237,6 +238,18 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       description: 'Custom model',
     })
   }
+  const currentSessionModel = getUserSpecifiedModelSetting()
+  if (
+    typeof currentSessionModel === 'string' &&
+    currentSessionModel.trim() &&
+    !modelOptions.some(option => option.value === currentSessionModel)
+  ) {
+    modelOptions.push({
+      label: currentSessionModel,
+      value: currentSessionModel,
+      description: 'Current model',
+    })
+  }
 
   if (step === 'provider') {
     return <Box flexDirection="column" gap={1}>
@@ -314,7 +327,11 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       <Text>{providerLabel(provider)} model:</Text>
       <Select
         options={modelOptions}
-        defaultValue={modelOptions[0]?.value ?? model}
+        defaultValue={
+          modelOptions.some(option => option.value === model)
+            ? model
+            : modelOptions[0]?.value ?? model
+        }
         defaultFocusValue={model}
         onChange={value => {
           setModel(value)
