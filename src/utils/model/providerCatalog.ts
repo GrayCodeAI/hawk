@@ -27,25 +27,47 @@ function getProviderConfigPath(): string {
   return join(getHawkConfigHomeDir(), 'provider.json')
 }
 
-function getCatalogRefreshEnv(): NodeJS.ProcessEnv {
+function getCatalogRefreshEnv(
+  envOverrides?: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env }
-  if (env.OPENROUTER_API_KEY) return env
 
   try {
     const path = getProviderConfigPath()
-    if (!existsSync(path)) return env
-    const parsed = JSON.parse(readFileSync(path, 'utf8')) as {
-      openrouter_api_key?: string
-      openrouter_base_url?: string
-    }
-    const key = parsed?.openrouter_api_key?.trim()
-    if (!key) return env
-    env.OPENROUTER_API_KEY = key
-    if (!env.OPENROUTER_BASE_URL && parsed.openrouter_base_url?.trim()) {
-      env.OPENROUTER_BASE_URL = parsed.openrouter_base_url.trim()
+    if (existsSync(path)) {
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as {
+        openrouter_api_key?: string
+        openrouter_base_url?: string
+        canopywave_api_key?: string
+        canopywave_base_url?: string
+      }
+
+      const openrouterKey = parsed?.openrouter_api_key?.trim()
+      if (!env.OPENROUTER_API_KEY && openrouterKey) {
+        env.OPENROUTER_API_KEY = openrouterKey
+      }
+      if (!env.OPENROUTER_BASE_URL && parsed.openrouter_base_url?.trim()) {
+        env.OPENROUTER_BASE_URL = parsed.openrouter_base_url.trim()
+      }
+
+      const canopywaveKey = parsed?.canopywave_api_key?.trim()
+      if (!env.CANOPYWAVE_API_KEY && canopywaveKey) {
+        env.CANOPYWAVE_API_KEY = canopywaveKey
+      }
+      if (!env.CANOPYWAVE_BASE_URL && parsed.canopywave_base_url?.trim()) {
+        env.CANOPYWAVE_BASE_URL = parsed.canopywave_base_url.trim()
+      }
     }
   } catch {
     // Best effort only.
+  }
+
+  if (envOverrides) {
+    for (const [key, value] of Object.entries(envOverrides)) {
+      if (typeof value === 'string' && value.trim()) {
+        env[key] = value.trim()
+      }
+    }
   }
   return env
 }
@@ -96,11 +118,13 @@ export type ProviderCatalogDebugSnapshot = {
   providerCounts: Record<APIProvider, number>
 }
 
-export async function refreshProviderCatalogNow(): Promise<void> {
+export async function refreshProviderCatalogNow(options?: {
+  envOverrides?: NodeJS.ProcessEnv
+}): Promise<void> {
   const latest = await fetchModelCatalog(
     getModelCatalogCachePath(),
     undefined,
-    getCatalogRefreshEnv(),
+    getCatalogRefreshEnv(options?.envOverrides),
   )
   cachedCatalog = latest
   refreshStarted = true

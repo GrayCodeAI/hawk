@@ -145,6 +145,31 @@ function applyProviderSelection(
   return next
 }
 
+function getCatalogRefreshEnvOverrides(
+  provider: ProviderProfile,
+  apiKey: string,
+  baseUrl: string,
+): NodeJS.ProcessEnv | undefined {
+  const key = apiKey.trim()
+  const url = baseUrl.trim()
+  if (!key && !url) return undefined
+
+  const env: NodeJS.ProcessEnv = {}
+  switch (provider) {
+    case 'openrouter':
+      if (key) env.OPENROUTER_API_KEY = key
+      if (url) env.OPENROUTER_BASE_URL = url
+      break
+    case 'canopywave':
+      if (key) env.CANOPYWAVE_API_KEY = key
+      if (url) env.CANOPYWAVE_BASE_URL = url
+      break
+    default:
+      return undefined
+  }
+  return env
+}
+
 export function providerLabel(provider: ProviderProfile): string {
   return PROVIDER_LABELS[provider]
 }
@@ -203,7 +228,9 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
   useEffect(() => {
     if (step !== 'model') return
     let cancelled = false
-    void refreshProviderCatalogNow().then(
+    void refreshProviderCatalogNow({
+      envOverrides: getCatalogRefreshEnvOverrides(provider, apiKey, baseUrl),
+    }).then(
       () => {
         if (!cancelled) {
           setCatalogRefreshTick(value => value + 1)
@@ -216,7 +243,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
     return () => {
       cancelled = true
     }
-  }, [provider, step])
+  }, [provider, step, apiKey, baseUrl])
 
   const providerCatalogOptions = getProviderCatalogEntries(provider).map(entry => ({
     label: entry.id,
