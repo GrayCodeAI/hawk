@@ -103,6 +103,7 @@ function applyProviderSelection(
   const next: ProviderConfig = {
     ...config,
     active_provider: provider,
+    active_model: trimmedModel || getDefaultProviderModel(provider),
   }
 
   switch (provider) {
