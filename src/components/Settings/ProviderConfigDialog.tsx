@@ -219,7 +219,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       baseUrl,
     )
     saveProviderConfig(nextConfig)
-    applyProviderConfigToEnv()
+    applyProviderConfigToEnv(process.env, nextConfig, { overwrite: true })
     onComplete(
       `Configured ${providerLabel(provider)} provider in ${getProviderConfigPath()}`,
     )

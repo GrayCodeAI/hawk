@@ -57,8 +57,14 @@ function normalizeOllamaOpenAIBaseUrl(baseUrl: string | undefined): string | und
   return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`
 }
 
-function setIfMissing(env: NodeJS.ProcessEnv, key: string, value: string | undefined): void {
-  if (!value || env[key]) return
+function setEnvValue(
+  env: NodeJS.ProcessEnv,
+  key: string,
+  value: string | undefined,
+  overwrite: boolean,
+): void {
+  if (!value) return
+  if (!overwrite && env[key]) return
   env[key] = value
 }
 
@@ -158,6 +164,9 @@ export function getProviderActiveModel(
 export function applyProviderConfigToEnv(
   env: NodeJS.ProcessEnv = process.env,
   config: ProviderConfig | null = loadProviderConfig(),
+  options?: {
+    overwrite?: boolean
+  },
 ): ProviderProfile | null {
   if (!config) {
     return null
@@ -165,22 +174,23 @@ export function applyProviderConfigToEnv(
 
   const provider = defaultProviderFromConfig(config)
   if (!provider) return null
+  const overwrite = options?.overwrite === true
 
   const activeModel = getProviderActiveModel(config, provider)
   const explorationModel = asNonEmptyString(config.exploration_model)
-  setIfMissing(env, 'GRAYCODE_SMALL_FAST_MODEL', explorationModel)
+  setEnvValue(env, 'GRAYCODE_SMALL_FAST_MODEL', explorationModel, overwrite)
 
   switch (provider) {
     case 'anthropic':
-      setIfMissing(env, 'ANTHROPIC_API_KEY', asNonEmptyString(config.anthropic_api_key))
-      setIfMissing(env, 'ANTHROPIC_MODEL', activeModel ?? getPreferredProviderModel('anthropic', 'sonnet'))
-      setIfMissing(env, 'ANTHROPIC_BASE_URL', asNonEmptyString(config.anthropic_base_url))
-      setIfMissing(env, 'ANTHROPIC_VERSION', asNonEmptyString(config.anthropic_version))
+      setEnvValue(env, 'ANTHROPIC_API_KEY', asNonEmptyString(config.anthropic_api_key), overwrite)
+      setEnvValue(env, 'ANTHROPIC_MODEL', activeModel ?? getPreferredProviderModel('anthropic', 'sonnet'), overwrite)
+      setEnvValue(env, 'ANTHROPIC_BASE_URL', asNonEmptyString(config.anthropic_base_url), overwrite)
+      setEnvValue(env, 'ANTHROPIC_VERSION', asNonEmptyString(config.anthropic_version), overwrite)
       return provider
     case 'openai':
-      setIfMissing(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key))
-      setIfMissing(env, 'OPENAI_MODEL', activeModel ?? getProviderDefaultModel('openai'))
-      setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? PROVIDER_DEFAULT_BASE_URLS.openai)
+      setEnvValue(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key), overwrite)
+      setEnvValue(env, 'OPENAI_MODEL', activeModel ?? getProviderDefaultModel('openai'), overwrite)
+      setEnvValue(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? PROVIDER_DEFAULT_BASE_URLS.openai, overwrite)
       return provider
     case 'canopywave':
       {
@@ -191,14 +201,14 @@ export function applyProviderConfigToEnv(
         const canopywaveModel =
           activeModel ?? getProviderDefaultModel('canopywave')
 
-        setIfMissing(env, 'CANOPYWAVE_API_KEY', canopywaveApiKey)
-        setIfMissing(env, 'CANOPYWAVE_MODEL', canopywaveModel)
-        setIfMissing(env, 'CANOPYWAVE_BASE_URL', canopywaveBaseUrl)
+        setEnvValue(env, 'CANOPYWAVE_API_KEY', canopywaveApiKey, overwrite)
+        setEnvValue(env, 'CANOPYWAVE_MODEL', canopywaveModel, overwrite)
+        setEnvValue(env, 'CANOPYWAVE_BASE_URL', canopywaveBaseUrl, overwrite)
 
         // OpenAI-compatible shim compatibility.
-        setIfMissing(env, 'OPENAI_API_KEY', canopywaveApiKey)
-        setIfMissing(env, 'OPENAI_MODEL', canopywaveModel)
-        setIfMissing(env, 'OPENAI_BASE_URL', canopywaveBaseUrl)
+        setEnvValue(env, 'OPENAI_API_KEY', canopywaveApiKey, overwrite)
+        setEnvValue(env, 'OPENAI_MODEL', canopywaveModel, overwrite)
+        setEnvValue(env, 'OPENAI_BASE_URL', canopywaveBaseUrl, overwrite)
       }
       return provider
     case 'openrouter':
@@ -210,14 +220,14 @@ export function applyProviderConfigToEnv(
         const openrouterModel =
           activeModel ?? getProviderDefaultModel('openrouter')
 
-        setIfMissing(env, 'OPENROUTER_API_KEY', openrouterApiKey)
-        setIfMissing(env, 'OPENROUTER_MODEL', openrouterModel)
-        setIfMissing(env, 'OPENROUTER_BASE_URL', openrouterBaseUrl)
+        setEnvValue(env, 'OPENROUTER_API_KEY', openrouterApiKey, overwrite)
+        setEnvValue(env, 'OPENROUTER_MODEL', openrouterModel, overwrite)
+        setEnvValue(env, 'OPENROUTER_BASE_URL', openrouterBaseUrl, overwrite)
 
         // OpenAI-compatible shim compatibility.
-        setIfMissing(env, 'OPENAI_API_KEY', openrouterApiKey)
-        setIfMissing(env, 'OPENAI_MODEL', openrouterModel)
-        setIfMissing(env, 'OPENAI_BASE_URL', openrouterBaseUrl)
+        setEnvValue(env, 'OPENAI_API_KEY', openrouterApiKey, overwrite)
+        setEnvValue(env, 'OPENAI_MODEL', openrouterModel, overwrite)
+        setEnvValue(env, 'OPENAI_BASE_URL', openrouterBaseUrl, overwrite)
       }
       return provider
     case 'grok':
@@ -231,15 +241,15 @@ export function applyProviderConfigToEnv(
           PROVIDER_DEFAULT_BASE_URLS.grok
         const grokModel = activeModel ?? getProviderDefaultModel('grok')
 
-        setIfMissing(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key))
-        setIfMissing(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key))
-        setIfMissing(env, 'GROK_MODEL', grokModel)
-        setIfMissing(env, 'GROK_BASE_URL', grokBaseUrl)
+        setEnvValue(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key), overwrite)
+        setEnvValue(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key), overwrite)
+        setEnvValue(env, 'GROK_MODEL', grokModel, overwrite)
+        setEnvValue(env, 'GROK_BASE_URL', grokBaseUrl, overwrite)
 
         // OpenAI-compatible shim compatibility.
-        setIfMissing(env, 'OPENAI_API_KEY', grokApiKey)
-        setIfMissing(env, 'OPENAI_MODEL', grokModel)
-        setIfMissing(env, 'OPENAI_BASE_URL', grokBaseUrl)
+        setEnvValue(env, 'OPENAI_API_KEY', grokApiKey, overwrite)
+        setEnvValue(env, 'OPENAI_MODEL', grokModel, overwrite)
+        setEnvValue(env, 'OPENAI_BASE_URL', grokBaseUrl, overwrite)
       }
       return provider
     case 'gemini':
@@ -251,19 +261,19 @@ export function applyProviderConfigToEnv(
         const geminiModel =
           activeModel ?? getProviderDefaultModel('gemini')
 
-        setIfMissing(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key))
-        setIfMissing(env, 'GEMINI_MODEL', geminiModel)
-        setIfMissing(env, 'GEMINI_BASE_URL', geminiBaseUrl)
+        setEnvValue(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key), overwrite)
+        setEnvValue(env, 'GEMINI_MODEL', geminiModel, overwrite)
+        setEnvValue(env, 'GEMINI_BASE_URL', geminiBaseUrl, overwrite)
 
         // OpenAI-compatible shim compatibility.
-        setIfMissing(env, 'OPENAI_API_KEY', geminiApiKey)
-        setIfMissing(env, 'OPENAI_MODEL', geminiModel)
-        setIfMissing(env, 'OPENAI_BASE_URL', geminiBaseUrl)
+        setEnvValue(env, 'OPENAI_API_KEY', geminiApiKey, overwrite)
+        setEnvValue(env, 'OPENAI_MODEL', geminiModel, overwrite)
+        setEnvValue(env, 'OPENAI_BASE_URL', geminiBaseUrl, overwrite)
       }
       return provider
     case 'ollama':
-      setIfMissing(env, 'OPENAI_MODEL', activeModel ?? 'llama3.1:8b')
-      setIfMissing(env, 'OPENAI_BASE_URL', normalizeOllamaOpenAIBaseUrl(asNonEmptyString(config.ollama_base_url)) ?? 'http://localhost:11434/v1')
+      setEnvValue(env, 'OPENAI_MODEL', activeModel ?? 'llama3.1:8b', overwrite)
+      setEnvValue(env, 'OPENAI_BASE_URL', normalizeOllamaOpenAIBaseUrl(asNonEmptyString(config.ollama_base_url)) ?? 'http://localhost:11434/v1', overwrite)
       return provider
   }
 }
