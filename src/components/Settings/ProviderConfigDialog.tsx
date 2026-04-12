@@ -1,10 +1,3 @@
-import {
-  DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
-  DEFAULT_GEMINI_OPENAI_BASE_URL,
-  DEFAULT_GROK_OPENAI_BASE_URL,
-  DEFAULT_OPENAI_BASE_URL,
-  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
-} from '@hawk/eyrie'
 import React, { useEffect, useState } from 'react'
 import figures from 'figures'
 import { Box, Text } from '../../ink.js'
@@ -17,8 +10,13 @@ import {
   defaultProviderFromConfig,
   getProviderActiveModel,
   type ProviderConfig,
-  type ProviderProfile,
 } from '../../utils/providerConfig.js'
+import {
+  PROVIDER_DEFAULT_BASE_URLS,
+  PROVIDER_LABELS,
+  PROVIDER_PRIORITY,
+  type ProviderProfile,
+} from '../../utils/providerRegistry.js'
 import {
   getPreferredProviderModel,
   getProviderDefaultModel,
@@ -37,15 +35,6 @@ type Props = {
 
 type Step = 'provider' | 'apiKey' | 'model' | 'baseUrl'
 
-const PROVIDERS: ProviderProfile[] = [
-  'anthropic',
-  'openai',
-  'openrouter',
-  'grok',
-  'gemini',
-  'ollama',
-]
-
 function getDefaultProviderModel(provider: ProviderProfile): string {
   if (provider === 'ollama') return 'llama3.1:8b'
   const catalogModel = getProviderCatalogEntries(provider)[0]?.id
@@ -55,15 +44,6 @@ function getDefaultProviderModel(provider: ProviderProfile): string {
     : getProviderDefaultModel(provider)
 }
 
-const DEFAULT_BASE_URLS: Record<ProviderProfile, string> = {
-  anthropic: DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
-  openai: DEFAULT_OPENAI_BASE_URL,
-  openrouter: DEFAULT_OPENROUTER_OPENAI_BASE_URL,
-  grok: DEFAULT_GROK_OPENAI_BASE_URL,
-  gemini: DEFAULT_GEMINI_OPENAI_BASE_URL,
-  ollama: 'http://localhost:11434',
-}
-
 function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile): string {
   if (!config) return ''
   switch (provider) {
@@ -71,6 +51,8 @@ function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile
       return config.anthropic_api_key ?? ''
     case 'openai':
       return config.openai_api_key ?? ''
+    case 'canopywave':
+      return config.canopywave_api_key ?? ''
     case 'openrouter':
       return config.openrouter_api_key ?? ''
     case 'grok':
@@ -83,20 +65,22 @@ function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile
 }
 
 function existingBaseUrl(config: ProviderConfig | null, provider: ProviderProfile): string {
-  if (!config) return DEFAULT_BASE_URLS[provider]
+  if (!config) return PROVIDER_DEFAULT_BASE_URLS[provider]
   switch (provider) {
     case 'anthropic':
-      return config.anthropic_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.anthropic_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'openai':
-      return config.openai_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.openai_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
+    case 'canopywave':
+      return config.canopywave_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'openrouter':
-      return config.openrouter_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.openrouter_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'grok':
-      return config.grok_base_url ?? config.xai_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.grok_base_url ?? config.xai_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'gemini':
-      return config.gemini_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.gemini_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'ollama':
-      return config.ollama_base_url ?? DEFAULT_BASE_URLS[provider]
+      return config.ollama_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
   }
 }
 
@@ -125,31 +109,36 @@ function applyProviderSelection(
     case 'anthropic':
       if (key) next.anthropic_api_key = key
       next.anthropic_model = trimmedModel || getDefaultProviderModel(provider)
-      next.anthropic_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      next.anthropic_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'openai':
       if (key) next.openai_api_key = key
       next.openai_model = trimmedModel || getDefaultProviderModel(provider)
-      next.openai_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      next.openai_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
+      break
+    case 'canopywave':
+      if (key) next.canopywave_api_key = key
+      next.canopywave_model = trimmedModel || getDefaultProviderModel(provider)
+      next.canopywave_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'openrouter':
       if (key) next.openrouter_api_key = key
       next.openrouter_model = trimmedModel || getDefaultProviderModel(provider)
-      next.openrouter_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      next.openrouter_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'grok':
       if (key) next.grok_api_key = key
       next.grok_model = trimmedModel || getDefaultProviderModel(provider)
-      next.grok_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      next.grok_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'gemini':
       if (key) next.gemini_api_key = key
       next.gemini_model = trimmedModel || getDefaultProviderModel(provider)
-      next.gemini_base_url = trimmedBaseUrl || DEFAULT_BASE_URLS[provider]
+      next.gemini_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'ollama':
       next.ollama_model = trimmedModel || getDefaultProviderModel(provider)
-      next.ollama_base_url = (trimmedBaseUrl || DEFAULT_BASE_URLS[provider]).replace(/\/v1\/?$/, '')
+      next.ollama_base_url = (trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]).replace(/\/v1\/?$/, '')
       break
   }
 
@@ -157,20 +146,7 @@ function applyProviderSelection(
 }
 
 export function providerLabel(provider: ProviderProfile): string {
-  switch (provider) {
-    case 'anthropic':
-      return 'Anthropic'
-    case 'openai':
-      return 'OpenAI'
-    case 'openrouter':
-      return 'OpenRouter'
-    case 'grok':
-      return 'Grok / xAI'
-    case 'gemini':
-      return 'Gemini'
-    case 'ollama':
-      return 'Ollama'
-  }
+  return PROVIDER_LABELS[provider]
 }
 
 export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.ReactNode {
@@ -180,7 +156,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
   const [provider, setProvider] = useState<ProviderProfile>(initialProvider)
   const [apiKey, setApiKey] = useState('')
   const [model, setModel] = useState(getDefaultProviderModel(initialProvider))
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS[initialProvider])
+  const [baseUrl, setBaseUrl] = useState(PROVIDER_DEFAULT_BASE_URLS[initialProvider])
   const [cursorOffset, setCursorOffset] = useState(0)
   const [, setCatalogRefreshTick] = useState(0)
 
@@ -271,7 +247,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
     return <Box flexDirection="column" gap={1}>
       <Text>Choose provider API configuration:</Text>
       <Select
-        options={PROVIDERS.map(value => ({
+        options={PROVIDER_PRIORITY.map(value => ({
           label: providerLabel(value),
           value,
           description: value === 'ollama' ? 'local server, no API key' : undefined,
@@ -368,7 +344,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
         onSubmit={save}
         focus
         showCursor
-        placeholder={DEFAULT_BASE_URLS[provider]}
+        placeholder={PROVIDER_DEFAULT_BASE_URLS[provider]}
         columns={72}
         cursorOffset={cursorOffset}
         onChangeCursorOffset={setCursorOffset}

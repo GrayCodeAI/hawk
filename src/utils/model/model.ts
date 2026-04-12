@@ -39,6 +39,9 @@ export type ModelName = string
 export type ModelSetting = ModelName | ModelAlias | null
 
 function getOpenAICompatibleProviderModelEnv(provider: ReturnType<typeof getAPIProvider>): string | undefined {
+  if (provider === 'canopywave') {
+    return process.env.CANOPYWAVE_MODEL || process.env.OPENAI_MODEL
+  }
   if (provider === 'openrouter') {
     return process.env.OPENROUTER_MODEL || process.env.OPENAI_MODEL
   }
@@ -56,7 +59,7 @@ export function getSmallFastModel(): ModelName {
     return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // For OpenAI provider, use OPENAI_MODEL or a sensible default
-  if (provider === 'openai' || provider === 'openrouter') {
+  if (provider === 'openai' || provider === 'canopywave' || provider === 'openrouter') {
     return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
   return provider === 'anthropic'
@@ -143,7 +146,7 @@ export function getDefaultOpusModel(): ModelName {
     return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider: use user-specified model or default
-  if (provider === 'openai' || provider === 'openrouter') {
+  if (provider === 'openai' || provider === 'canopywave' || provider === 'openrouter') {
     return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
   return provider === 'anthropic'
@@ -162,7 +165,7 @@ export function getDefaultSonnetModel(): ModelName {
     return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider
-  if (provider === 'openai' || provider === 'openrouter') {
+  if (provider === 'openai' || provider === 'canopywave' || provider === 'openrouter') {
     return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
   return provider === 'anthropic'
@@ -181,7 +184,7 @@ export function getDefaultHaikuModel(): ModelName {
     return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider
-  if (provider === 'openai' || provider === 'openrouter') {
+  if (provider === 'openai' || provider === 'canopywave' || provider === 'openrouter') {
     return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
   return provider === 'anthropic'
@@ -234,7 +237,7 @@ export function getDefaultMainLoopModelSetting(): ModelName | ModelAlias {
     return process.env.GEMINI_MODEL || getProviderDefaultModel('gemini')
   }
   // OpenAI provider: always use the configured OpenAI model
-  if (provider === 'openai' || provider === 'openrouter') {
+  if (provider === 'openai' || provider === 'canopywave' || provider === 'openrouter') {
     return getOpenAICompatibleProviderModelEnv(provider) || getProviderDefaultModel(provider)
   }
 

@@ -119,7 +119,7 @@ function printSummary(profile: ProviderProfile, env: NodeJS.ProcessEnv): void {
 async function main(): Promise<void> {
   const options = parseLaunchOptions(process.argv.slice(2))
   if (!options.requestedProfile) {
-    console.error('Usage: bun run scripts/provider-launch.ts [openai|ollama|openrouter|gemini|anthropic|grok|auto] [--fast] [-- <cli args>]')
+    console.error('Usage: bun run scripts/provider-launch.ts [openai|canopywave|ollama|openrouter|gemini|anthropic|grok|auto] [--fast] [-- <cli args>]')
     process.exit(1)
   }
 

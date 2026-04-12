@@ -32,6 +32,7 @@ export const GEMINI_MODEL_DEFAULTS = {
 export const HAWK_3_7_SONNET_CONFIG = {
   anthropic: 'claude-3-7-sonnet-20250219',
   openai: 'gpt-4o-mini',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o-mini',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash',
@@ -41,6 +42,7 @@ export const HAWK_3_7_SONNET_CONFIG = {
 export const HAWK_3_5_V2_SONNET_CONFIG = {
   anthropic: 'claude-3-5-sonnet-20241022',
   openai: 'gpt-4o-mini',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o-mini',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash',
@@ -50,6 +52,7 @@ export const HAWK_3_5_V2_SONNET_CONFIG = {
 export const HAWK_3_5_HAIKU_CONFIG = {
   anthropic: 'claude-3-5-haiku-20241022',
   openai: 'gpt-4o-mini',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o-mini',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash-lite',
@@ -59,6 +62,7 @@ export const HAWK_3_5_HAIKU_CONFIG = {
 export const HAWK_HAIKU_4_5_CONFIG = {
   anthropic: 'claude-haiku-4-5-20251001',
   openai: 'gpt-4o-mini',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o-mini',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash-lite',
@@ -68,6 +72,7 @@ export const HAWK_HAIKU_4_5_CONFIG = {
 export const HAWK_SONNET_4_CONFIG = {
   anthropic: 'claude-sonnet-4-20250514',
   openai: 'gpt-4o-mini',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o-mini',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash',
@@ -77,6 +82,7 @@ export const HAWK_SONNET_4_CONFIG = {
 export const HAWK_SONNET_4_5_CONFIG = {
   anthropic: 'claude-sonnet-4-5-20250929',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash',
@@ -86,6 +92,7 @@ export const HAWK_SONNET_4_5_CONFIG = {
 export const HAWK_OPUS_4_CONFIG = {
   anthropic: 'claude-opus-4-20250514',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.5-pro-preview-03-25',
@@ -95,6 +102,7 @@ export const HAWK_OPUS_4_CONFIG = {
 export const HAWK_OPUS_4_1_CONFIG = {
   anthropic: 'claude-opus-4-1-20250805',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.5-pro-preview-03-25',
@@ -104,6 +112,7 @@ export const HAWK_OPUS_4_1_CONFIG = {
 export const HAWK_OPUS_4_5_CONFIG = {
   anthropic: 'claude-opus-4-5-20251101',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.5-pro-preview-03-25',
@@ -113,6 +122,7 @@ export const HAWK_OPUS_4_5_CONFIG = {
 export const HAWK_OPUS_4_6_CONFIG = {
   anthropic: 'claude-opus-4-6',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.5-pro-preview-03-25',
@@ -122,6 +132,7 @@ export const HAWK_OPUS_4_6_CONFIG = {
 export const HAWK_SONNET_4_6_CONFIG = {
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o',
+  canopywave: 'zai/glm-4.6',
   openrouter: 'openai/gpt-4o',
   grok: 'grok-2',
   gemini: 'gemini-2.0-flash',
@@ -174,6 +185,11 @@ const PREFERRED_MODEL_KEYS_BY_PROVIDER: Record<
     haiku: 'haiku45',
   },
   openai: {
+    opus: 'opus46',
+    sonnet: 'sonnet46',
+    haiku: 'haiku45',
+  },
+  canopywave: {
     opus: 'opus46',
     sonnet: 'sonnet46',
     haiku: 'haiku45',

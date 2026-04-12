@@ -36,6 +36,8 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
     retirementDates: {
       anthropic: 'January 5, 2026',
       openai: null,
+      canopywave: null,
+      openrouter: null,
       grok: null,
       gemini: null,
       ollama: null,
@@ -46,6 +48,8 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
     retirementDates: {
       anthropic: 'February 19, 2026',
       openai: null,
+      canopywave: null,
+      openrouter: null,
       grok: null,
       gemini: null,
       ollama: null,
@@ -56,6 +60,8 @@ const DEPRECATED_MODELS: Record<string, DeprecationEntry> = {
     retirementDates: {
       anthropic: 'February 19, 2026',
       openai: null,
+      canopywave: null,
+      openrouter: null,
       grok: null,
       gemini: null,
       ollama: null,

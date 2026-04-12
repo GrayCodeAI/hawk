@@ -1,9 +1,4 @@
 import {
-  DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
-  DEFAULT_GEMINI_OPENAI_BASE_URL,
-  DEFAULT_GROK_OPENAI_BASE_URL,
-  DEFAULT_OPENAI_BASE_URL,
-  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
   isLocalProviderUrl,
   resolveOpenAICompatibleRuntime,
   type ResolvedOpenAICompatibleRuntime,
@@ -16,21 +11,22 @@ import {
   saveProviderConfig,
   type ProviderConfig,
 } from '../src/utils/providerConfig.js'
-
-export type ProviderProfile =
-  | 'openai'
-  | 'ollama'
-  | 'openrouter'
-  | 'gemini'
-  | 'anthropic'
-  | 'grok'
+import {
+  PROVIDER_DEFAULT_BASE_URLS,
+  PROVIDER_DEFAULT_MODELS,
+  PROVIDER_PROFILES,
+  type ProviderProfile,
+} from '../src/utils/providerRegistry.js'
 
 export type ProfileEnv = {
   OPENAI_BASE_URL?: string
+  CANOPYWAVE_BASE_URL?: string
   OPENROUTER_BASE_URL?: string
   OPENAI_MODEL?: string
+  CANOPYWAVE_MODEL?: string
   OPENROUTER_MODEL?: string
   OPENAI_API_KEY?: string
+  CANOPYWAVE_API_KEY?: string
   OPENROUTER_API_KEY?: string
   OPENAI_API_BASE?: string
   GEMINI_API_KEY?: string
@@ -70,10 +66,10 @@ type ProfileDefinition = {
   useFlag?: string
 }
 
-export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
+export const PROFILE_DEFINITIONS: Record<ProviderProfile, ProfileDefinition> = {
   anthropic: {
-    defaultModel: 'claude-3-5-sonnet-latest',
-    defaultBaseUrl: DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
+    defaultModel: PROVIDER_DEFAULT_MODELS.anthropic,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.anthropic,
     modelEnv: 'ANTHROPIC_MODEL',
     baseUrlEnv: 'ANTHROPIC_BASE_URL',
     keyEnv: 'ANTHROPIC_API_KEY',
@@ -81,8 +77,8 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     useFlag: 'HAWK_CODE_USE_ANTHROPIC',
   },
   grok: {
-    defaultModel: 'grok-2',
-    defaultBaseUrl: DEFAULT_GROK_OPENAI_BASE_URL,
+    defaultModel: PROVIDER_DEFAULT_MODELS.grok,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.grok,
     modelEnv: 'GROK_MODEL',
     baseUrlEnv: 'GROK_BASE_URL',
     keyEnv: 'GROK_API_KEY',
@@ -90,17 +86,26 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     useFlag: 'HAWK_CODE_USE_GROK',
   },
   openai: {
-    defaultModel: 'gpt-4o',
-    defaultBaseUrl: DEFAULT_OPENAI_BASE_URL,
+    defaultModel: PROVIDER_DEFAULT_MODELS.openai,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.openai,
     modelEnv: 'OPENAI_MODEL',
     baseUrlEnv: 'OPENAI_BASE_URL',
     keyEnv: 'OPENAI_API_KEY',
     keyFallbackEnv: ['OPENAI_API_KEY'],
     useFlag: 'HAWK_CODE_USE_OPENAI',
   },
+  canopywave: {
+    defaultModel: PROVIDER_DEFAULT_MODELS.canopywave,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.canopywave,
+    modelEnv: 'CANOPYWAVE_MODEL',
+    baseUrlEnv: 'CANOPYWAVE_BASE_URL',
+    keyEnv: 'CANOPYWAVE_API_KEY',
+    keyFallbackEnv: ['CANOPYWAVE_API_KEY', 'OPENAI_API_KEY'],
+    useFlag: 'HAWK_CODE_USE_OPENAI',
+  },
   openrouter: {
-    defaultModel: 'openai/gpt-4o-mini',
-    defaultBaseUrl: DEFAULT_OPENROUTER_OPENAI_BASE_URL,
+    defaultModel: PROVIDER_DEFAULT_MODELS.openrouter,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.openrouter,
     modelEnv: 'OPENROUTER_MODEL',
     baseUrlEnv: 'OPENROUTER_BASE_URL',
     keyEnv: 'OPENROUTER_API_KEY',
@@ -108,8 +113,8 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     useFlag: 'HAWK_CODE_USE_OPENAI',
   },
   gemini: {
-    defaultModel: 'gemini-2.0-flash',
-    defaultBaseUrl: DEFAULT_GEMINI_OPENAI_BASE_URL,
+    defaultModel: PROVIDER_DEFAULT_MODELS.gemini,
+    defaultBaseUrl: PROVIDER_DEFAULT_BASE_URLS.gemini,
     modelEnv: 'GEMINI_MODEL',
     baseUrlEnv: 'GEMINI_BASE_URL',
     keyEnv: 'GEMINI_API_KEY',
@@ -117,7 +122,7 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
     useFlag: 'HAWK_CODE_USE_GEMINI',
   },
   ollama: {
-    defaultModel: 'llama3.1:8b',
+    defaultModel: PROVIDER_DEFAULT_MODELS.ollama,
     defaultBaseUrl: 'http://localhost:11434/v1',
     modelEnv: 'OPENAI_MODEL',
     baseUrlEnv: 'OPENAI_BASE_URL',
@@ -126,15 +131,18 @@ export const PROVIDER_PROFILES: Record<ProviderProfile, ProfileDefinition> = {
   },
 }
 
-export const PROFILE_CHOICES = Object.keys(PROVIDER_PROFILES) as ProviderProfile[]
+export const PROFILE_CHOICES: ProviderProfile[] = [...PROVIDER_PROFILES]
 
 function toProfileEnv(env: NodeJS.ProcessEnv): ProfileEnv {
   const keys: Array<keyof ProfileEnv> = [
     'OPENAI_BASE_URL',
+    'CANOPYWAVE_BASE_URL',
     'OPENROUTER_BASE_URL',
     'OPENAI_MODEL',
+    'CANOPYWAVE_MODEL',
     'OPENROUTER_MODEL',
     'OPENAI_API_KEY',
+    'CANOPYWAVE_API_KEY',
     'OPENROUTER_API_KEY',
     'OPENAI_API_BASE',
     'GEMINI_API_KEY',
@@ -178,7 +186,7 @@ export function saveProviderProfileConfig(
   env: ProfileEnv,
 ): string {
   const config: ProviderConfig = loadProviderConfig() ?? {}
-  const model = env[PROVIDER_PROFILES[profile].modelEnv]
+  const model = env[PROFILE_DEFINITIONS[profile].modelEnv]
 
   if (model) config.active_model = model
 
@@ -197,6 +205,12 @@ export function saveProviderProfileConfig(
     case 'openai':
       config.openai_api_key = env.OPENAI_API_KEY
       config.openai_base_url = env.OPENAI_BASE_URL
+      config.openai_model = env.OPENAI_MODEL
+      break
+    case 'canopywave':
+      config.canopywave_api_key = env.CANOPYWAVE_API_KEY
+      config.canopywave_base_url = env.CANOPYWAVE_BASE_URL
+      config.canopywave_model = env.CANOPYWAVE_MODEL
       break
     case 'openrouter':
       config.openrouter_api_key = env.OPENROUTER_API_KEY
@@ -217,7 +231,7 @@ export function saveProviderProfileConfig(
 }
 
 export function isProviderProfile(value: string | undefined): value is ProviderProfile {
-  return !!value && value in PROVIDER_PROFILES
+  return !!value && PROFILE_CHOICES.includes(value as ProviderProfile)
 }
 
 export async function hasLocalOllama(): Promise<boolean> {
@@ -272,7 +286,7 @@ export function createProfileEnv(
   options: ProfileInitOptions = {},
   sourceEnv: NodeJS.ProcessEnv = process.env,
 ): ProfileEnv {
-  const definition = PROVIDER_PROFILES[profile]
+  const definition = PROFILE_DEFINITIONS[profile]
   const env: ProfileEnv = {}
   env[definition.modelEnv] =
     options.model ||
@@ -308,7 +322,7 @@ export function buildLaunchEnv(
   persisted: ProfileFile | null,
   sourceEnv: NodeJS.ProcessEnv = process.env,
 ): NodeJS.ProcessEnv {
-  const definition = PROVIDER_PROFILES[profile]
+  const definition = PROFILE_DEFINITIONS[profile]
   const persistedEnv = persisted?.env ?? {}
   const env: NodeJS.ProcessEnv = {
     ...sourceEnv,
@@ -382,5 +396,6 @@ export function profileKeyLabel(profile: ProviderProfile): string {
   if (profile === 'anthropic') return 'ANTHROPIC_API_KEY'
   if (profile === 'grok') return 'GROK_API_KEY (or XAI_API_KEY)'
   if (profile === 'gemini') return 'GEMINI_API_KEY'
+  if (profile === 'canopywave') return 'CANOPYWAVE_API_KEY'
   return 'OPENAI_API_KEY'
 }

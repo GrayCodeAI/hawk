@@ -8,6 +8,7 @@ import {
 export type APIProvider =
   | 'anthropic'
   | 'openai'
+  | 'canopywave'
   | 'openrouter'
   | 'grok'
   | 'gemini'

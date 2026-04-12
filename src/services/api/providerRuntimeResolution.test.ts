@@ -9,6 +9,9 @@ const ENV_KEYS = [
   'OPENAI_API_KEY',
   'OPENAI_MODEL',
   'OPENAI_BASE_URL',
+  'CANOPYWAVE_API_KEY',
+  'CANOPYWAVE_MODEL',
+  'CANOPYWAVE_BASE_URL',
   'OPENROUTER_API_KEY',
   'OPENROUTER_MODEL',
   'OPENROUTER_BASE_URL',
@@ -63,4 +66,23 @@ test('Gemini selected profile resolves Gemini runtime mode and key', () => {
   expect(runtime.mode).toBe('gemini')
   expect(runtime.apiKey).toBe('gem-key')
   expect(runtime.request.resolvedModel).toBe('gemini-2.5-pro')
+})
+
+test('CanopyWave selected profile mirrors to OpenAI-compatible runtime', () => {
+  const config: ProviderConfig = {
+    active_provider: 'canopywave',
+    canopywave_api_key: 'cw-key',
+    canopywave_model: 'zai/glm-4.6',
+    canopywave_base_url: 'https://inference.canopywave.io/v1',
+  }
+
+  const env: NodeJS.ProcessEnv = {}
+  applyProviderConfigToEnv(env, config)
+  const runtime = resolveOpenAICompatibleRuntime({ env })
+
+  expect(env.CANOPYWAVE_API_KEY).toBe('cw-key')
+  expect(runtime.mode).toBe('openai')
+  expect(runtime.apiKey).toBe('cw-key')
+  expect(runtime.request.baseUrl).toBe('https://inference.canopywave.io/v1')
+  expect(runtime.request.resolvedModel).toBe('zai/glm-4.6')
 })

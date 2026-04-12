@@ -1,10 +1,3 @@
-import {
-  DEFAULT_ANTHROPIC_OPENAI_BASE_URL,
-  DEFAULT_GEMINI_OPENAI_BASE_URL,
-  DEFAULT_GROK_OPENAI_BASE_URL,
-  DEFAULT_OPENAI_BASE_URL,
-  DEFAULT_OPENROUTER_OPENAI_BASE_URL,
-} from '@hawk/eyrie'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -12,14 +5,13 @@ import {
   getPreferredProviderModel,
   getProviderDefaultModel,
 } from './model/configs.js'
+import {
+  PROVIDER_DEFAULT_BASE_URLS,
+  PROVIDER_PRIORITY,
+  type ProviderProfile,
+} from './providerRegistry.js'
 
-export type ProviderProfile =
-  | 'anthropic'
-  | 'openai'
-  | 'openrouter'
-  | 'grok'
-  | 'gemini'
-  | 'ollama'
+export type { ProviderProfile } from './providerRegistry.js'
 
 export type ProviderConfig = {
   active_provider?: ProviderProfile
@@ -27,10 +19,12 @@ export type ProviderConfig = {
   grok_api_key?: string
   xai_api_key?: string
   openai_api_key?: string
+  canopywave_api_key?: string
   openrouter_api_key?: string
   gemini_api_key?: string
   ollama_base_url?: string
   anthropic_base_url?: string
+  canopywave_base_url?: string
   grok_base_url?: string
   xai_base_url?: string
   openai_base_url?: string
@@ -38,6 +32,7 @@ export type ProviderConfig = {
   gemini_base_url?: string
   anthropic_model?: string
   openai_model?: string
+  canopywave_model?: string
   grok_model?: string
   xai_model?: string
   openrouter_model?: string
@@ -47,15 +42,6 @@ export type ProviderConfig = {
   exploration_model?: string
   anthropic_version?: string
 }
-
-const PROVIDER_PRIORITY: ProviderProfile[] = [
-  'anthropic',
-  'openai',
-  'openrouter',
-  'grok',
-  'gemini',
-  'ollama',
-]
 
 function asNonEmptyString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
@@ -101,6 +87,8 @@ export function isProviderConfigured(config: ProviderConfig, provider: ProviderP
       return !!asNonEmptyString(config.anthropic_api_key)
     case 'openai':
       return !!asNonEmptyString(config.openai_api_key)
+    case 'canopywave':
+      return !!asNonEmptyString(config.canopywave_api_key)
     case 'openrouter':
       return !!asNonEmptyString(config.openrouter_api_key)
     case 'grok':
@@ -127,6 +115,7 @@ export function defaultProviderFromConfig(config: ProviderConfig | null): Provid
 function hasProviderScopedModel(config: ProviderConfig): boolean {
   return !!(
     asNonEmptyString(config.anthropic_model) ||
+    asNonEmptyString(config.canopywave_model) ||
     asNonEmptyString(config.openai_model) ||
     asNonEmptyString(config.openrouter_model) ||
     asNonEmptyString(config.grok_model) ||
@@ -145,6 +134,8 @@ export function getProviderActiveModel(
       ? asNonEmptyString(config.anthropic_model)
       : provider === 'openai'
         ? asNonEmptyString(config.openai_model)
+      : provider === 'canopywave'
+        ? asNonEmptyString(config.canopywave_model)
       : provider === 'openrouter'
         ? asNonEmptyString(config.openrouter_model)
       : provider === 'grok'
@@ -189,14 +180,33 @@ export function applyProviderConfigToEnv(
     case 'openai':
       setIfMissing(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key))
       setIfMissing(env, 'OPENAI_MODEL', activeModel ?? getProviderDefaultModel('openai'))
-      setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? DEFAULT_OPENAI_BASE_URL)
+      setIfMissing(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? PROVIDER_DEFAULT_BASE_URLS.openai)
+      return provider
+    case 'canopywave':
+      {
+        const canopywaveApiKey = asNonEmptyString(config.canopywave_api_key)
+        const canopywaveBaseUrl =
+          asNonEmptyString(config.canopywave_base_url) ??
+          PROVIDER_DEFAULT_BASE_URLS.canopywave
+        const canopywaveModel =
+          activeModel ?? getProviderDefaultModel('canopywave')
+
+        setIfMissing(env, 'CANOPYWAVE_API_KEY', canopywaveApiKey)
+        setIfMissing(env, 'CANOPYWAVE_MODEL', canopywaveModel)
+        setIfMissing(env, 'CANOPYWAVE_BASE_URL', canopywaveBaseUrl)
+
+        // OpenAI-compatible shim compatibility.
+        setIfMissing(env, 'OPENAI_API_KEY', canopywaveApiKey)
+        setIfMissing(env, 'OPENAI_MODEL', canopywaveModel)
+        setIfMissing(env, 'OPENAI_BASE_URL', canopywaveBaseUrl)
+      }
       return provider
     case 'openrouter':
       {
         const openrouterApiKey = asNonEmptyString(config.openrouter_api_key)
         const openrouterBaseUrl =
           asNonEmptyString(config.openrouter_base_url) ??
-          DEFAULT_OPENROUTER_OPENAI_BASE_URL
+          PROVIDER_DEFAULT_BASE_URLS.openrouter
         const openrouterModel =
           activeModel ?? getProviderDefaultModel('openrouter')
 
@@ -218,7 +228,7 @@ export function applyProviderConfigToEnv(
         const grokBaseUrl =
           asNonEmptyString(config.grok_base_url) ??
           asNonEmptyString(config.xai_base_url) ??
-          DEFAULT_GROK_OPENAI_BASE_URL
+          PROVIDER_DEFAULT_BASE_URLS.grok
         const grokModel = activeModel ?? getProviderDefaultModel('grok')
 
         setIfMissing(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key))
@@ -237,7 +247,7 @@ export function applyProviderConfigToEnv(
         const geminiApiKey = asNonEmptyString(config.gemini_api_key)
         const geminiBaseUrl =
           asNonEmptyString(config.gemini_base_url) ??
-          DEFAULT_GEMINI_OPENAI_BASE_URL
+          PROVIDER_DEFAULT_BASE_URLS.gemini
         const geminiModel =
           activeModel ?? getProviderDefaultModel('gemini')
 

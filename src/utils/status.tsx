@@ -242,6 +242,7 @@ export function buildAPIProviderProperties(): Property[] {
   if (apiProvider !== 'anthropic') {
     const providerLabel = {
       openai: 'OpenAI',
+      canopywave: 'CanopyWave',
       openrouter: 'OpenRouter',
       grok: 'xAI Grok',
       gemini: 'Google Gemini',

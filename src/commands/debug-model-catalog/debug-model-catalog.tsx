@@ -12,6 +12,8 @@ export async function call(
     `cache_path: ${snapshot.cachePath}`,
     `anthropic: ${snapshot.providerCounts.anthropic}`,
     `openai: ${snapshot.providerCounts.openai}`,
+    `canopywave: ${snapshot.providerCounts.canopywave}`,
+    `openrouter: ${snapshot.providerCounts.openrouter}`,
     `grok: ${snapshot.providerCounts.grok}`,
     `gemini: ${snapshot.providerCounts.gemini}`,
     `ollama: ${snapshot.providerCounts.ollama}`,
