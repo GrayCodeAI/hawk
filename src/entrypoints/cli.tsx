@@ -113,7 +113,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  applyProviderConfigToEnv()
+  applyProviderConfigToEnv(process.env, undefined, {
+    overwrite: true,
+  })
   validateProviderEnvOrExit()
 
   // For all other paths, load the startup profiler

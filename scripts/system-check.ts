@@ -25,7 +25,7 @@ function applyEnvCompat(env: NodeJS.ProcessEnv = process.env): void {
 }
 
 applyEnvCompat()
-applyProviderConfigToEnv()
+applyProviderConfigToEnv(process.env, undefined, { overwrite: true })
 
 type CheckResult = {
   ok: boolean
