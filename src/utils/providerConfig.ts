@@ -68,6 +68,37 @@ function setEnvValue(
   env[key] = value
 }
 
+function clearProviderRuntimeEnv(env: NodeJS.ProcessEnv): void {
+  const keys = [
+    'ANTHROPIC_API_KEY',
+    'ANTHROPIC_MODEL',
+    'ANTHROPIC_BASE_URL',
+    'ANTHROPIC_VERSION',
+    'OPENAI_API_KEY',
+    'OPENAI_MODEL',
+    'OPENAI_BASE_URL',
+    'OPENROUTER_API_KEY',
+    'OPENROUTER_MODEL',
+    'OPENROUTER_BASE_URL',
+    'CANOPYWAVE_API_KEY',
+    'CANOPYWAVE_MODEL',
+    'CANOPYWAVE_BASE_URL',
+    'GROK_API_KEY',
+    'GROK_MODEL',
+    'GROK_BASE_URL',
+    'XAI_API_KEY',
+    'XAI_MODEL',
+    'XAI_BASE_URL',
+    'GEMINI_API_KEY',
+    'GEMINI_MODEL',
+    'GEMINI_BASE_URL',
+    'OLLAMA_BASE_URL',
+  ] as const
+  for (const key of keys) {
+    delete env[key]
+  }
+}
+
 export function getProviderConfigPath(): string {
   return join(getHawkConfigHomeDir(), 'provider.json')
 }
@@ -175,6 +206,9 @@ export function applyProviderConfigToEnv(
   const provider = defaultProviderFromConfig(config)
   if (!provider) return null
   const overwrite = options?.overwrite === true
+  if (overwrite) {
+    clearProviderRuntimeEnv(env)
+  }
 
   const activeModel = getProviderActiveModel(config, provider)
   const explorationModel = asNonEmptyString(config.exploration_model)
