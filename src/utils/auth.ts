@@ -52,6 +52,7 @@ import {
   getHawkConfigHomeDir,
   isBareMode,
   isEnvTruthy,
+  isProviderApiModeEnabled,
   isRunningOnHomespace,
 } from './envUtils.js'
 import { errorMessage } from './errors.js'
@@ -81,6 +82,14 @@ import { clearToolSchemaCache } from './toolSchemaCache.js'
 const DEFAULT_API_KEY_HELPER_TTL = 5 * 60 * 1000
 
 /**
+ * Provider-only fork: disable GrayCode first-party auth (OAuth + GrayCode API key).
+ * Keep third-party provider auth paths (Anthropic/OpenAI/OpenRouter/Gemini/Grok/Ollama).
+ */
+function isGrayCodeAuthDisabled(): boolean {
+  return true
+}
+
+/**
  * CCR and Hawk Desktop spawn the CLI with OAuth and should never fall back
  * to the user's ~/.hawk/settings.json API-key config (apiKeyHelper,
  * env.GRAYCODE_API_KEY, env.GRAYCODE_AUTH_TOKEN). Those settings exist for
@@ -98,6 +107,8 @@ function isManagedOAuthContext(): boolean {
 /** Whether we are supporting direct 1P auth. */
 // this code is closely related to getAuthTokenSource
 export function isGrayCodeAuthEnabled(): boolean {
+  if (isGrayCodeAuthDisabled()) return false
+
   // --bare: API-key-only, never OAuth.
   if (isBareMode()) return false
 
@@ -112,13 +123,7 @@ export function isGrayCodeAuthEnabled(): boolean {
     return !!process.env.HAWK_CODE_OAUTH_TOKEN
   }
 
-  const is3P =
-    !!(process.env.OPENAI_API_KEY ||
-    process.env.OPENROUTER_API_KEY ||
-    process.env.GROK_API_KEY ||
-    process.env.XAI_API_KEY ||
-    process.env.GEMINI_API_KEY ||
-    process.env.OLLAMA_BASE_URL)
+  const is3P = isProviderApiModeEnabled()
 
   // Check if user has configured an external API key source
   // This allows externally-provided API keys to work (without requiring proxy configuration)
@@ -154,6 +159,10 @@ export function isGrayCodeAuthEnabled(): boolean {
 /** Where the auth token is being sourced from, if any. */
 // this code is closely related to isGrayCodeAuthEnabled
 export function getAuthTokenSource() {
+  if (isGrayCodeAuthDisabled()) {
+    return { source: 'none' as const, hasToken: false }
+  }
+
   // --bare: API-key-only. apiKeyHelper (from --settings) is the only
   // bearer-token-shaped source allowed. OAuth env vars, FD tokens, and
   // keychain are ignored.
@@ -706,6 +715,10 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
   success: boolean
   warning?: string
 } {
+  if (isGrayCodeAuthDisabled()) {
+    return { success: true }
+  }
+
   if (!shouldUseHawkAIAuth(tokens.scopes)) {
     logEvent('tengu_oauth_tokens_not_hawk_ai', {})
     return { success: true }
@@ -764,6 +777,8 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
 }
 
 export const getHawkAIOAuthTokens = memoize((): OAuthTokens | null => {
+  if (isGrayCodeAuthDisabled()) return null
+
   // --bare: API-key-only. No OAuth env tokens, no keychain, no credentials file.
   if (isBareMode()) return null
 

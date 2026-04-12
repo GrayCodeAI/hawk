@@ -158,9 +158,9 @@ export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Use /config'
 export const INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL =
   'Invalid API key · Fix external API key'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH =
-  'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Unset the environment variable to use your subscription instead'
+  'Your configured API key belongs to a disabled organization · Unset or replace the key to continue'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY =
-  'Your GRAYCODE_API_KEY (legacy GRAYCODE_API_KEY) belongs to a disabled organization · Update or unset the environment variable'
+  'Your configured API key belongs to a disabled organization · Update or unset the environment variable'
 export const TOKEN_REVOKED_ERROR_MESSAGE = 'OAuth token revoked · Use /config'
 export const CCR_AUTH_ERROR_MESSAGE =
   'Authentication error · This may be a temporary network issue, please try again'

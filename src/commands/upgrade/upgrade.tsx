@@ -5,7 +5,6 @@ import type { LocalJSXCommandOnDone } from '../../types/command.js';
 import { getHawkAIOAuthTokens, isHawkAISubscriber } from '../../utils/auth.js';
 import { openBrowser } from '../../utils/browser.js';
 import { logError } from '../../utils/log.js';
-import { Login } from '../login/login.js';
 export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXCommandContext): Promise<React.ReactNode | null> {
   try {
     // Check if user is already on the highest Max plan (20x)
@@ -25,10 +24,11 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
     }
     const url = 'https://hawkai/upgrade/max';
     await openBrowser(url);
-    return <Login startingMessage={'Starting account authentication following /upgrade. Exit with Ctrl-C to use existing account.'} onDone={success => {
-      context.onChangeAPIKey();
-      onDone(success ? 'Authentication successful' : 'Authentication interrupted');
-    }} />;
+    context.onChangeAPIKey();
+    onDone(
+      'Opened upgrade page in browser. This build does not support Hawk account login; configure provider API keys via eyrie.',
+    );
+    return null;
   } catch (error) {
     logError(error as Error);
     setTimeout(onDone, 0, 'Failed to open browser. Please visit https://hawkai/upgrade/max to upgrade.');

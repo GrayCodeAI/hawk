@@ -50,11 +50,13 @@ function buildFetch(
  *   OLLAMA_BASE_URL                → OpenAI shim (local)
  */
 export async function getLLMClient({
+  apiKey,
   maxRetries,
   model,
   fetchOverride,
   source,
 }: {
+  apiKey?: string
   maxRetries: number
   model?: string
   fetchOverride?: typeof globalThis.fetch
@@ -92,6 +94,7 @@ export async function getLLMClient({
   logForDebugging(`[API] Creating Anthropic client via eyrie`)
 
   return createAnthropicClient({
+    apiKey,
     defaultHeaders,
     maxRetries,
     timeout: parseInt(process.env.API_TIMEOUT_MS || String(600 * 1000), 10),

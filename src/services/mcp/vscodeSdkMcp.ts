@@ -92,11 +92,9 @@ export function setupVscodeSdkMcp(sdkClients: MCPServerConnection[]): void {
         'tengu_quiet_fern',
         false,
       ),
-      // In-band OAuth via hawk_authenticate (vs. extension-native PKCE).
-      tengu_vscode_cc_auth: getFeatureValue_CACHED_MAY_BE_STALE(
-        'tengu_vscode_cc_auth',
-        false,
-      ),
+      // In-band control-channel auth (hawk_authenticate) is removed in this
+      // provider-only build; force extension-native auth path.
+      tengu_vscode_cc_auth: false,
     }
     // Tri-state: 'enabled' | 'disabled' | 'opt-in'. Omit if unknown so VSCode
     // fails closed (treats absent as 'disabled').

@@ -223,7 +223,8 @@ export function gateChannelServer(
     return {
       action: 'skip',
       kind: 'auth',
-      reason: 'channels requires hawkai authentication (use /config)',
+      reason:
+        'channels requires first-party OAuth and is unavailable in provider-only mode',
     }
   }
 
