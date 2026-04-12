@@ -6,6 +6,7 @@ import {
   DEFAULT_OPENAI_BASE_URL,
   DEFAULT_OPENROUTER_OPENAI_BASE_URL,
   OPENAI_COMPATIBLE_RUNTIME_PROFILES,
+  OLLAMA_DEFAULT_MODEL,
 } from '@hawk/eyrie'
 
 export const PROVIDER_PROFILES = [
@@ -49,5 +50,5 @@ export const PROVIDER_DEFAULT_MODELS: Record<ProviderProfile, string> = {
   openrouter: OPENAI_COMPATIBLE_RUNTIME_PROFILES.openrouter.defaultModel,
   grok: OPENAI_COMPATIBLE_RUNTIME_PROFILES.grok.defaultModel,
   gemini: OPENAI_COMPATIBLE_RUNTIME_PROFILES.gemini.defaultModel,
-  ollama: 'llama3.1:8b',
+  ollama: OLLAMA_DEFAULT_MODEL,
 }
