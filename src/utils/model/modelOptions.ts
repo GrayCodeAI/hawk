@@ -87,14 +87,10 @@ function appendProviderCatalogOptions(options: ModelOption[]): void {
     if (options.some(existing => existing.value === entry.id)) {
       continue
     }
-    const desc = formatContextWindow(entry.context_window)
-    if (entry.id === 'openrouter/elephant-alpha') {
-      console.error(`[DEBUG] elephant-alpha: context_window=${entry.context_window}, desc="${desc}", bytes=${Buffer.from(desc).toString('hex')}`)
-    }
     options.push({
       value: entry.id,
       label: entry.id,
-      description: desc,
+      description: formatContextWindow(entry.context_window),
     })
   }
 }
