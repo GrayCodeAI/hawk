@@ -17,7 +17,18 @@ import { applyProviderEnv } from './providerConfig/providers/index.js'
 
 export type { ProviderProfile } from './providerRegistry.js'
 
+export {
+  getProviderApiKey,
+  getProviderBaseUrlKey,
+  getProviderModel,
+  getProviderModelKey,
+  PROVIDER_CONFIG_KEYS,
+  validateApiKey,
+  validateBaseUrl,
+} from './providerConfig/helpers.js'
+
 export type ProviderConfig = {
+  _version?: string
   active_provider?: ProviderProfile
   anthropic_api_key?: string
   grok_api_key?: string

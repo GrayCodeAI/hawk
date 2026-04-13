@@ -8,6 +8,7 @@ import {
   defaultProviderFromConfig,
   getProviderConfigPath,
   loadProviderConfig,
+  PROVIDER_CONFIG_KEYS,
   saveProviderConfig,
   type ProviderConfig,
 } from '../src/utils/providerConfig.js'
@@ -190,40 +191,37 @@ export function saveProviderProfileConfig(
 
   if (model) config.active_model = model
 
-  switch (profile) {
-    case 'anthropic':
-      config.anthropic_api_key = env.ANTHROPIC_API_KEY
-      config.anthropic_base_url = env.ANTHROPIC_BASE_URL
-      config.anthropic_version = env.ANTHROPIC_VERSION
-      break
-    case 'grok':
-      config.grok_api_key = env.GROK_API_KEY
-      config.xai_api_key = env.XAI_API_KEY
-      config.grok_base_url = env.GROK_BASE_URL
-      config.xai_base_url = env.XAI_BASE_URL
-      break
-    case 'openai':
-      config.openai_api_key = env.OPENAI_API_KEY
-      config.openai_base_url = env.OPENAI_BASE_URL
-      config.openai_model = env.OPENAI_MODEL
-      break
-    case 'canopywave':
-      config.canopywave_api_key = env.CANOPYWAVE_API_KEY
-      config.canopywave_base_url = env.CANOPYWAVE_BASE_URL
-      config.canopywave_model = env.CANOPYWAVE_MODEL
-      break
-    case 'openrouter':
-      config.openrouter_api_key = env.OPENROUTER_API_KEY
-      config.openrouter_base_url = env.OPENROUTER_BASE_URL
-      config.openrouter_model = env.OPENROUTER_MODEL
-      break
-    case 'gemini':
-      config.gemini_api_key = env.GEMINI_API_KEY
-      config.gemini_base_url = env.GEMINI_BASE_URL
-      break
-    case 'ollama':
-      config.ollama_base_url = env.OPENAI_BASE_URL?.replace(/\/v1\/?$/, '')
-      break
+  // Use PROVIDER_CONFIG_KEYS for data-driven config assignment
+  const keys = PROVIDER_CONFIG_KEYS[profile]
+  
+  // Set API keys
+  for (const apiKeyField of keys.apiKey) {
+    const envKey = apiKeyField.toUpperCase() as keyof ProfileEnv
+    if (env[envKey]) {
+      config[apiKeyField] = env[envKey]
+    }
+  }
+  
+  // Set base URL
+  const baseUrlEnvKey = keys.baseUrl.toUpperCase() as keyof ProfileEnv
+  if (profile === 'ollama') {
+    config[keys.baseUrl] = env.OPENAI_BASE_URL?.replace(/\/v1\/?$/, '')
+  } else if (env[baseUrlEnvKey]) {
+    config[keys.baseUrl] = env[baseUrlEnvKey]
+  }
+  
+  // Set model
+  for (const modelField of keys.model) {
+    const modelEnvKey = modelField.toUpperCase() as keyof ProfileEnv
+    if (env[modelEnvKey]) {
+      config[modelField] = env[modelEnvKey]
+      break // Use first available model
+    }
+  }
+  
+  // Special case: anthropic_version
+  if (profile === 'anthropic' && env.ANTHROPIC_VERSION) {
+    config.anthropic_version = env.ANTHROPIC_VERSION
   }
 
   saveProviderConfig(config)
