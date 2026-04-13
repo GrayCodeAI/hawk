@@ -68,7 +68,7 @@ export function ListItem({
       </Box>
       {description && (
         <Box paddingLeft={2}>
-          <Text color="inactive">{description}</Text>
+          <Text color="inactive" wrap="wrap">{description}</Text>
         </Box>
       )}
     </Box>
