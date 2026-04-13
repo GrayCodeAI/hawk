@@ -2,14 +2,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
-  getPreferredProviderModel,
-  getProviderDefaultModel,
-} from './model/configs.js'
-import {
-  PROVIDER_DEFAULT_BASE_URLS,
   PROVIDER_PRIORITY,
   type ProviderProfile,
 } from './providerRegistry.js'
+import { asNonEmptyString, setEnvValue } from './providerConfig/helpers.js'
+import { applyProviderEnv } from './providerConfig/providers/index.js'
 
 export type { ProviderProfile } from './providerRegistry.js'
 
@@ -43,29 +40,8 @@ export type ProviderConfig = {
   anthropic_version?: string
 }
 
-function asNonEmptyString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
-}
-
 function getHawkConfigHomeDir(): string {
   return (process.env.HAWK_CONFIG_DIR ?? join(homedir(), '.hawk')).normalize('NFC')
-}
-
-function normalizeOllamaOpenAIBaseUrl(baseUrl: string | undefined): string | undefined {
-  if (!baseUrl) return undefined
-  const trimmed = baseUrl.replace(/\/+$/, '')
-  return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`
-}
-
-function setEnvValue(
-  env: NodeJS.ProcessEnv,
-  key: string,
-  value: string | undefined,
-  overwrite: boolean,
-): void {
-  if (!value) return
-  if (!overwrite && env[key]) return
-  env[key] = value
 }
 
 function clearProviderRuntimeEnv(env: NodeJS.ProcessEnv): void {
@@ -214,100 +190,12 @@ export function applyProviderConfigToEnv(
   const explorationModel = asNonEmptyString(config.exploration_model)
   setEnvValue(env, 'GRAYCODE_SMALL_FAST_MODEL', explorationModel, overwrite)
 
-  switch (provider) {
-    case 'anthropic':
-      setEnvValue(env, 'ANTHROPIC_API_KEY', asNonEmptyString(config.anthropic_api_key), overwrite)
-      setEnvValue(env, 'ANTHROPIC_MODEL', activeModel ?? getPreferredProviderModel('anthropic', 'sonnet'), overwrite)
-      setEnvValue(env, 'ANTHROPIC_BASE_URL', asNonEmptyString(config.anthropic_base_url), overwrite)
-      setEnvValue(env, 'ANTHROPIC_VERSION', asNonEmptyString(config.anthropic_version), overwrite)
-      return provider
-    case 'openai':
-      setEnvValue(env, 'OPENAI_API_KEY', asNonEmptyString(config.openai_api_key), overwrite)
-      setEnvValue(env, 'OPENAI_MODEL', activeModel ?? getProviderDefaultModel('openai'), overwrite)
-      setEnvValue(env, 'OPENAI_BASE_URL', asNonEmptyString(config.openai_base_url) ?? PROVIDER_DEFAULT_BASE_URLS.openai, overwrite)
-      return provider
-    case 'canopywave':
-      {
-        const canopywaveApiKey = asNonEmptyString(config.canopywave_api_key)
-        const canopywaveBaseUrl =
-          asNonEmptyString(config.canopywave_base_url) ??
-          PROVIDER_DEFAULT_BASE_URLS.canopywave
-        const canopywaveModel =
-          activeModel ?? getProviderDefaultModel('canopywave')
+  applyProviderEnv(provider, {
+    env,
+    config,
+    activeModel,
+    overwrite,
+  })
 
-        setEnvValue(env, 'CANOPYWAVE_API_KEY', canopywaveApiKey, overwrite)
-        setEnvValue(env, 'CANOPYWAVE_MODEL', canopywaveModel, overwrite)
-        setEnvValue(env, 'CANOPYWAVE_BASE_URL', canopywaveBaseUrl, overwrite)
-
-        // OpenAI-compatible shim compatibility.
-        setEnvValue(env, 'OPENAI_API_KEY', canopywaveApiKey, overwrite)
-        setEnvValue(env, 'OPENAI_MODEL', canopywaveModel, overwrite)
-        setEnvValue(env, 'OPENAI_BASE_URL', canopywaveBaseUrl, overwrite)
-      }
-      return provider
-    case 'openrouter':
-      {
-        const openrouterApiKey = asNonEmptyString(config.openrouter_api_key)
-        const openrouterBaseUrl =
-          asNonEmptyString(config.openrouter_base_url) ??
-          PROVIDER_DEFAULT_BASE_URLS.openrouter
-        const openrouterModel =
-          activeModel ?? getProviderDefaultModel('openrouter')
-
-        setEnvValue(env, 'OPENROUTER_API_KEY', openrouterApiKey, overwrite)
-        setEnvValue(env, 'OPENROUTER_MODEL', openrouterModel, overwrite)
-        setEnvValue(env, 'OPENROUTER_BASE_URL', openrouterBaseUrl, overwrite)
-
-        // OpenAI-compatible shim compatibility.
-        setEnvValue(env, 'OPENAI_API_KEY', openrouterApiKey, overwrite)
-        setEnvValue(env, 'OPENAI_MODEL', openrouterModel, overwrite)
-        setEnvValue(env, 'OPENAI_BASE_URL', openrouterBaseUrl, overwrite)
-      }
-      return provider
-    case 'grok':
-      {
-        const grokApiKey =
-          asNonEmptyString(config.grok_api_key) ??
-          asNonEmptyString(config.xai_api_key)
-        const grokBaseUrl =
-          asNonEmptyString(config.grok_base_url) ??
-          asNonEmptyString(config.xai_base_url) ??
-          PROVIDER_DEFAULT_BASE_URLS.grok
-        const grokModel = activeModel ?? getProviderDefaultModel('grok')
-
-        setEnvValue(env, 'GROK_API_KEY', asNonEmptyString(config.grok_api_key), overwrite)
-        setEnvValue(env, 'XAI_API_KEY', asNonEmptyString(config.xai_api_key), overwrite)
-        setEnvValue(env, 'GROK_MODEL', grokModel, overwrite)
-        setEnvValue(env, 'GROK_BASE_URL', grokBaseUrl, overwrite)
-
-        // OpenAI-compatible shim compatibility.
-        setEnvValue(env, 'OPENAI_API_KEY', grokApiKey, overwrite)
-        setEnvValue(env, 'OPENAI_MODEL', grokModel, overwrite)
-        setEnvValue(env, 'OPENAI_BASE_URL', grokBaseUrl, overwrite)
-      }
-      return provider
-    case 'gemini':
-      {
-        const geminiApiKey = asNonEmptyString(config.gemini_api_key)
-        const geminiBaseUrl =
-          asNonEmptyString(config.gemini_base_url) ??
-          PROVIDER_DEFAULT_BASE_URLS.gemini
-        const geminiModel =
-          activeModel ?? getProviderDefaultModel('gemini')
-
-        setEnvValue(env, 'GEMINI_API_KEY', asNonEmptyString(config.gemini_api_key), overwrite)
-        setEnvValue(env, 'GEMINI_MODEL', geminiModel, overwrite)
-        setEnvValue(env, 'GEMINI_BASE_URL', geminiBaseUrl, overwrite)
-
-        // OpenAI-compatible shim compatibility.
-        setEnvValue(env, 'OPENAI_API_KEY', geminiApiKey, overwrite)
-        setEnvValue(env, 'OPENAI_MODEL', geminiModel, overwrite)
-        setEnvValue(env, 'OPENAI_BASE_URL', geminiBaseUrl, overwrite)
-      }
-      return provider
-    case 'ollama':
-      setEnvValue(env, 'OPENAI_MODEL', activeModel ?? 'llama3.1:8b', overwrite)
-      setEnvValue(env, 'OPENAI_BASE_URL', normalizeOllamaOpenAIBaseUrl(asNonEmptyString(config.ollama_base_url)) ?? 'http://localhost:11434/v1', overwrite)
-      return provider
-  }
+  return provider
 }
