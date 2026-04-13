@@ -28,7 +28,11 @@ import { Select } from '../CustomSelect/index.js';
 import { OutputStylePicker } from '../OutputStylePicker.js';
 import { LanguagePicker } from '../LanguagePicker.js';
 import { ProviderConfigDialog, providerLabel } from './ProviderConfigDialog.js';
-import { loadProviderConfig, defaultProviderFromConfig } from '../../utils/providerConfig.js';
+import {
+  loadProviderConfig,
+  defaultProviderFromConfig,
+  getProviderActiveModel,
+} from '../../utils/providerConfig.js';
 import { getExternalHawkMdIncludes, getHawkMdFiles, hasExternalHawkMdIncludes } from 'src/utils/hawkmd.js';
 import { KeyboardShortcutHint } from '../design-system/KeyboardShortcutHint.js';
 import { ConfigurableShortcutHint } from '../ConfigurableShortcutHint.js';
@@ -1598,9 +1602,17 @@ export function Config({
           </Text>
         </> : showSubmenu === 'ProviderConfig' ? <>
           <ProviderConfigDialog onComplete={summary => {
-        isDirty.current = true;
-        setChanges(prev_28 => ({
+        const cfg = loadProviderConfig();
+        const activeProvider = defaultProviderFromConfig(cfg);
+        const selectedModel = cfg && activeProvider ? getProviderActiveModel(cfg, activeProvider) : null;
+        setAppState(prev_28 => ({
           ...prev_28,
+          mainLoopModel: selectedModel ?? null,
+          mainLoopModelForSession: null
+        }));
+        isDirty.current = true;
+        setChanges(prev_29 => ({
+          ...prev_29,
           providerConfig: summary
         }));
         setShowSubmenu(null);
