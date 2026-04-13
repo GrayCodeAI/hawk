@@ -54,7 +54,7 @@ export function ListItem({
   })
 
   return (
-    <Box ref={cursorRef} flexDirection="column">
+    <Box ref={cursorRef} flexDirection="column" flexShrink={0}>
       <Box flexDirection="row" gap={1}>
         {renderIndicator()}
         {styled ? (
@@ -68,7 +68,9 @@ export function ListItem({
       </Box>
       {description && (
         <Box paddingLeft={2} key={description} flexShrink={0}>
-          <Text color="inactive" wrap="wrap">{description}</Text>
+          <Text color="inactive" wrap="wrap">
+            {description}
+          </Text>
         </Box>
       )}
     </Box>
