@@ -11,11 +11,11 @@ import {
 
 export const PROVIDER_PROFILES = [
   'anthropic',
-  'canopywave',
   'openai',
-  'openrouter',
-  'grok',
   'gemini',
+  'grok',
+  'openrouter',
+  'canopywave',
   'ollama',
 ] as const
 
