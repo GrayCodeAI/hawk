@@ -3,9 +3,16 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
   PROVIDER_PRIORITY,
+  PROVIDER_PROFILES,
   type ProviderProfile,
 } from './providerRegistry.js'
-import { asNonEmptyString, setEnvValue } from './providerConfig/helpers.js'
+import {
+  asNonEmptyString,
+  getProviderModel,
+  getProviderModelKey,
+  PROVIDER_CONFIG_KEYS,
+  setEnvValue,
+} from './providerConfig/helpers.js'
 import { applyProviderEnv } from './providerConfig/providers/index.js'
 
 export type { ProviderProfile } from './providerRegistry.js'
@@ -82,9 +89,16 @@ export function getProviderConfigPath(): string {
 export function loadProviderConfig(path = getProviderConfigPath()): ProviderConfig | null {
   if (!existsSync(path)) return null
   try {
-    const parsed = JSON.parse(readFileSync(path, 'utf8')) as ProviderConfig
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
+    const content = readFileSync(path, 'utf8')
+    const parsed = JSON.parse(content) as ProviderConfig
+    if (!parsed || typeof parsed !== 'object') {
+      console.warn(`[providerConfig] Invalid config format at ${path}: expected object, got ${typeof parsed}`)
+      return null
+    }
+    return parsed
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn(`[providerConfig] Failed to load config from ${path}: ${message}`)
     return null
   }
 }
@@ -95,22 +109,15 @@ export function saveProviderConfig(config: ProviderConfig, path = getProviderCon
 }
 
 export function isProviderConfigured(config: ProviderConfig, provider: ProviderProfile): boolean {
-  switch (provider) {
-    case 'anthropic':
-      return !!asNonEmptyString(config.anthropic_api_key)
-    case 'openai':
-      return !!asNonEmptyString(config.openai_api_key)
-    case 'canopywave':
-      return !!asNonEmptyString(config.canopywave_api_key)
-    case 'openrouter':
-      return !!asNonEmptyString(config.openrouter_api_key)
-    case 'grok':
-      return !!(asNonEmptyString(config.grok_api_key) || asNonEmptyString(config.xai_api_key))
-    case 'gemini':
-      return !!asNonEmptyString(config.gemini_api_key)
-    case 'ollama':
-      return !!asNonEmptyString(config.ollama_base_url)
+  const keys = PROVIDER_CONFIG_KEYS[provider]
+  
+  // Ollama only needs base URL
+  if (provider === 'ollama') {
+    return !!asNonEmptyString(config[keys.baseUrl])
   }
+  
+  // Check if any API key is configured
+  return keys.apiKey.some(keyField => !!asNonEmptyString(config[keyField]))
 }
 
 export function defaultProviderFromConfig(config: ProviderConfig | null): ProviderProfile | null {
@@ -126,36 +133,14 @@ export function defaultProviderFromConfig(config: ProviderConfig | null): Provid
 }
 
 function hasProviderScopedModel(config: ProviderConfig): boolean {
-  return !!(
-    asNonEmptyString(config.anthropic_model) ||
-    asNonEmptyString(config.canopywave_model) ||
-    asNonEmptyString(config.openai_model) ||
-    asNonEmptyString(config.openrouter_model) ||
-    asNonEmptyString(config.grok_model) ||
-    asNonEmptyString(config.xai_model) ||
-    asNonEmptyString(config.gemini_model) ||
-    asNonEmptyString(config.ollama_model)
-  )
+  return PROVIDER_PROFILES.some(provider => !!getProviderModel(config, provider))
 }
 
 export function getProviderActiveModel(
   config: ProviderConfig,
   provider: ProviderProfile,
 ): string | undefined {
-  const providerSpecificModel =
-    provider === 'anthropic'
-      ? asNonEmptyString(config.anthropic_model)
-      : provider === 'openai'
-        ? asNonEmptyString(config.openai_model)
-      : provider === 'canopywave'
-        ? asNonEmptyString(config.canopywave_model)
-      : provider === 'openrouter'
-        ? asNonEmptyString(config.openrouter_model)
-      : provider === 'grok'
-        ? asNonEmptyString(config.grok_model) ?? asNonEmptyString(config.xai_model)
-      : provider === 'gemini'
-        ? asNonEmptyString(config.gemini_model)
-        : asNonEmptyString(config.ollama_model)
+  const providerSpecificModel = getProviderModel(config, provider)
 
   if (providerSpecificModel) return providerSpecificModel
   if (hasProviderScopedModel(config)) return undefined
@@ -173,6 +158,7 @@ export function applyProviderConfigToEnv(
   config: ProviderConfig | null = loadProviderConfig(),
   options?: {
     overwrite?: boolean
+    skipValidation?: boolean
   },
 ): ProviderProfile | null {
   if (!config) {
@@ -181,7 +167,10 @@ export function applyProviderConfigToEnv(
 
   const provider = defaultProviderFromConfig(config)
   if (!provider) return null
+  
   const overwrite = options?.overwrite === true
+  const skipValidation = options?.skipValidation === true
+  
   if (overwrite) {
     clearProviderRuntimeEnv(env)
   }
