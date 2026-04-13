@@ -278,16 +278,18 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
       <Text>Choose provider API configuration:</Text>
       <Select
         options={PROVIDER_PRIORITY.map(value => ({
-          label: providerLabel(value),
+          label:
+            value === provider
+              ? <Text color="success">{providerLabel(value)} ✓</Text>
+              : providerLabel(value),
           value,
-          description: value === 'ollama' ? 'local server, no API key' : undefined,
         }))}
-        inlineDescriptions
-        defaultValue={provider}
+        defaultValue={undefined}
         defaultFocusValue={provider}
         onChange={selectProvider}
         onCancel={onCancel}
       />
+      <Text dimColor>Ollama uses a local server and does not require an API key.</Text>
     </Box>
   }
 
