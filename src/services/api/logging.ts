@@ -146,12 +146,6 @@ function getGrayCodeEnvMetadata() {
             .GRAYCODE_BASE_URL as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         }
       : {}),
-    ...(process.env.GRAYCODE_MODEL
-      ? {
-          envModel: process.env
-            .GRAYCODE_MODEL as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-        }
-      : {}),
     ...(process.env.GRAYCODE_SMALL_FAST_MODEL
       ? {
           envSmallFastModel: process.env

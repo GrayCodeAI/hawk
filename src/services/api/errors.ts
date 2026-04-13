@@ -753,13 +753,12 @@ export function getAssistantMessageFromError(
   // Ants using new or unknown org IDs that haven't been gated in.
   if (
     process.env.USER_TYPE === 'ant' &&
-    !process.env.GRAYCODE_MODEL &&
     error instanceof Error &&
     error.message.toLowerCase().includes('invalid model name')
   ) {
     // Get organization ID from config - only use OAuth account data when actively using OAuth
     const orgId = getOauthAccountInfo()?.organizationUuid
-    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`hawk\` with \`GRAYCODE_MODEL=${getDefaultMainLoopModelSetting()}\` (legacy: \`GRAYCODE_MODEL=${getDefaultMainLoopModelSetting()}\`)`
+    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`/model ${getDefaultMainLoopModelSetting()}\``
     const msg = orgId
       ? `${baseMsg} or share your orgId (${orgId}) in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`
       : `${baseMsg} or reach out in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`

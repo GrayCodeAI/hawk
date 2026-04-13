@@ -32,7 +32,11 @@ import {
   getPreferredProviderModel,
   getProviderDefaultModel,
 } from './configs.js'
-import { resolveProviderModelEnvOverride } from '@hawk/eyrie'
+import {
+  defaultProviderFromConfig,
+  getProviderActiveModel,
+  loadProviderConfig,
+} from '../providerConfig.js'
 
 export type ModelShortName = string
 export type ModelName = string
@@ -77,16 +81,17 @@ export function isNonCustomOpusModel(model: ModelName): boolean {
 }
 
 /**
- * Helper to get the model from /model (including via /config), the --model flag, environment variable,
- * or the saved settings. The returned value can be a model alias if that's what the user specified.
+ * Helper to get the model from /model (including via /config), the --model flag,
+ * saved settings, or provider config. The returned value can be a model alias
+ * if that's what the user specified.
  * Undefined if the user didn't configure anything, in which case we fall back to
  * the default (null).
  *
  * Priority order within this function:
  * 1. Model override during session (from /model command) - highest priority
  * 2. Model override at startup (from --model flag)
- * 3. GRAYCODE_MODEL environment variable
- * 4. Settings (from user's saved settings)
+ * 3. Settings (from user's saved settings via /model)
+ * 4. Provider config active model (from /config)
  */
 export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
   let specifiedModel: ModelSetting | undefined
@@ -95,11 +100,16 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
   if (modelOverride !== undefined) {
     specifiedModel = modelOverride
   } else {
+    const providerConfig = loadProviderConfig()
+    const provider = defaultProviderFromConfig(providerConfig)
+    const providerModel =
+      providerConfig && provider
+        ? getProviderActiveModel(providerConfig, provider)
+        : undefined
     const settings = getSettings_DEPRECATED() || {}
     specifiedModel =
-      process.env.GRAYCODE_MODEL ||
-      resolveProviderModelEnvOverride(getAPIProvider()) ||
       settings.model ||
+      providerModel ||
       undefined
   }
 
@@ -117,8 +127,8 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
  * Model Selection Priority Order:
  * 1. Model override during session (from /model command) - highest priority
  * 2. Model override at startup (from --model flag)
- * 3. GRAYCODE_MODEL environment variable
- * 4. Settings (from user's saved settings)
+ * 3. Settings (from user's saved settings via /model)
+ * 4. Provider config active model (from /config)
  * 5. Built-in default
  *
  * @returns The resolved model name to use

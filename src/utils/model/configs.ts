@@ -7,7 +7,7 @@ export type ModelConfig = Record<APIProvider, ModelName>
 // ---------------------------------------------------------------------------
 // OpenAI-compatible model mappings
 // Maps Hawk model tiers to sensible defaults for popular providers.
-// Override with OPENAI_MODEL, GRAYCODE_MODEL, or settings.model
+// Override with provider config (/config) or settings.model (/model)
 // ---------------------------------------------------------------------------
 export const OPENAI_MODEL_DEFAULTS = {
   opus: 'gpt-4o', // best reasoning

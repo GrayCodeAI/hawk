@@ -1993,10 +1993,10 @@ async function run(): Promise<CommanderCommand> {
     // fresh pods. Awaiting init here populates the in-memory payload map that
     // _CACHED_MAY_BE_STALE now checks first. Gated so the warm path stays
     // non-blocking:
-    //  - explicit model via --model or GRAYCODE_MODEL (both feed alias resolution)
+    //  - explicit model via --model (feeds alias resolution)
     //  - no env override (which short-circuits _CACHED_MAY_BE_STALE before disk)
     //  - flag absent from disk (== null also catches pre-#22279 poisoned null)
-    const explicitModel = options.model || process.env.GRAYCODE_MODEL;
+    const explicitModel = options.model;
     if ("external" === 'ant' && explicitModel && explicitModel !== 'default' && !hasGrowthBookEnvOverride('tengu_ant_model_override') && getGlobalConfig().cachedGrowthBookFeatures?.['tengu_ant_model_override'] == null) {
       await initializeGrowthBook();
     }
@@ -2838,7 +2838,6 @@ async function run(): Promise<CommanderCommand> {
     // Log model config at startup
     logEvent('tengu_startup_manual_model_config', {
       cli_flag: options.model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      env_var: process.env.GRAYCODE_MODEL as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       settings_file: (getInitialSettings() || {}).model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       subscriptionType: getSubscriptionType() as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       agent: agentSetting as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
