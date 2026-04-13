@@ -67,7 +67,7 @@ export function ListItem({
         {isSelected && !disabled && <Text color="success">{figures.tick}</Text>}
       </Box>
       {description && (
-        <Box paddingLeft={2}>
+        <Box paddingLeft={2} key={description}>
           <Text color="inactive" wrap="wrap">{description}</Text>
         </Box>
       )}
