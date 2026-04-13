@@ -282,6 +282,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
           value,
           description: value === 'ollama' ? 'local server, no API key' : undefined,
         }))}
+        inlineDescriptions
         defaultValue={provider}
         defaultFocusValue={provider}
         onChange={selectProvider}
