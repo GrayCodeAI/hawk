@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import figures from 'figures'
 import { Box, Text } from '../../ink.js'
+import { setMainLoopModelOverride } from '../../bootstrap/state.js'
 import { useKeybinding } from '../../keybindings/useKeybinding.js'
 import {
   getProviderConfigPath,
@@ -221,6 +222,7 @@ export function ProviderConfigDialog({ onComplete, onCancel }: Props): React.Rea
     )
     saveProviderConfig(nextConfig)
     applyProviderConfigToEnv(process.env, nextConfig, { overwrite: true })
+    setMainLoopModelOverride(nextConfig.active_model ?? null)
     onComplete(
       `Configured ${providerLabel(provider)} provider in ${getProviderConfigPath()}`,
     )
