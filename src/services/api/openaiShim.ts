@@ -18,6 +18,7 @@
 import {
   resolveOpenAICompatibleRuntime,
 } from '@hawk/eyrie'
+import { buildRuntimeRequest } from './openaiShim/providers/index.js'
 
 // ---------------------------------------------------------------------------
 // Types — minimal subset of GrayCode SDK types we need to produce
@@ -618,28 +619,15 @@ class OpenAIShimMessages {
       }
     }
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...this.defaultHeaders,
-      ...(options?.headers ?? {}),
-    }
+    const runtimeRequest = buildRuntimeRequest(
+      runtime,
+      this.defaultHeaders,
+      options?.headers,
+    )
 
-    const apiKey = runtime.apiKey
-    if (apiKey) {
-      headers.Authorization = `Bearer ${apiKey}`
-      if (runtime.mode === 'anthropic') {
-        headers['x-api-key'] = apiKey
-      }
-    }
-
-    if (runtime.mode === 'anthropic') {
-      headers['anthropic-version'] =
-        process.env.ANTHROPIC_VERSION?.trim() || '2023-06-01'
-    }
-
-    const response = await fetch(`${request.baseUrl}/chat/completions`, {
+    const response = await fetch(runtimeRequest.url, {
       method: 'POST',
-      headers,
+      headers: runtimeRequest.headers,
       body: JSON.stringify(body),
       signal: options?.signal,
     })
