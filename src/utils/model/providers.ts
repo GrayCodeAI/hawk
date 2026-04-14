@@ -13,6 +13,7 @@ export type APIProvider =
   | 'grok'
   | 'gemini'
   | 'ollama'
+  | 'opencodego'
 
 export function getAPIProvider(): APIProvider {
   const configuredProvider = defaultProviderFromConfig(loadProviderConfig())
