@@ -66,16 +66,30 @@ export function PromptInputSessionMetaLine({
     getTotalOutputTokens() +
     getTotalCacheReadInputTokens() +
     getTotalCacheCreationInputTokens()
+  const hasAssistantMessages = messages.some(m => m.type === 'assistant')
   const hasAPIUsage = apiTokenTotal > 0
-  const tokenLabel = hasAPIUsage
-    ? `${Math.max(0, Math.round(apiTokenTotal)).toLocaleString()} tokens`
-    : '0 tokens'
+  const roundedTokenTotal = Math.max(0, Math.round(apiTokenTotal))
+  const tokenValueLabel =
+    hasAPIUsage && roundedTokenTotal >= 10_000
+      ? `${(roundedTokenTotal / 1_000).toFixed(1)}k`
+      : roundedTokenTotal.toLocaleString()
+  const tokenLabel = `${tokenValueLabel} tokens`
+  const tokenStatusColor = hasAPIUsage
+    ? 'success'
+    : hasAssistantMessages
+      ? 'warning'
+      : 'inactive'
   const modeLabel = isDefaultMode(permissionMode)
     ? 'default'
     : permissionModeTitle(permissionMode).toLowerCase()
   const modelLabel = modelDisplayString(mainLoopModel)
   const totalCost = getTotalCost()
-  const costLabel = `$${totalCost.toFixed(2)}`
+  const costLabel =
+    totalCost === 0
+      ? '$0.00'
+      : totalCost < 0.01
+        ? `$${totalCost.toFixed(4)}`
+        : `$${totalCost.toFixed(2)}`
   const version = `v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}`
 
   return (
@@ -86,7 +100,7 @@ export function PromptInputSessionMetaLine({
         </Text>
       </Box>
       <Text dimColor>
-        {tokenLabel} · {costLabel} · {version}
+        <Text color={tokenStatusColor}>●</Text> {tokenLabel} · {costLabel} · {version}
       </Text>
     </Box>
   )
