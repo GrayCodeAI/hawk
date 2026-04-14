@@ -52,12 +52,16 @@ export function getTokenCountFromUsage(usage: Usage): number {
   )
 }
 
+function hasNonZeroUsage(usage: Usage): boolean {
+  return getTokenCountFromUsage(usage) > 0
+}
+
 export function tokenCountFromLastAPIResponse(messages: Message[]): number {
   let i = messages.length - 1
   while (i >= 0) {
     const message = messages[i]
     const usage = message ? getTokenUsage(message) : undefined
-    if (usage) {
+    if (usage && hasNonZeroUsage(usage)) {
       return getTokenCountFromUsage(usage)
     }
     i--
@@ -144,7 +148,7 @@ export function getCurrentUsage(messages: Message[]): {
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i]
     const usage = message ? getTokenUsage(message) : undefined
-    if (usage) {
+    if (usage && hasNonZeroUsage(usage)) {
       return {
         input_tokens: usage.input_tokens,
         output_tokens: usage.output_tokens,
@@ -228,7 +232,7 @@ export function tokenCountWithEstimation(messages: readonly Message[]): number {
   while (i >= 0) {
     const message = messages[i]
     const usage = message ? getTokenUsage(message) : undefined
-    if (message && usage) {
+    if (message && usage && hasNonZeroUsage(usage)) {
       // Walk back past any earlier sibling records split from the same API
       // response (same message.id) so interleaved tool_results between them
       // are included in the estimation slice.
