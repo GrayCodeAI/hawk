@@ -106,6 +106,10 @@ export function modelSupportsThinking(model: string): boolean {
     return !canonical.includes('claude-3-')
   }
   // 3P (Bedrock/Vertex): only Opus 4+ and Sonnet 4+
+  // OpenCodeGO (Moonshot/Kimi) uses OpenAI format - no Anthropic thinking
+  if (provider === 'opencodego') {
+    return false
+  }
   return canonical.includes('sonnet-4') || canonical.includes('opus-4')
 }
 
