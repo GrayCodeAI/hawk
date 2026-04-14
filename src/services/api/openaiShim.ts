@@ -266,6 +266,7 @@ interface OpenAIStreamChunk {
     delta: {
       role?: string
       content?: string | null
+      reasoning_content?: string | null  // Kimi's thinking content
       tool_calls?: Array<{
         index: number
         id?: string
@@ -381,6 +382,26 @@ async function* openaiStreamToGrayCode(
             index: contentBlockIndex,
             delta: { type: 'text_delta', text: delta.content },
           }
+        }
+
+        // Kimi reasoning_content (thinking) - convert to GrayCode thinking format
+        if (delta.reasoning_content) {
+          // Emit thinking block
+          yield {
+            type: 'content_block_start',
+            index: contentBlockIndex,
+            content_block: { type: 'thinking', thinking: '' },
+          }
+          yield {
+            type: 'content_block_delta',
+            index: contentBlockIndex,
+            delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
+          }
+          yield {
+            type: 'content_block_stop',
+            index: contentBlockIndex,
+          }
+          contentBlockIndex++
         }
 
         // Tool calls
@@ -586,6 +607,14 @@ class OpenAIShimMessages {
       stream: params.stream ?? false,
     }
 
+    // Handle thinking parameter for OpenCodeGO/Kimi
+    // Kimi uses OpenAI-compatible format: thinking: { type: 'enabled' }
+    if (params.thinking && request.baseUrl.includes('opencode.ai')) {
+      body.thinking = { type: 'enabled' }
+    } else if (params.thinking) {
+      // For other providers, don't send thinking (they may not support it)
+    }
+
     if (params.stream) {
       body.stream_options = { include_usage: true }
     }
@@ -648,6 +677,7 @@ class OpenAIShimMessages {
         message?: {
           role?: string
           content?: string | null
+          reasoning_content?: string | null  // Kimi's thinking content
           tool_calls?: Array<{
             id: string
             function: { name: string; arguments: string }
@@ -664,6 +694,14 @@ class OpenAIShimMessages {
   ) {
     const choice = data.choices?.[0]
     const content: Array<Record<string, unknown>> = []
+
+    // Add reasoning_content (thinking) first if present
+    if (choice?.message?.reasoning_content) {
+      content.push({
+        type: 'thinking',
+        thinking: choice.message.reasoning_content,
+      })
+    }
 
     if (choice?.message?.content) {
       content.push({ type: 'text', text: choice.message.content })

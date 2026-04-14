@@ -106,11 +106,8 @@ export function modelSupportsThinking(model: string): boolean {
     return !canonical.includes('claude-3-')
   }
   // 3P (Bedrock/Vertex): only Opus 4+ and Sonnet 4+
-  // OpenCodeGO (Moonshot/Kimi) uses OpenAI format - no Anthropic thinking
-  if (provider === 'opencodego') {
-    return false
-  }
-  return canonical.includes('sonnet-4') || canonical.includes('opus-4')
+  // OpenCodeGO (Moonshot/Kimi) supports thinking via OpenAI-compatible API
+  return canonical.includes('sonnet-4') || canonical.includes('opus-4') || provider === 'opencodego'
 }
 
 // @[MODEL LAUNCH]: Add the new model to the allowlist if it supports adaptive thinking.

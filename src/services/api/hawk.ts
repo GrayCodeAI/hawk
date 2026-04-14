@@ -1571,6 +1571,12 @@ async function* queryModel(
       thinkingConfig.type !== 'disabled' &&
       !isEnvTruthy(process.env.HAWK_CODE_DISABLE_THINKING)
     let thinking: BetaMessageStreamParams['thinking'] | undefined = undefined
+    
+    // For OpenCodeGO (Moonshot/Kimi), use OpenAI-compatible thinking format
+    let openCodeGOThinking: { type: 'enabled' | 'disabled' } | undefined = undefined
+    if (getAPIProvider() === 'opencodego' && hasThinking) {
+      openCodeGOThinking = { type: 'enabled' }
+    }
 
     // IMPORTANT: Do not change the adaptive-vs-budget thinking selection below
     // without notifying the model launch DRI and research. This is a sensitive
