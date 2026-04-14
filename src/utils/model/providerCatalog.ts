@@ -40,6 +40,8 @@ function getCatalogRefreshEnv(
         openrouter_base_url?: string
         canopywave_api_key?: string
         canopywave_base_url?: string
+        opencodego_api_key?: string
+        opencodego_base_url?: string
       }
 
       const openrouterKey = parsed?.openrouter_api_key?.trim()
@@ -56,6 +58,14 @@ function getCatalogRefreshEnv(
       }
       if (!env.CANOPYWAVE_BASE_URL && parsed.canopywave_base_url?.trim()) {
         env.CANOPYWAVE_BASE_URL = parsed.canopywave_base_url.trim()
+      }
+
+      const opencodegoKey = parsed?.opencodego_api_key?.trim()
+      if (!env.OPENCODEGO_API_KEY && opencodegoKey) {
+        env.OPENCODEGO_API_KEY = opencodegoKey
+      }
+      if (!env.OPENCODEGO_BASE_URL && parsed.opencodego_base_url?.trim()) {
+        env.OPENCODEGO_BASE_URL = parsed.opencodego_base_url.trim()
       }
     }
   } catch {
@@ -142,6 +152,7 @@ export function getProviderCatalogDebugSnapshot(): ProviderCatalogDebugSnapshot 
     'grok',
     'gemini',
     'ollama',
+    'opencodego',
   ]
 
   const providerCounts = Object.fromEntries(
