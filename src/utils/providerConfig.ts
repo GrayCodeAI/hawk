@@ -38,6 +38,7 @@ export type ProviderConfig = {
   openrouter_api_key?: string
   gemini_api_key?: string
   ollama_base_url?: string
+  opencodego_api_key?: string
   anthropic_base_url?: string
   canopywave_base_url?: string
   grok_base_url?: string
@@ -45,6 +46,7 @@ export type ProviderConfig = {
   openai_base_url?: string
   openrouter_base_url?: string
   gemini_base_url?: string
+  opencodego_base_url?: string
   anthropic_model?: string
   openai_model?: string
   canopywave_model?: string
@@ -53,6 +55,7 @@ export type ProviderConfig = {
   openrouter_model?: string
   gemini_model?: string
   ollama_model?: string
+  opencodego_model?: string
   active_model?: string
   exploration_model?: string
   anthropic_version?: string
@@ -87,6 +90,9 @@ function clearProviderRuntimeEnv(env: NodeJS.ProcessEnv): void {
     'GEMINI_MODEL',
     'GEMINI_BASE_URL',
     'OLLAMA_BASE_URL',
+    'OPENCODEGO_API_KEY',
+    'OPENCODEGO_MODEL',
+    'OPENCODEGO_BASE_URL',
   ] as const
   for (const key of keys) {
     delete env[key]

@@ -7,6 +7,7 @@ import { applyGrokProviderEnv } from './grok.js'
 import { applyOllamaProviderEnv } from './ollama.js'
 import { applyOpenAIProviderEnv } from './openai.js'
 import { applyOpenRouterProviderEnv } from './openrouter.js'
+import { applyOpenCodeGoProviderEnv } from './opencodego.js'
 
 export function applyProviderEnv(
   provider: ProviderProfile,
@@ -33,6 +34,9 @@ export function applyProviderEnv(
       return
     case 'ollama':
       applyOllamaProviderEnv(context)
+      return
+    case 'opencodego':
+      applyOpenCodeGoProviderEnv(context)
       return
   }
 }

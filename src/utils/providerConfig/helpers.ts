@@ -56,6 +56,11 @@ export const PROVIDER_CONFIG_KEYS: Record<
     model: ['ollama_model'],
     baseUrl: 'ollama_base_url',
   },
+  opencodego: {
+    apiKey: ['opencodego_api_key'],
+    model: ['opencodego_model'],
+    baseUrl: 'opencodego_base_url',
+  },
 }
 
 /**
