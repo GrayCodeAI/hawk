@@ -60,6 +60,8 @@ function existingApiKey(config: ProviderConfig | null, provider: ProviderProfile
       return config.grok_api_key ?? config.xai_api_key ?? ''
     case 'gemini':
       return config.gemini_api_key ?? ''
+    case 'opencodego':
+      return config.opencodego_api_key ?? ''
     case 'ollama':
       return ''
   }
@@ -80,6 +82,8 @@ function existingBaseUrl(config: ProviderConfig | null, provider: ProviderProfil
       return config.grok_base_url ?? config.xai_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'gemini':
       return config.gemini_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
+    case 'opencodego':
+      return config.opencodego_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
     case 'ollama':
       return config.ollama_base_url ?? PROVIDER_DEFAULT_BASE_URLS[provider]
   }
@@ -137,6 +141,11 @@ function applyProviderSelection(
       if (key) next.gemini_api_key = key
       next.gemini_model = trimmedModel || getDefaultProviderModel(provider)
       next.gemini_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
+      break
+    case 'opencodego':
+      if (key) next.opencodego_api_key = key
+      next.opencodego_model = trimmedModel || getDefaultProviderModel(provider)
+      next.opencodego_base_url = trimmedBaseUrl || PROVIDER_DEFAULT_BASE_URLS[provider]
       break
     case 'ollama':
       next.ollama_model = trimmedModel || getDefaultProviderModel(provider)
