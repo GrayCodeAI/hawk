@@ -8,7 +8,7 @@
         "@alcalzone/ansi-tokenize": "^0.3.0",
         "@commander-js/extra-typings": "^12.0.0",
         "@growthbook/growthbook": "^1.3.0",
-        "@hawk/eyrie": "github:GrayCodeAI/eyrie#61bc72c",
+        "@hawk/eyrie": "github:GrayCodeAI/eyrie#fdc1268",
         "@modelcontextprotocol/sdk": "^1.12.0",
         "@opentelemetry/api": "^1.9.1",
         "@opentelemetry/api-logs": "^0.214.0",
@@ -173,7 +173,7 @@
 
     "@grpc/proto-loader": ["@grpc/proto-loader@0.8.0", "", { "dependencies": { "lodash.camelcase": "^4.3.0", "long": "^5.0.0", "protobufjs": "^7.5.3", "yargs": "^17.7.2" }, "bin": { "proto-loader-gen-types": "build/bin/proto-loader-gen-types.js" } }, "sha512-rc1hOQtjIWGxcxpb9aHAfLpIctjEnsDehj0DAiVfBlmT84uvR0uUtN2hEi/ecvWVjXUGf5qPF4qEgiLOx1YIMQ=="],
 
-    "@hawk/eyrie": ["@hawk/eyrie@github:GrayCodeAI/eyrie#61bc72c", { "dependencies": { "@anthropic-ai/sdk": "^0.85.0", "@aws-sdk/client-bedrock-runtime": "^3.1026.0", "@google-cloud/vertexai": "^1.10.0", "@google/generative-ai": "^0.24.1", "@mistralai/mistralai": "^2.2.0", "ai": "^6.0.151", "groq-sdk": "^1.1.2", "openai": "^6.33.0" } }, "GrayCodeAI-eyrie-61bc72c", "sha512-BQKQ1dxYZa9mUe63Kk0FuK8hFipskCQ4DO8Iukb6mP4U+XXxj+ud7XOTEIPLaiXyJYm2FmOMlZVswW1+12hfvA=="],
+    "@hawk/eyrie": ["@hawk/eyrie@github:GrayCodeAI/eyrie#fdc1268", { "dependencies": { "@anthropic-ai/sdk": "^0.85.0", "@aws-sdk/client-bedrock-runtime": "^3.1026.0", "@google-cloud/vertexai": "^1.10.0", "@google/generative-ai": "^0.24.1", "@mistralai/mistralai": "^2.2.0", "ai": "^6.0.151", "groq-sdk": "^1.1.2", "openai": "^6.33.0" } }, "GrayCodeAI-eyrie-fdc1268", "sha512-UqYrLOPU2126bJrOqy7yk0PvHWIOaH1WA1sMyeiuEE0oryjjj8J+myV40NTcfFGobuzx61ld60yKaKmAH90yFw=="],
 
     "@hono/node-server": ["@hono/node-server@1.19.12", "", { "peerDependencies": { "hono": "^4" } }, "sha512-txsUW4SQ1iilgE0l9/e9VQWmELXifEFvmdA1j6WFh/aFPj99hIntrSsq/if0UWyGVkmrRPKA1wCeP+UCr1B9Uw=="],
 
