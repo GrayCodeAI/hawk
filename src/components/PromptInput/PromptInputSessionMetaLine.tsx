@@ -76,17 +76,8 @@ export function PromptInputSessionMetaLine({
   const roundedContextTotal = Math.max(0, Math.round(contextTokenTotal))
   const contextValueLabel = roundedContextTotal.toLocaleString()
   
-  // Format turn delta (e.g., "+50")
-  // Hide delta for first message (when delta equals or exceeds context total)
-  const isFirstMessage = turnTokenDelta >= contextTokenTotal
-  const turnValueLabel = turnTokenDelta > 0 && !isFirstMessage 
-    ? `+${turnTokenDelta.toLocaleString()}` 
-    : ''
-  
-  // Combined label: "12,943 context · +50" or just "12,943 context" for first message
-  const tokenLabel = turnValueLabel 
-    ? `${contextValueLabel} context · ${turnValueLabel}`
-    : `${contextValueLabel} context`
+  // Simple display: just show total tokens
+  const tokenLabel = `${contextValueLabel} tokens`
   const tokenStatusColor = hasAPIUsage
     ? 'success'
     : hasAssistantMessages
