@@ -72,20 +72,17 @@ export function PromptInputSessionMetaLine({
   const hasAssistantMessages = messages.some(m => m.type === 'assistant')
   const hasAPIUsage = contextTokenTotal > 0
   
-  // Format context size (e.g., "12.9k")
+  // Format context size with full number (e.g., "12,943")
   const roundedContextTotal = Math.max(0, Math.round(contextTokenTotal))
-  const contextValueLabel =
-    hasAPIUsage && roundedContextTotal >= 10_000
-      ? `${(roundedContextTotal / 1_000).toFixed(1)}k`
-      : roundedContextTotal.toLocaleString()
+  const contextValueLabel = roundedContextTotal.toLocaleString()
   
   // Format turn delta (e.g., "+50")
   const turnValueLabel = turnTokenDelta > 0 ? `+${turnTokenDelta.toLocaleString()}` : ''
   
-  // Combined label: "12.9k context · +50" or just "12.9k context" for first message
+  // Combined label: "12,943 context · +50" or just "12,943 context" for first message
   const tokenLabel = turnValueLabel 
-    ? `${contextValueLabel}k context · ${turnValueLabel}`
-    : `${contextValueLabel}k context`
+    ? `${contextValueLabel} context · ${turnValueLabel}`
+    : `${contextValueLabel} context`
   const tokenStatusColor = hasAPIUsage
     ? 'success'
     : hasAssistantMessages
