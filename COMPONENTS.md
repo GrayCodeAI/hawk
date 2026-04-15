@@ -34,7 +34,8 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  HOME["~/.hawk/provider.json"] --> PCFG["utils/providerConfig.ts"]
+  HOME["~/.hawk/provider.json"] --> EYR["@hawk/eyrie<br/>loadProviderConfig()"]
+  EYR --> PCFG["utils/providerConfig.ts<br/>(thin wrapper)"]
   PCFG --> ENV["process.env (scoped + compat)"]
   ENV --> RUNTIME["openaiShim + API layer"]
 
@@ -43,6 +44,12 @@ flowchart LR
   E --> REMOTE["remote catalog + optional OpenRouter /models"]
   REMOTE --> CACHE
 ```
+
+### Provider Config Delegation
+- **Hawk's `utils/providerConfig.ts`** is now a thin wrapper around `@hawk/eyrie`
+- All I/O operations (`loadProviderConfig`, `saveProviderConfig`, `applyProviderConfigToEnv`) are delegated to eyrie
+- Provider detection, model resolution, and env setup are centralized in eyrie
+- Hawk maintains backward compatibility through type adapters (`ProviderProfile` → `APIProvider`)
 
 ## 4) API Layer Components (Critical)
 
