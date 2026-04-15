@@ -1,22 +1,20 @@
-def fibonacci(n):
+def fibonacci(n: int) -> int:
     """
     Calculate the nth Fibonacci number.
 
     Args:
-        n: A non-negative integer
+        n: The index (0-based) in the Fibonacci sequence.
 
     Returns:
-        The nth Fibonacci number
+        The nth Fibonacci number.
 
     Raises:
-        ValueError: If n is negative
+        ValueError: If n is negative.
     """
     if n < 0:
         raise ValueError("n must be non-negative")
-    if n == 0:
-        return 0
-    if n == 1:
-        return 1
+    if n <= 1:
+        return n
 
     a, b = 0, 1
     for _ in range(2, n + 1):
@@ -25,6 +23,6 @@ def fibonacci(n):
 
 
 if __name__ == "__main__":
-    # Test the function
+    # Example usage
     for i in range(10):
         print(f"fibonacci({i}) = {fibonacci(i)}")

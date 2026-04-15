@@ -15,7 +15,7 @@ import {
   HAWK_SONNET_4_5_CONFIG,
   HAWK_SONNET_4_6_CONFIG,
   HAWK_SONNET_4_CONFIG,
-} from './model/configs.js'
+} from '@hawk/eyrie'
 import {
   anthropicNameToCanonical,
   getCanonicalName,

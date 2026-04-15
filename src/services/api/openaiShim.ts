@@ -68,6 +68,7 @@ interface OpenAIMessage {
   }>
   tool_call_id?: string
   name?: string
+  reasoning_content?: string  // For Kimi/OpenCodeGO
 }
 
 interface OpenAITool {
@@ -148,6 +149,7 @@ function convertContentBlocks(
 function convertMessages(
   messages: Array<{ role: string; message?: { role?: string; content?: unknown }; content?: unknown }>,
   system: unknown,
+  isOpenCodeGO = false,
 ): OpenAIMessage[] {
   const result: OpenAIMessage[] = []
 
@@ -200,11 +202,12 @@ function convertMessages(
       // Check for tool_use blocks
       if (Array.isArray(content)) {
         const toolUses = content.filter((b: { type?: string }) => b.type === 'tool_use')
+        const thinkingBlocks = content.filter((b: { type?: string }) => b.type === 'thinking')
         const textContent = content.filter(
           (b: { type?: string }) => b.type !== 'tool_use' && b.type !== 'thinking',
         )
 
-        const assistantMsg: OpenAIMessage = {
+        const assistantMsg: OpenAIMessage & { reasoning_content?: string } = {
           role: 'assistant',
           content: convertContentBlocks(textContent) as string,
         }
@@ -225,12 +228,25 @@ function convertMessages(
           )
         }
 
+        // For OpenCodeGO/Kimi: MUST include reasoning_content in ALL assistant messages
+        // when thinking is enabled, including tool call messages. Empty string if no thinking.
+        if (isOpenCodeGO) {
+          assistantMsg.reasoning_content = thinkingBlocks
+            .map((b: { thinking?: string }) => b.thinking ?? '')
+            .join('') || ''
+        }
+
         result.push(assistantMsg)
       } else {
-        result.push({
+        const assistantMsg: OpenAIMessage & { reasoning_content?: string } = {
           role: 'assistant',
           content: convertContentBlocks(content) as string,
-        })
+        }
+        // For OpenCodeGO/Kimi: no thinking blocks in scalar content, empty string is fine.
+        if (isOpenCodeGO) {
+          assistantMsg.reasoning_content = ''
+        }
+        result.push(assistantMsg)
       }
     }
   }
@@ -591,6 +607,7 @@ class OpenAIShimMessages {
     options?: { signal?: AbortSignal; headers?: Record<string, string> },
   ): Promise<Response> {
     const request = runtime.request
+    const isOpenCodeGO = request.baseUrl.includes('opencode.ai')
     const openaiMessages = convertMessages(
       params.messages as Array<{
         role: string
@@ -598,6 +615,7 @@ class OpenAIShimMessages {
         content?: unknown
       }>,
       params.system,
+      isOpenCodeGO,
     )
 
     const body: Record<string, unknown> = {
@@ -608,12 +626,11 @@ class OpenAIShimMessages {
     }
 
     // Handle thinking parameter for OpenCodeGO/Kimi
-    // Kimi uses OpenAI-compatible format: thinking: { type: 'enabled' }
-    if (params.thinking && request.baseUrl.includes('opencode.ai')) {
-      body.thinking = { type: 'enabled' }
-    } else if (params.thinking) {
-      // For other providers, don't send thinking (they may not support it)
-    }
+    // Kimi supports thinking but requires reasoning_content in all assistant messages
+    // This is complex to implement - disabling for now
+    // if (params.thinking && request.baseUrl.includes('opencode.ai')) {
+    //   body.thinking = { type: 'enabled' }
+    // }
 
     if (params.stream) {
       body.stream_options = { include_usage: true }

@@ -8,7 +8,7 @@ import {
   CANONICAL_ID_TO_KEY,
   type CanonicalModelId,
   type ModelKey,
-} from './configs.js'
+} from '@hawk/eyrie'
 import { type APIProvider, getAPIProvider } from './providers.js'
 
 /**

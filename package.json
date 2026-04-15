@@ -50,7 +50,7 @@
     "@alcalzone/ansi-tokenize": "^0.3.0",
     "@commander-js/extra-typings": "^12.0.0",
     "@growthbook/growthbook": "^1.3.0",
-    "@hawk/eyrie": "github:GrayCodeAI/eyrie#5cd573e",
+    "@hawk/eyrie": "github:GrayCodeAI/eyrie#3bfdb799c1d4119517164fcb307872a246d052e1",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.214.0",

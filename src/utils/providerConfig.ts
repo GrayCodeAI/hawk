@@ -1,175 +1,103 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
+import type { APIProvider } from '@hawk/eyrie'
 import {
-  PROVIDER_PRIORITY,
-  PROVIDER_PROFILES,
-  type ProviderProfile,
-} from './providerRegistry.js'
-import {
+  // Config I/O
+  loadProviderConfig as eyrieLoadProviderConfig,
+  saveProviderConfig as eyrieSaveProviderConfig,
+  getProviderConfigPath as eyrieGetProviderConfigPath,
+  // Provider detection
+  defaultProviderFromConfig as eyrieDefaultProviderFromConfig,
+  isProviderConfigured as eyrieIsProviderConfigured,
+  getProviderActiveModel as eyrieGetProviderActiveModel,
+  applyProviderConfigToEnv as eyrieApplyProviderConfigToEnv,
+  // Helpers
   asNonEmptyString,
   getProviderModel,
-  getProviderModelKey,
-  PROVIDER_CONFIG_KEYS,
-  setEnvValue,
-} from './providerConfig/helpers.js'
-import { applyProviderEnv } from './providerConfig/providers/index.js'
-
-export type { ProviderProfile } from './providerRegistry.js'
-
-export {
   getProviderApiKey,
   getProviderBaseUrlKey,
-  getProviderModel,
   getProviderModelKey,
   PROVIDER_CONFIG_KEYS,
   validateApiKey,
   validateBaseUrl,
-} from './providerConfig/helpers.js'
+} from '@hawk/eyrie'
+import type { ProviderProfile } from './providerRegistry.js'
+export type { ProviderProfile } from './providerRegistry.js'
 
-export type ProviderConfig = {
-  _version?: string
-  active_provider?: ProviderProfile
-  anthropic_api_key?: string
-  grok_api_key?: string
-  xai_api_key?: string
-  openai_api_key?: string
-  canopywave_api_key?: string
-  openrouter_api_key?: string
-  gemini_api_key?: string
-  ollama_base_url?: string
-  opencodego_api_key?: string
-  anthropic_base_url?: string
-  canopywave_base_url?: string
-  grok_base_url?: string
-  xai_base_url?: string
-  openai_base_url?: string
-  openrouter_base_url?: string
-  gemini_base_url?: string
-  opencodego_base_url?: string
-  anthropic_model?: string
-  openai_model?: string
-  canopywave_model?: string
-  grok_model?: string
-  xai_model?: string
-  openrouter_model?: string
-  gemini_model?: string
-  ollama_model?: string
-  opencodego_model?: string
-  active_model?: string
-  exploration_model?: string
-  anthropic_version?: string
+// Re-export helpers from eyrie for backward compatibility
+export {
+  asNonEmptyString,
+  getProviderModel,
+  getProviderApiKey,
+  getProviderBaseUrlKey,
+  getProviderModelKey,
+  PROVIDER_CONFIG_KEYS,
+  validateApiKey,
+  validateBaseUrl,
+} from '@hawk/eyrie'
+
+// ProviderConfig type is compatible between hawk and eyrie
+export type ProviderConfig = import('@hawk/eyrie').ProviderConfig
+
+// Type adapter: ProviderProfile -> APIProvider
+function toAPIProvider(provider: ProviderProfile): APIProvider {
+  return provider as APIProvider
 }
 
-function getHawkConfigHomeDir(): string {
-  return (process.env.HAWK_CONFIG_DIR ?? join(homedir(), '.hawk')).normalize('NFC')
-}
-
-function clearProviderRuntimeEnv(env: NodeJS.ProcessEnv): void {
-  const keys = [
-    'ANTHROPIC_API_KEY',
-    'ANTHROPIC_MODEL',
-    'ANTHROPIC_BASE_URL',
-    'ANTHROPIC_VERSION',
-    'OPENAI_API_KEY',
-    'OPENAI_MODEL',
-    'OPENAI_BASE_URL',
-    'OPENROUTER_API_KEY',
-    'OPENROUTER_MODEL',
-    'OPENROUTER_BASE_URL',
-    'CANOPYWAVE_API_KEY',
-    'CANOPYWAVE_MODEL',
-    'CANOPYWAVE_BASE_URL',
-    'GROK_API_KEY',
-    'GROK_MODEL',
-    'GROK_BASE_URL',
-    'XAI_API_KEY',
-    'XAI_MODEL',
-    'XAI_BASE_URL',
-    'GEMINI_API_KEY',
-    'GEMINI_MODEL',
-    'GEMINI_BASE_URL',
-    'OLLAMA_BASE_URL',
-    'OPENCODEGO_API_KEY',
-    'OPENCODEGO_MODEL',
-    'OPENCODEGO_BASE_URL',
-  ] as const
-  for (const key of keys) {
-    delete env[key]
-  }
-}
-
+/**
+ * Get the path to the provider config file.
+ * Delegates to eyrie for the actual implementation.
+ */
 export function getProviderConfigPath(): string {
-  return join(getHawkConfigHomeDir(), 'provider.json')
+  return eyrieGetProviderConfigPath()
 }
 
-export function loadProviderConfig(path = getProviderConfigPath()): ProviderConfig | null {
-  if (!existsSync(path)) return null
-  try {
-    const content = readFileSync(path, 'utf8')
-    const parsed = JSON.parse(content) as ProviderConfig
-    if (!parsed || typeof parsed !== 'object') {
-      console.warn(`[providerConfig] Invalid config format at ${path}: expected object, got ${typeof parsed}`)
-      return null
-    }
-    return parsed
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.warn(`[providerConfig] Failed to load config from ${path}: ${message}`)
-    return null
-  }
+/**
+ * Loads the provider config from disk.
+ * Delegates to eyrie for the actual implementation.
+ */
+export function loadProviderConfig(path?: string): ProviderConfig | null {
+  return eyrieLoadProviderConfig(path)
 }
 
-export function saveProviderConfig(config: ProviderConfig, path = getProviderConfigPath()): void {
-  mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`, 'utf8')
+/**
+ * Saves the provider config to disk.
+ * Delegates to eyrie for the actual implementation.
+ */
+export function saveProviderConfig(config: ProviderConfig, path?: string): void {
+  eyrieSaveProviderConfig(config, path)
 }
 
+/**
+ * Checks if a provider has valid configuration.
+ * Delegates to eyrie for the actual implementation.
+ */
 export function isProviderConfigured(config: ProviderConfig, provider: ProviderProfile): boolean {
-  const keys = PROVIDER_CONFIG_KEYS[provider]
-  
-  // Ollama only needs base URL
-  if (provider === 'ollama') {
-    return !!asNonEmptyString(config[keys.baseUrl])
-  }
-  
-  // Check if any API key is configured
-  return keys.apiKey.some(keyField => !!asNonEmptyString(config[keyField]))
+  return eyrieIsProviderConfigured(config, toAPIProvider(provider))
 }
 
+/**
+ * Determines the default provider from config.
+ * Delegates to eyrie for the actual implementation.
+ */
 export function defaultProviderFromConfig(config: ProviderConfig | null): ProviderProfile | null {
-  if (!config) return null
-  const explicitProvider = asNonEmptyString(config.active_provider) as ProviderProfile | undefined
-  if (explicitProvider && isProviderConfigured(config, explicitProvider)) {
-    return explicitProvider
-  }
-  for (const provider of PROVIDER_PRIORITY) {
-    if (isProviderConfigured(config, provider)) return provider
-  }
-  return null
+  const eyrieProvider = eyrieDefaultProviderFromConfig(config)
+  return eyrieProvider as ProviderProfile | null
 }
 
-function hasProviderScopedModel(config: ProviderConfig): boolean {
-  return PROVIDER_PROFILES.some(provider => !!getProviderModel(config, provider))
-}
-
+/**
+ * Gets the active model for a specific provider from config.
+ * Delegates to eyrie for the actual implementation.
+ */
 export function getProviderActiveModel(
   config: ProviderConfig,
   provider: ProviderProfile,
 ): string | undefined {
-  const providerSpecificModel = getProviderModel(config, provider)
-
-  if (providerSpecificModel) return providerSpecificModel
-  if (hasProviderScopedModel(config)) return undefined
-
-  const legacyModel = asNonEmptyString(config.active_model)
-  if (!legacyModel) return undefined
-
-  // Legacy compatibility: active_model historically represented the default
-  // configured provider only, not all providers.
-  return defaultProviderFromConfig(config) === provider ? legacyModel : undefined
+  return eyrieGetProviderActiveModel(config, toAPIProvider(provider))
 }
 
+/**
+ * Applies the full provider configuration to environment variables.
+ * Delegates to eyrie for the actual implementation.
+ */
 export function applyProviderConfigToEnv(
   env: NodeJS.ProcessEnv = process.env,
   config: ProviderConfig | null = loadProviderConfig(),
@@ -178,30 +106,6 @@ export function applyProviderConfigToEnv(
     skipValidation?: boolean
   },
 ): ProviderProfile | null {
-  if (!config) {
-    return null
-  }
-
-  const provider = defaultProviderFromConfig(config)
-  if (!provider) return null
-  
-  const overwrite = options?.overwrite === true
-  const skipValidation = options?.skipValidation === true
-  
-  if (overwrite) {
-    clearProviderRuntimeEnv(env)
-  }
-
-  const activeModel = getProviderActiveModel(config, provider)
-  const explorationModel = asNonEmptyString(config.exploration_model)
-  setEnvValue(env, 'GRAYCODE_SMALL_FAST_MODEL', explorationModel, overwrite)
-
-  applyProviderEnv(provider, {
-    env,
-    config,
-    activeModel,
-    overwrite,
-  })
-
-  return provider
+  const eyrieProvider = eyrieApplyProviderConfigToEnv(env, config, options)
+  return eyrieProvider as ProviderProfile | null
 }

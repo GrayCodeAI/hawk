@@ -12,7 +12,7 @@ import { logForDebugging } from '../utils/debug.js';
 import { errorMessage } from '../utils/errors.js';
 import { logError } from '../utils/log.js';
 import { enqueuePendingNotification } from '../utils/messageQueueManager.js';
-import { ALL_MODEL_CONFIGS } from '../utils/model/configs.js';
+import { ALL_MODEL_CONFIGS } from '@hawk/eyrie';
 import { updateTaskState } from '../utils/task/framework.js';
 import { archiveRemoteSession, teleportToRemote } from '../utils/teleport.js';
 import { pollForApprovedExitPlanMode, UltraplanPollError } from '../utils/ultraplan/ccrSession.js';

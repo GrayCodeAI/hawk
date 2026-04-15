@@ -31,7 +31,7 @@ import { capitalize } from '../stringUtils.js'
 import {
   getPreferredProviderModel,
   getProviderDefaultModel,
-} from './configs.js'
+} from '@hawk/eyrie'
 import {
   defaultProviderFromConfig,
   getProviderActiveModel,

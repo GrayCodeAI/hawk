@@ -1,4 +1,4 @@
-import { HAWK_OPUS_4_6_CONFIG } from '../model/configs.js'
+import { HAWK_OPUS_4_6_CONFIG } from '@hawk/eyrie'
 import { getAPIProvider } from '../model/providers.js'
 
 // @[MODEL LAUNCH]: Update the fallback model below.

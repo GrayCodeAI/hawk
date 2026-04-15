@@ -21,7 +21,7 @@ import {
 import {
   getPreferredProviderModel,
   getProviderDefaultModel,
-} from '../../utils/model/configs.js'
+} from '@hawk/eyrie'
 import {
   getProviderCatalogEntries,
   refreshProviderCatalogNow,
