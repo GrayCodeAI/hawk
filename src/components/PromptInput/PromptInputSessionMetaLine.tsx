@@ -9,6 +9,7 @@ import {
   getTotalOutputTokens,
   getTurnTotalTokens,
 } from '../../cost-tracker.js'
+import { getTotalDuration } from '../../bootstrap/state.js'
 import { Box, Text } from '../../ink.js'
 import type { Message } from '../../types/message.js'
 import { getBranch } from '../../utils/git.js'
@@ -95,6 +96,17 @@ export function PromptInputSessionMetaLine({
         ? `$${totalCost.toFixed(4)}`
         : `$${totalCost.toFixed(2)}`
   const version = `v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}`
+  
+  // Format session duration [⏱ 28m 22s]
+  const durationMs = getTotalDuration()
+  const durationSec = Math.floor(durationMs / 1000)
+  const durationMin = Math.floor(durationSec / 60)
+  const durationHour = Math.floor(durationMin / 60)
+  const durationLabel = durationHour > 0
+    ? `[⏱ ${durationHour}h ${durationMin % 60}m ${durationSec % 60}s]`
+    : durationMin > 0
+      ? `[⏱ ${durationMin}m ${durationSec % 60}s]`
+      : `[⏱ ${durationSec}s]`
 
   return (
     <Box height={1} overflow="hidden" width="100%" justifyContent="flex-end">
@@ -104,7 +116,7 @@ export function PromptInputSessionMetaLine({
         </Text>
       </Box>
       <Text dimColor>
-        <Text color={tokenStatusColor}>●</Text> {tokenLabel} · {costLabel} · {version}
+        <Text color={tokenStatusColor}>●</Text> {tokenLabel} · {costLabel} · {durationLabel} · {version}
       </Text>
     </Box>
   )
