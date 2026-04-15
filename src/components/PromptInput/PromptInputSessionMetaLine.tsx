@@ -1,6 +1,6 @@
 import { homedir } from 'os'
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   getTotalCacheCreationInputTokens,
   getTotalCacheReadInputTokens,
@@ -14,6 +14,7 @@ import { Box, Text } from '../../ink.js'
 import type { Message } from '../../types/message.js'
 import { getBranch } from '../../utils/git.js'
 import { modelDisplayString } from '../../utils/model/model.js'
+import { getAPIProvider } from '../../utils/model/providers.js'
 import {
   isDefaultMode,
   permissionModeTitle,
@@ -63,7 +64,7 @@ export function PromptInputSessionMetaLine({
     }
   }, [])
 
-  // Show both total context and per-message delta
+  // Calculate tokens directly every render
   const contextTokenTotal =
     getTotalInputTokens() +
     getTotalOutputTokens() +
@@ -79,15 +80,13 @@ export function PromptInputSessionMetaLine({
   
   // Simple display: just show total tokens
   const tokenLabel = `${contextValueLabel} tokens`
-  const tokenStatusColor = hasAPIUsage
-    ? 'success'
-    : hasAssistantMessages
-      ? 'warning'
-      : 'inactive'
+  // Always bright green
+  const tokenColor = 'ansi:greenBright'
   const modeLabel = isDefaultMode(permissionMode)
     ? 'default'
     : permissionModeTitle(permissionMode).toLowerCase()
-  const modelLabel = modelDisplayString(mainLoopModel)
+  const provider = getAPIProvider()
+  const modelLabel = `${provider}: ${modelDisplayString(mainLoopModel)}`
   const totalCost = getTotalCost()
   const costLabel =
     totalCost === 0
@@ -97,26 +96,49 @@ export function PromptInputSessionMetaLine({
         : `$${totalCost.toFixed(2)}`
   const version = `v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}`
   
-  // Format session duration [⏱ 28m 22s]
+  // Format session duration ⏱ 28m 22s
   const durationMs = getTotalDuration()
   const durationSec = Math.floor(durationMs / 1000)
   const durationMin = Math.floor(durationSec / 60)
   const durationHour = Math.floor(durationMin / 60)
   const durationLabel = durationHour > 0
-    ? `[⏱ ${durationHour}h ${durationMin % 60}m ${durationSec % 60}s]`
+    ? `⏱ ${durationHour}h ${durationMin % 60}m ${durationSec % 60}s`
     : durationMin > 0
-      ? `[⏱ ${durationMin}m ${durationSec % 60}s]`
-      : `[⏱ ${durationSec}s]`
+      ? `⏱ ${durationMin}m ${durationSec % 60}s`
+      : `⏱ ${durationSec}s`
+
+  // Unique bright color scheme for each footer element
+  const dimGray = 'ansi:blackBright'
+  const modeColor = 'ansi:redBright'
+  const modelColor = '#DA70D6'
+  const pathColor = 'ansi:blueBright'
+  const branchColor = 'ansi:yellowBright'
+  const costColor = 'ansi:magentaBright'
+  const durationColor = 'ansi:cyanBright'
+  const versionColor = 'ansi:whiteBright'
 
   return (
     <Box height={1} overflow="hidden" width="100%" justifyContent="flex-end">
       <Box flexShrink={1} minWidth={0}>
-        <Text wrap="truncate" dimColor>
-          · {modeLabel} · {modelLabel} · {displayPath}:{branchLabel} ·{' '}
+        <Text wrap="truncate">
+          <Text color={modeColor}>◆ {modeLabel}</Text>
+          <Text color={dimGray}>  </Text>
+          <Text color={modelColor}>◇ {modelLabel}</Text>
+          <Text color={dimGray}>  </Text>
+          <Text color={pathColor}>▢ {displayPath}</Text>
+          <Text color={dimGray}>:</Text>
+          <Text color={branchColor}>⎇ {branchLabel}</Text>
+          <Text color={dimGray}>  </Text>
         </Text>
       </Box>
-      <Text dimColor>
-        <Text color={tokenStatusColor}>●</Text> {tokenLabel} · {costLabel} · {durationLabel} · {version}
+      <Text>
+        <Text color={tokenColor}>◉ {tokenLabel}</Text>
+        <Text color={dimGray}>  </Text>
+        <Text color={costColor}>{costLabel}</Text>
+        <Text color={dimGray}>  </Text>
+        <Text color={durationColor}>{durationLabel}</Text>
+        <Text color={dimGray}>  </Text>
+        <Text color={versionColor}>⌖ {version}</Text>
       </Text>
     </Box>
   )
