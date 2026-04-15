@@ -98,10 +98,74 @@ export function getOpus46CostTier(fastMode: boolean): ModelCosts {
   return COST_TIER_5_25
 }
 
+// Pricing for OpenAI GPT-4o: $2.50 input / $10 output per Mtok
+export const COST_GPT4O = {
+  inputTokens: 2.5,
+  outputTokens: 10,
+  promptCacheWriteTokens: 2.5,
+  promptCacheReadTokens: 1.25,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI GPT-4o-mini: $0.15 input / $0.60 output per Mtok
+export const COST_GPT4O_MINI = {
+  inputTokens: 0.15,
+  outputTokens: 0.6,
+  promptCacheWriteTokens: 0.15,
+  promptCacheReadTokens: 0.075,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Gemini 2.0 Flash: $0.10 input / $0.40 output per Mtok
+export const COST_GEMINI_FLASH = {
+  inputTokens: 0.1,
+  outputTokens: 0.4,
+  promptCacheWriteTokens: 0.1,
+  promptCacheReadTokens: 0.025,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Gemini 2.5 Pro: $1.25 input / $10 output per Mtok
+export const COST_GEMINI_PRO = {
+  inputTokens: 1.25,
+  outputTokens: 10,
+  promptCacheWriteTokens: 1.25,
+  promptCacheReadTokens: 0.3125,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Grok 2: $2 input / $10 output per Mtok
+export const COST_GROK_2 = {
+  inputTokens: 2,
+  outputTokens: 10,
+  promptCacheWriteTokens: 2,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Kimi K2.5: $2 input / $8 output per Mtok
+export const COST_KIMI_K2_5 = {
+  inputTokens: 2,
+  outputTokens: 8,
+  promptCacheWriteTokens: 2,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for local Ollama models: $0 (self-hosted)
+export const COST_OLLAMA = {
+  inputTokens: 0,
+  outputTokens: 0,
+  promptCacheWriteTokens: 0,
+  promptCacheReadTokens: 0,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
 // @[MODEL LAUNCH]: Add a pricing entry for the new model below.
 // Costs from https://platform.hawk.com/docs/en/about-hawk/pricing
 // Web search cost: $10 per 1000 requests = $0.01 per request
 export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
+  // Anthropic models
   [anthropicNameToCanonical(HAWK_3_5_HAIKU_CONFIG.anthropic)]:
     COST_HAIKU_35,
   [anthropicNameToCanonical(HAWK_HAIKU_4_5_CONFIG.anthropic)]:
@@ -123,6 +187,36 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
     COST_TIER_5_25,
   [anthropicNameToCanonical(HAWK_OPUS_4_6_CONFIG.anthropic)]:
     COST_TIER_5_25,
+
+  // OpenAI models
+  'gpt-4o': COST_GPT4O,
+  'gpt-4o-mini': COST_GPT4O_MINI,
+  'gpt-4o-2024-08-06': COST_GPT4O,
+  'gpt-4o-2024-05-13': COST_GPT4O,
+  'gpt-4o-mini-2024-07-18': COST_GPT4O_MINI,
+
+  // Gemini models
+  'gemini-2.0-flash': COST_GEMINI_FLASH,
+  'gemini-2.0-flash-exp': COST_GEMINI_FLASH,
+  'gemini-2.5-pro': COST_GEMINI_PRO,
+  'gemini-2.5-pro-preview-03-25': COST_GEMINI_PRO,
+
+  // Grok models
+  'grok-2': COST_GROK_2,
+  'grok-2-1212': COST_GROK_2,
+  'grok-2-latest': COST_GROK_2,
+
+  // OpenCodeGO / Kimi models
+  'kimi-k2.5': COST_KIMI_K2_5,
+  'moonshotai/kimi-k2.5': COST_KIMI_K2_5,
+
+  // Ollama (local) models
+  'llama3.1:8b': COST_OLLAMA,
+  'llama3.1:70b': COST_OLLAMA,
+  'llama3.2:3b': COST_OLLAMA,
+  'qwen2.5-coder:7b': COST_OLLAMA,
+  'qwen2.5-coder:14b': COST_OLLAMA,
+  'qwen2.5-coder:32b': COST_OLLAMA,
 }
 
 /**
@@ -152,7 +246,21 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
     return getOpus46CostTier(isFastMode)
   }
 
-  const costs = MODEL_COSTS[shortName]
+  // Try to find costs by canonical name first
+  let costs = MODEL_COSTS[shortName]
+
+  // If not found, try the original model name (for non-Anthropic providers)
+  if (!costs) {
+    costs = MODEL_COSTS[model as ModelShortName]
+  }
+
+  // If still not found, try common model ID patterns
+  if (!costs) {
+    // Handle OpenRouter-style prefixes (e.g., "openai/gpt-4o")
+    const withoutPrefix = model.split('/').pop() ?? model
+    costs = MODEL_COSTS[withoutPrefix as ModelShortName]
+  }
+
   if (!costs) {
     trackUnknownModelCost(model, shortName)
     return (
