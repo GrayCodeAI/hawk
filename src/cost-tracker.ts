@@ -249,6 +249,9 @@ ${modelUsageDisplay}`,
   )
 }
 
+// Track last input tokens per model to calculate delta
+const lastInputTokensByModel: Map<string, number> = new Map()
+
 function round(number: number, precision: number): number {
   return Math.round(number * precision) / precision
 }
@@ -270,13 +273,28 @@ function addToTotalModelUsage(
   }
 
   // AI SDK v6 normalized input_tokens to include cached tokens for all providers.
-  // We need to subtract cache tokens to avoid double-counting in the UI total.
+  // For providers that report cache tokens (Anthropic), subtract them.
+  // For providers that don't (OpenCodeGO), track delta manually.
   // See: https://github.com/anomalyco/opencode/issues/19757
   const cacheReadTokens = usage.cache_read_input_tokens ?? 0
   const cacheCreationTokens = usage.cache_creation_input_tokens ?? 0
-  const adjustedInputTokens = Math.max(0, usage.input_tokens - cacheReadTokens - cacheCreationTokens)
+  const lastInputTokens = lastInputTokensByModel.get(model) ?? 0
+  const currentInputTokens = usage.input_tokens
+  
+  // Calculate actual new input tokens
+  let newInputTokens: number
+  if (cacheReadTokens > 0) {
+    // Provider reports cache - use cache-based calculation
+    newInputTokens = Math.max(0, currentInputTokens - cacheReadTokens - cacheCreationTokens)
+  } else {
+    // Provider doesn't report cache - use delta tracking
+    newInputTokens = Math.max(0, currentInputTokens - lastInputTokens)
+  }
+  
+  // Store current for next call
+  lastInputTokensByModel.set(model, currentInputTokens)
 
-  modelUsage.inputTokens += adjustedInputTokens
+  modelUsage.inputTokens += newInputTokens
   modelUsage.outputTokens += usage.output_tokens
   modelUsage.cacheReadInputTokens += cacheReadTokens
   modelUsage.cacheCreationInputTokens += cacheCreationTokens
