@@ -252,6 +252,11 @@ ${modelUsageDisplay}`,
 // Track last input tokens per model to calculate delta
 const lastInputTokensByModel: Map<string, number> = new Map()
 
+// Reset tracking when session resets
+export function resetTokenTracking(): void {
+  lastInputTokensByModel.clear()
+}
+
 function round(number: number, precision: number): number {
   return Math.round(number * precision) / precision
 }
@@ -278,21 +283,35 @@ function addToTotalModelUsage(
   // See: https://github.com/anomalyco/opencode/issues/19757
   const cacheReadTokens = usage.cache_read_input_tokens ?? 0
   const cacheCreationTokens = usage.cache_creation_input_tokens ?? 0
-  const lastInputTokens = lastInputTokensByModel.get(model) ?? 0
+  
+  // Normalize model name (extract base model ID)
+  const normalizedModel = model.split('/').pop() ?? model
+  
+  const lastInputTokens = lastInputTokensByModel.get(normalizedModel) ?? 0
   const currentInputTokens = usage.input_tokens
+  
+  // Skip if current is 0 (avoid resetting tracking)
+  if (currentInputTokens === 0) {
+    modelUsage.outputTokens += usage.output_tokens
+    modelUsage.costUSD += cost
+    return modelUsage
+  }
   
   // Calculate actual new input tokens
   let newInputTokens: number
   if (cacheReadTokens > 0) {
     // Provider reports cache - use cache-based calculation
     newInputTokens = Math.max(0, currentInputTokens - cacheReadTokens - cacheCreationTokens)
-  } else {
+  } else if (lastInputTokens > 0 && currentInputTokens >= lastInputTokens) {
     // Provider doesn't report cache - use delta tracking
-    newInputTokens = Math.max(0, currentInputTokens - lastInputTokens)
+    newInputTokens = currentInputTokens - lastInputTokens
+  } else {
+    // First call for this model - use full amount
+    newInputTokens = currentInputTokens
   }
   
   // Store current for next call
-  lastInputTokensByModel.set(model, currentInputTokens)
+  lastInputTokensByModel.set(normalizedModel, currentInputTokens)
 
   modelUsage.inputTokens += newInputTokens
   modelUsage.outputTokens += usage.output_tokens
