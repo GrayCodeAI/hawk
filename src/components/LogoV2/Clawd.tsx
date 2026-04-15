@@ -36,7 +36,7 @@ const COLORFUL_HAWK_LINES = [
   { text: '|   |___|   | |    /_\\    |  |  (\\  |/  \\|  /)  |  |   |/   /', color: '#FFE66D' },
   { text: '|           | |           |    (\\            /)    |       /', color: '#95E1D3' },
   { text: '|    ___    | |    ___    |   (\\              /)   |       \\', color: '#C7CEEA' },
-  { text: '|   |   |   | |   |   |   |    \\      \/      /    |   |\\   \\', color: '#FF6B6B' },
+  { text: '|   |   |   | |   |   |   |    \\      \\/      /    |   |\\   \\', color: '#FF6B6B' },
   { text: '|___|   |___| |___|   |___|     \\____/\\/\\____/     |___| \\___\\', color: '#4ECDC4' },
   { text: '                                    |0\\/0|', eyeLine: true },
   { text: '                                     \\/\\/', color: '#FFE66D' },
