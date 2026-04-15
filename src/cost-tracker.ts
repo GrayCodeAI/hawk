@@ -263,10 +263,17 @@ function addToTotalModelUsage(
     maxOutputTokens: 0,
   }
 
-  modelUsage.inputTokens += usage.input_tokens
+  // AI SDK v6 normalized input_tokens to include cached tokens for all providers.
+  // We need to subtract cache tokens to avoid double-counting in the UI total.
+  // See: https://github.com/anomalyco/opencode/issues/19757
+  const cacheReadTokens = usage.cache_read_input_tokens ?? 0
+  const cacheCreationTokens = usage.cache_creation_input_tokens ?? 0
+  const adjustedInputTokens = Math.max(0, usage.input_tokens - cacheReadTokens - cacheCreationTokens)
+
+  modelUsage.inputTokens += adjustedInputTokens
   modelUsage.outputTokens += usage.output_tokens
-  modelUsage.cacheReadInputTokens += usage.cache_read_input_tokens ?? 0
-  modelUsage.cacheCreationInputTokens += usage.cache_creation_input_tokens ?? 0
+  modelUsage.cacheReadInputTokens += cacheReadTokens
+  modelUsage.cacheCreationInputTokens += cacheCreationTokens
   modelUsage.webSearchRequests +=
     usage.server_tool_use?.web_search_requests ?? 0
   modelUsage.costUSD += cost
