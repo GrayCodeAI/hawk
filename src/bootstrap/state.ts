@@ -722,9 +722,16 @@ export function getTotalWebSearchRequests(): number {
 }
 
 let outputTokensAtTurnStart = 0
+let inputTokensAtTurnStart = 0
 let currentTurnTokenBudget: number | null = null
 export function getTurnOutputTokens(): number {
   return getTotalOutputTokens() - outputTokensAtTurnStart
+}
+export function getTurnInputTokens(): number {
+  return getTotalInputTokens() - inputTokensAtTurnStart
+}
+export function getTurnTotalTokens(): number {
+  return getTurnInputTokens() + getTurnOutputTokens()
 }
 export function getCurrentTurnTokenBudget(): number | null {
   return currentTurnTokenBudget
@@ -732,6 +739,7 @@ export function getCurrentTurnTokenBudget(): number | null {
 let budgetContinuationCount = 0
 export function snapshotOutputTokensForTurn(budget: number | null): void {
   outputTokensAtTurnStart = getTotalOutputTokens()
+  inputTokensAtTurnStart = getTotalInputTokens()
   currentTurnTokenBudget = budget
   budgetContinuationCount = 0
 }

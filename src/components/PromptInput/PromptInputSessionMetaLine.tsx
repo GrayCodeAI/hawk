@@ -7,6 +7,7 @@ import {
   getTotalCost,
   getTotalInputTokens,
   getTotalOutputTokens,
+  getTurnTotalTokens,
 } from '../../cost-tracker.js'
 import { Box, Text } from '../../ink.js'
 import type { Message } from '../../types/message.js'
@@ -61,19 +62,30 @@ export function PromptInputSessionMetaLine({
     }
   }, [])
 
-  const apiTokenTotal =
+  // Show both total context and per-message delta
+  const contextTokenTotal =
     getTotalInputTokens() +
     getTotalOutputTokens() +
     getTotalCacheReadInputTokens() +
     getTotalCacheCreationInputTokens()
+  const turnTokenDelta = getTurnTotalTokens()
   const hasAssistantMessages = messages.some(m => m.type === 'assistant')
-  const hasAPIUsage = apiTokenTotal > 0
-  const roundedTokenTotal = Math.max(0, Math.round(apiTokenTotal))
-  const tokenValueLabel =
-    hasAPIUsage && roundedTokenTotal >= 10_000
-      ? `${(roundedTokenTotal / 1_000).toFixed(1)}k`
-      : roundedTokenTotal.toLocaleString()
-  const tokenLabel = `${tokenValueLabel} tokens`
+  const hasAPIUsage = contextTokenTotal > 0
+  
+  // Format context size (e.g., "12.9k")
+  const roundedContextTotal = Math.max(0, Math.round(contextTokenTotal))
+  const contextValueLabel =
+    hasAPIUsage && roundedContextTotal >= 10_000
+      ? `${(roundedContextTotal / 1_000).toFixed(1)}k`
+      : roundedContextTotal.toLocaleString()
+  
+  // Format turn delta (e.g., "+50")
+  const turnValueLabel = turnTokenDelta > 0 ? `+${turnTokenDelta.toLocaleString()}` : ''
+  
+  // Combined label: "12.9k context · +50" or just "12.9k context" for first message
+  const tokenLabel = turnValueLabel 
+    ? `${contextValueLabel}k context · ${turnValueLabel}`
+    : `${contextValueLabel}k context`
   const tokenStatusColor = hasAPIUsage
     ? 'success'
     : hasAssistantMessages
