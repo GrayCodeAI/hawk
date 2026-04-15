@@ -17,8 +17,7 @@ import { getInitialSettings } from 'src/utils/settings/settings.js';
 import { isDebugMode, isDebugToStdErr, getDebugLogPath } from 'src/utils/debug.js';
 import { useEffect, useState } from 'react';
 
-// HAWK color - pure RGB red
-const HAWK_BORDER_COLOR = '#FF0000';
+// Keep HAWK ASCII colorful - revert welcome box to default
 import { getSteps, shouldShowProjectOnboarding, incrementProjectOnboardingSeenCount } from '../../projectOnboardingState.js';
 import { CondensedLogo } from './CondensedLogo.js';
 import { OffscreenFreeze } from '../OffscreenFreeze.js';
@@ -332,7 +331,7 @@ export function LogoV2() {
       t18 = $[42];
       t19 = $[43];
     }
-    return <><OffscreenFreeze><Box flexDirection="column" borderStyle="round" borderColor={HAWK_BORDER_COLOR} borderText={t11} paddingX={1} paddingY={1} alignItems="center" width={columns}><Text bold={true}>{welcomeMessage}</Text>{t12}{t13}<Text dimColor={true}>{billingType}</Text><Text dimColor={true}>{agentName ? `@${agentName} · ${truncatedCwd}` : truncatedCwd}</Text></Box></OffscreenFreeze>{t14}{t15}{t16}{t17}{t18}{t19}</>;
+    return <><OffscreenFreeze><Box flexDirection="column" borderStyle="round" borderColor="hawk" borderText={t11} paddingX={1} paddingY={1} alignItems="center" width={columns}><Text bold={true}>{welcomeMessage}</Text>{t12}{t13}<Text dimColor={true}>{billingType}</Text><Text dimColor={true}>{agentName ? `@${agentName} · ${truncatedCwd}` : truncatedCwd}</Text></Box></OffscreenFreeze>{t14}{t15}{t16}{t17}{t18}{t19}</>;
   }
   const welcomeMessage_0 = formatWelcomeMessage(username);
   const provider = getAPIProvider()
