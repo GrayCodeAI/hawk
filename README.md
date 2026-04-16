@@ -2,8 +2,6 @@
 
 <img src="hawk-cli.png" alt="Hawk CLI" width="850">
 
-[![npm](https://img.shields.io/npm/v/hawk?style=flat-square&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/hawk)
-[![downloads](https://img.shields.io/npm/dm/hawk?style=flat-square&logo=npm&logoColor=white&color=8B5CF6)](https://www.npmjs.com/package/hawk)
 [![license](https://img.shields.io/github/license/GrayCodeAI/hawk?style=flat-square&logo=open-source-initiative&logoColor=white&color=3BD550)](https://github.com/GrayCodeAI/hawk/blob/main/LICENSE)
 [![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?style=flat-square&logo=github&color=FBBF24)](https://github.com/GrayCodeAI/hawk/stargazers)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Fmq46SN8)
