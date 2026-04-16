@@ -220,14 +220,11 @@ Check [releases](https://github.com/GrayCodeAI/hawk/releases) for the latest upd
 
 Support Hawk's development:
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/graycodeai)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Sponsor-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/graycodeai)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor-pink?style=flat-square&logo=github)](https://github.com/sponsors/GrayCodeAI)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/GrayCodeAI)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Sponsor-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/GrayCodeAI)
 
-Your sponsorship helps us:
-- 🚀 Maintain and improve Hawk
-- 💡 Develop new features
-- 🐛 Fix bugs faster
-- 📚 Create better documentation
+Your sponsorship helps us maintain and improve Hawk.
 
 ## Contributing
 
