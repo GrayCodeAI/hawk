@@ -2,11 +2,12 @@
 
 <img src="hawk-cli.png" alt="Hawk CLI" width="850">
 
-[![npm](https://img.shields.io/npm/v/hawk?style=flat-square&color=0EA5E9)](https://www.npmjs.com/package/hawk)
-[![license](https://img.shields.io/github/license/GrayCodeAI/hawk?style=flat-square&color=8B5CF6)](LICENSE)
-[![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?style=flat-square&color=F59E0B)](https://github.com/GrayCodeAI/hawk)
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Fmq46SN8)
-[![X](https://img.shields.io/badge/Follow%20%40GrayCodeAI-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/GrayCodeAI)
+[![npm](https://img.shields.io/npm/v/hawk?color=cb3837&label=npm&logo=npm&logoColor=white&style=for-the-badge)](https://www.npmjs.com/package/hawk)
+[![downloads](https://img.shields.io/npm/dm/hawk?color=8B5CF6&label=downloads&logo=npm&logoColor=white&style=for-the-badge)](https://www.npmjs.com/package/hawk)
+[![license](https://img.shields.io/github/license/GrayCodeAI/hawk?color=22c55e&label=license&logo=open-source-initiative&logoColor=white&style=for-the-badge)](LICENSE)
+[![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?color=fbbf24&label=stars&logo=github&logoColor=black&style=for-the-badge)](https://github.com/GrayCodeAI/hawk)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?label=community&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/Fmq46SN8)
+[![X](https://img.shields.io/badge/X-000000?label=follow&logo=x&logoColor=white&style=for-the-badge)](https://x.com/GrayCodeAI)
 
 **The AI coding agent that works with 8+ LLM providers including OpenAI, Gemini, Anthropic, Grok, and access to 200+ models via OpenRouter.**
 
