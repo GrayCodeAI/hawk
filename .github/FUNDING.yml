@@ -1,25 +1,8 @@
-# These are supported funding model platforms
+# GitHub Sponsors (enable at https://github.com/sponsors/GrayCodeAI)
+# github: GrayCodeAI
 
-# GitHub Sponsors - Enable at https://github.com/sponsors/GrayCodeAI
-# github: [GrayCodeAI]
-
-# Buy Me a Coffee / Ko-fi
+# Ko-fi
 ko_fi: graycodeai
 
-# Open Collective
-# open_collective: graycodeai
-
-# Patreon
-# patreon: graycodeai
-
-# Custom sponsorship URLs
-custom: [
-  "https://www.buymeacoffee.com/graycodeai"
-]
-
-# Other platforms (uncomment when ready):
-# tidelift: npm/hawk
-# liberapay: GrayCodeAI
-# issuehunt: GrayCodeAI/hawk
-# otechie: # Replace with a single Otechie username
-# lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name
+# Buy Me A Coffee
+custom: https://www.buymeacoffee.com/graycodeai
