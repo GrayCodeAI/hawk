@@ -8,7 +8,7 @@
 [![Discord](https://img.shields.io/discord/1346295526255403012?style=flat-square&color=5865F2&label=Discord)](https://discord.gg/Fmq46SN8)
 [![X](https://img.shields.io/twitter/follow/GrayCodeAI?style=flat-square&color=1da1f2&label=X)](https://x.com/GrayCodeAI)
 
-**The AI coding agent that works with any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models.**
+**The AI coding agent that works with 8+ LLM providers including OpenAI, Gemini, Anthropic, Grok, and access to 200+ models via OpenRouter.**
 
 [Installation](#installation) · [Features](#features) · [Providers](#supported-providers) · [Documentation](ARCHITECTURE.md) · [Changelog](https://github.com/GrayCodeAI/hawk/releases)
 
@@ -18,7 +18,7 @@
 
 ## What is Hawk?
 
-Hawk is a powerful, extensible CLI coding agent that brings the intelligence of modern LLMs directly to your terminal. Unlike locked-in alternatives, Hawk is **provider-agnostic** — use your own API keys, run local models, or switch between 200+ providers instantly.
+Hawk is a powerful, extensible CLI coding agent that brings the intelligence of modern LLMs directly to your terminal. Unlike locked-in alternatives, Hawk is **provider-agnostic** — use your own API keys, run local models, or switch between 8+ providers including access to 200+ models via OpenRouter.
 
 Built for developers who want control without compromise.
 
@@ -122,18 +122,38 @@ Ask Hawk to help with any task:
 
 ## Supported Providers
 
+Hawk supports **8 official provider profiles** plus any OpenAI-compatible endpoint.
+
+### Official Provider Profiles
+
 | Provider | Best For | Setup |
 |----------|----------|-------|
 | **OpenAI** | General purpose, fast | `profile:init --provider openai` |
 | **Anthropic** | Complex reasoning, code | `profile:anthropic` |
 | **Gemini** | Long context, free tier | Built-in support |
-| **DeepSeek** | Cost-effective coding | OpenAI-compatible endpoint |
 | **Grok/xAI** | X integration, real-time | `profile:grok` |
 | **OpenRouter** | Access 200+ models | `profile:init --provider openrouter` |
 | **Ollama** | Local, free, private | `profile:init --provider ollama` |
-| **Groq** | Fast inference, free tier | OpenAI-compatible |
-| **Together AI** | Open-source models | API key setup |
-| **Azure OpenAI** | Enterprise | Custom endpoint |
+| **CanopyWave** | Open-source models | OpenAI-compatible endpoint |
+| **OpenCodeGO** | Kimi thinking models | OpenAI-compatible endpoint |
+
+### OpenAI-Compatible Endpoints
+
+Hawk's universal adapter works with any API that follows the OpenAI format:
+
+- **DeepSeek** — Cost-effective coding
+- **Groq** — Fast inference, free tier
+- **Together AI** — Open-source models
+- **Azure OpenAI** — Enterprise deployments
+- **LM Studio** — Local GUI inference
+- **Custom endpoints** — Your own API
+
+Setup for any compatible provider:
+```bash
+export OPENAI_API_KEY=your-key
+export OPENAI_BASE_URL=https://your-endpoint.com/v1
+export OPENAI_MODEL=model-name
+```
 
 See [full provider list](https://github.com/GrayCodeAI/hawk/wiki/Providers) for more.
 
