@@ -216,6 +216,19 @@ This is the **1.x branch** of Hawk with:
 
 Check [releases](https://github.com/GrayCodeAI/hawk/releases) for the latest updates.
 
+## Sponsors
+
+Support Hawk's development:
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/graycodeai)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Sponsor-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/graycodeai)
+
+Your sponsorship helps us:
+- 🚀 Maintain and improve Hawk
+- 💡 Develop new features
+- 🐛 Fix bugs faster
+- 📚 Create better documentation
+
 ## Contributing
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) before submitting PRs.
