@@ -5,8 +5,8 @@
 [![npm](https://img.shields.io/npm/v/hawk?style=flat-square&color=0EA5E9)](https://www.npmjs.com/package/hawk)
 [![license](https://img.shields.io/github/license/GrayCodeAI/hawk?style=flat-square&color=8B5CF6)](LICENSE)
 [![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?style=flat-square&color=F59E0B)](https://github.com/GrayCodeAI/hawk)
-[![Discord](https://img.shields.io/discord/1346295526255403012?style=flat-square&color=5865F2&label=Discord)](https://discord.gg/AyGB7TjA)
-[![X](https://img.shields.io/twitter/follow/Lakshman2302?style=flat-square&color=1da1f2&label=X)](https://x.com/Lakshman2302)
+[![Discord](https://img.shields.io/discord/1346295526255403012?style=flat-square&color=5865F2&label=Discord)](https://discord.gg/Fmq46SN8)
+[![X](https://img.shields.io/twitter/follow/GrayCodeAI?style=flat-square&color=1da1f2&label=X)](https://x.com/GrayCodeAI)
 
 **The AI coding agent that works with any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models.**
 
@@ -205,8 +205,8 @@ We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) 
 
 ## Community
 
-- 💬 [Discord](https://discord.gg/AyGB7TjA) — Get help, share ideas
-- 🐦 [X/Twitter](https://x.com/Lakshman2302) — Updates and announcements
+- 💬 [Discord](https://discord.gg/Fmq46SN8) — Get help, share ideas
+- 🐦 [X/Twitter](https://x.com/GrayCodeAI) — Updates and announcements
 - 🐛 [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues) — Bug reports and feature requests
 
 ## Security
