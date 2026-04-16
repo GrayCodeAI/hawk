@@ -148,11 +148,14 @@ Hawk's universal adapter works with any API that follows the OpenAI format:
 - **LM Studio** — Local GUI inference
 - **Custom endpoints** — Your own API
 
-Setup for any compatible provider:
-```bash
-export OPENAI_API_KEY=your-key
-export OPENAI_BASE_URL=https://your-endpoint.com/v1
-export OPENAI_MODEL=model-name
+Configure any compatible provider using the `/config` command inside Hawk, or edit `~/.hawk/provider.json` directly:
+
+```json
+{
+  "openai_api_key": "your-key",
+  "openai_base_url": "https://your-endpoint.com/v1",
+  "active_model": "model-name"
+}
 ```
 
 See [full provider list](https://github.com/GrayCodeAI/hawk/wiki/Providers) for more.
