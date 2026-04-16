@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/github/license/GrayCodeAI/hawk?style=flat-square&color=8B5CF6)](LICENSE)
 [![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?style=flat-square&color=F59E0B)](https://github.com/GrayCodeAI/hawk)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Fmq46SN8)
-[![X](https://img.shields.io/twitter/follow/GrayCodeAI?style=flat-square&color=1da1f2&label=X)](https://x.com/GrayCodeAI)
+[![X](https://img.shields.io/badge/Follow%20%40GrayCodeAI-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/GrayCodeAI)
 
 **The AI coding agent that works with 8+ LLM providers including OpenAI, Gemini, Anthropic, Grok, and access to 200+ models via OpenRouter.**
 
