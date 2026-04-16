@@ -1,4 +1,6 @@
 # These are supported funding model platforms
+# Updated for sponsor button visibility
+# Last updated: $(date -u)
 
 github: GrayCodeAI
 patreon: GrayCodeAI
