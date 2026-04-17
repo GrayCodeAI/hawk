@@ -14,6 +14,7 @@
 
 import { unwatchFile, watchFile } from 'fs'
 import { readdir, readFile, stat } from 'fs/promises'
+import { LRUCache } from 'lru-cache'
 import { join, resolve } from 'path'
 import { waitForScrollIdle } from '../../bootstrap/state.js'
 import { registerCleanup } from '../cleanupRegistry.js'
@@ -25,7 +26,7 @@ import { parseGitConfigValue } from './gitConfigParser.js'
 // resolveGitDir — find the actual .git directory
 // ---------------------------------------------------------------------------
 
-const resolveGitDirCache = new Map<string, string | null>()
+const resolveGitDirCache = new LRUCache<string, string | null>({ max: 100 })
 
 /** Clear cached git dir resolutions. Exported for testing only. */
 export function clearResolveGitDirCache(): void {
@@ -167,8 +168,8 @@ export async function readGitHead(
       if (!isSafeRefName(ref)) {
         return null
       }
-      const sha = await resolveRef(gitDir, ref)
-      return sha ? { type: 'detached', sha } : { type: 'detached', sha: '' }
+      const sha = await resolveRef(gitDir, ref, /* depth */ 0)
+      return sha ? { type: 'detached', sha } : null
     }
     // Raw SHA (detached HEAD). Validate: an attacker-controlled HEAD file
     // could contain shell metacharacters that flow into downstream shell
@@ -200,11 +201,15 @@ export async function readGitHead(
  *   - Entries: `<40-hex-sha> <refname>\n`
  *   - Peeled:  `^<40-hex-sha>\n` (after annotated tag entries)
  */
+const MAX_SYMFREF_DEPTH = 20
+
 export async function resolveRef(
   gitDir: string,
   ref: string,
+  depth = 0,
 ): Promise<string | null> {
-  const result = await resolveRefInDir(gitDir, ref)
+  if (depth >= MAX_SYMFREF_DEPTH) return null
+  const result = await resolveRefInDir(gitDir, ref, depth)
   if (result) {
     return result
   }
@@ -212,7 +217,7 @@ export async function resolveRef(
   // For worktrees: try the common gitdir where shared refs live
   const commonDir = await getCommonDir(gitDir)
   if (commonDir && commonDir !== gitDir) {
-    return resolveRefInDir(commonDir, ref)
+    return resolveRefInDir(commonDir, ref, depth)
   }
 
   return null
@@ -221,6 +226,7 @@ export async function resolveRef(
 async function resolveRefInDir(
   dir: string,
   ref: string,
+  depth: number,
 ): Promise<string | null> {
   // Try loose ref file
   try {
@@ -231,7 +237,7 @@ async function resolveRefInDir(
       if (!isSafeRefName(target)) {
         return null
       }
-      return resolveRef(dir, target)
+      return resolveRef(dir, target, depth + 1)
     }
     // Loose ref content should be a raw SHA. Validate: an attacker-controlled
     // ref file could contain shell metacharacters.

@@ -657,7 +657,7 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
 
       // Allowlisted tools are safe and don't need YOLO classification.
       // This uses the safe-tool allowlist to skip unnecessary classifier API calls.
-      if (classifierDecisionModule!.isAutoModeAllowlistedTool(tool.name)) {
+      if (classifierDecisionModule?.isAutoModeAllowlistedTool(tool.name)) {
         const newDenialState = recordSuccess(denialState)
         persistDenialState(context, newDenialState)
         logForDebugging(
@@ -1123,6 +1123,12 @@ export async function checkRuleBasedPermissions(
       throw e
     }
     logError(e)
+    // A failing permission check should prompt the user, not pass through
+    toolPermissionResult = {
+      behavior: 'ask',
+      decisionReason: { type: 'error' },
+      message: `Permission check failed for ${tool.name}, prompting for confirmation`,
+    }
   }
 
   // 1d. Tool implementation denied (catches bash subcommand denies wrapped
@@ -1164,67 +1170,31 @@ async function hasPermissionsToUseToolInner(
     throw new AbortError()
   }
 
-  let appState = context.getAppState()
-
-  // 1. Check if the tool is denied
-  // 1a. Entire tool is denied
-  const denyRule = getDenyRuleForTool(appState.toolPermissionContext, tool)
-  if (denyRule) {
-    return {
-      behavior: 'deny',
-      decisionReason: {
-        type: 'rule',
-        rule: denyRule,
-      },
-      message: `Permission to use ${tool.name} has been denied.`,
-    }
+  // Steps 1a–1d, 1f, 1g: check rule-based permissions (deny, ask, tool check, safety).
+  // Reuses checkRuleBasedPermissions to avoid duplicating ~50 lines of logic.
+  const ruleResult = await checkRuleBasedPermissions(tool, input, context)
+  if (ruleResult) {
+    return ruleResult
   }
 
-  // 1b. Check if the entire tool should always ask for permission
-  const askRule = getAskRuleForTool(appState.toolPermissionContext, tool)
-  if (askRule) {
-    // When autoAllowBashIfSandboxed is on, sandboxed commands skip the ask rule and
-    // auto-allow via Bash's checkPermissions. Commands that won't be sandboxed (excluded
-    // commands, dangerouslyDisableSandbox) still need to respect the ask rule.
-    const canSandboxAutoAllow =
-      tool.name === BASH_TOOL_NAME &&
-      SandboxManager.isSandboxingEnabled() &&
-      SandboxManager.isAutoAllowBashIfSandboxedEnabled() &&
-      shouldUseSandbox(input)
-
-    if (!canSandboxAutoAllow) {
-      return {
-        behavior: 'ask',
-        decisionReason: {
-          type: 'rule',
-          rule: askRule,
-        },
-        message: createPermissionRequestMessage(tool.name),
-      }
-    }
-    // Fall through to let Bash's checkPermissions handle command-specific rules
-  }
-
-  // 1c. Ask the tool implementation for a permission result
-  // Overridden unless tool input schema is not valid
-  let toolPermissionResult: PermissionResult = {
-    behavior: 'passthrough',
-    message: createPermissionRequestMessage(tool.name),
-  }
+  // Re-run tool.checkPermissions to get the toolPermissionResult needed for
+  // steps 1e, 2a, 2b, and 3. checkRuleBasedPermissions already called it but
+  // didn't expose the result — re-parsing is cheap compared to the I/O checks
+  // it already performed.
+  let toolPermissionResult: PermissionResult
   try {
     const parsedInput = tool.inputSchema.parse(input)
     toolPermissionResult = await tool.checkPermissions(parsedInput, context)
   } catch (e) {
-    // Rethrow abort errors so they propagate properly
     if (e instanceof AbortError || e instanceof APIUserAbortError) {
       throw e
     }
     logError(e)
-  }
-
-  // 1d. Tool implementation denied permission
-  if (toolPermissionResult?.behavior === 'deny') {
-    return toolPermissionResult
+    toolPermissionResult = {
+      behavior: 'ask',
+      decisionReason: { type: 'error' },
+      message: `Permission check failed for ${tool.name}, prompting for confirmation`,
+    }
   }
 
   // 1e. Tool requires user interaction even in bypass mode
@@ -1235,33 +1205,9 @@ async function hasPermissionsToUseToolInner(
     return toolPermissionResult
   }
 
-  // 1f. Content-specific ask rules from tool.checkPermissions take precedence
-  // over bypassPermissions mode. When a user explicitly configures a
-  // content-specific ask rule (e.g. Bash(npm publish:*)), the tool's
-  // checkPermissions returns {behavior:'ask', decisionReason:{type:'rule',
-  // rule:{ruleBehavior:'ask'}}}. This must be respected even in bypass mode,
-  // just as deny rules are respected at step 1d.
-  if (
-    toolPermissionResult?.behavior === 'ask' &&
-    toolPermissionResult.decisionReason?.type === 'rule' &&
-    toolPermissionResult.decisionReason.rule.ruleBehavior === 'ask'
-  ) {
-    return toolPermissionResult
-  }
-
-  // 1g. Safety checks (e.g. .git/, .hawk/, .vscode/, shell configs) are
-  // bypass-immune — they must prompt even in bypassPermissions mode.
-  // checkPathSafetyForAutoEdit returns {type:'safetyCheck'} for these paths.
-  if (
-    toolPermissionResult?.behavior === 'ask' &&
-    toolPermissionResult.decisionReason?.type === 'safetyCheck'
-  ) {
-    return toolPermissionResult
-  }
-
   // 2a. Check if mode allows the tool to run
   // IMPORTANT: Call getAppState() to get the latest value
-  appState = context.getAppState()
+  const appState = context.getAppState()
   // Check if permissions should be bypassed:
   // - Direct bypassPermissions mode
   // - Plan mode when the user originally started with bypass mode (isBypassPermissionsModeAvailable)
@@ -1376,27 +1322,38 @@ function convertRulesToUpdates(
   rules: PermissionRule[],
   updateType: 'addRules' | 'replaceRules',
 ): PermissionUpdate[] {
-  // Group rules by source and behavior
-  const grouped = new Map<string, PermissionRuleValue[]>()
+  // Group rules by source and behavior using a nested Map to avoid
+  // fragile string concatenation/splitting for composite keys.
+  const grouped = new Map<
+    PermissionRuleSource,
+    Map<PermissionBehavior, PermissionRuleValue[]>
+  >()
 
   for (const rule of rules) {
-    const key = `${rule.source}:${rule.ruleBehavior}`
-    if (!grouped.has(key)) {
-      grouped.set(key, [])
+    let byBehavior = grouped.get(rule.source)
+    if (!byBehavior) {
+      byBehavior = new Map()
+      grouped.set(rule.source, byBehavior)
     }
-    grouped.get(key)!.push(rule.ruleValue)
+    let values = byBehavior.get(rule.ruleBehavior)
+    if (!values) {
+      values = []
+      byBehavior.set(rule.ruleBehavior, values)
+    }
+    values.push(rule.ruleValue)
   }
 
   // Convert to PermissionUpdate array
   const updates: PermissionUpdate[] = []
-  for (const [key, ruleValues] of grouped) {
-    const [source, behavior] = key.split(':')
-    updates.push({
-      type: updateType,
-      rules: ruleValues,
-      behavior: behavior as PermissionBehavior,
-      destination: source as PermissionUpdateDestination,
-    })
+  for (const [source, byBehavior] of grouped) {
+    for (const [behavior, ruleValues] of byBehavior) {
+      updates.push({
+        type: updateType,
+        rules: ruleValues,
+        behavior,
+        destination: source as PermissionUpdateDestination,
+      })
+    }
   }
 
   return updates

@@ -109,6 +109,7 @@ function PromptInputFooter({
   // has terminal scrollback to absorb overflow, so we never hide StatusLine there.
   const isFullscreen = isFullscreenEnvEnabled();
   const isShort = isFullscreen && rows < 24;
+  const showTopStatusRow = mode === 'prompt' && !isShort && !exitMessage.show && !isPasting && statusLineShouldDisplay(settings);
 
   // Pill highlights when tasks is the active footer item AND no specific
   // agent row is selected. When coordinatorTaskIndex >= 0 the pointer has
@@ -137,9 +138,13 @@ function PromptInputFooter({
     return <PromptInputHelpMenu dimColor={true} fixedWidth={true} paddingX={2} />;
   }
   return <>
+      {showTopStatusRow && <Box paddingX={2}>
+          <Box flexGrow={1} flexShrink={1} minWidth={0}>
+            <StatusLine messagesRef={messagesRef} lastAssistantMessageId={lastAssistantMessageId} vimMode={vimMode} />
+          </Box>
+        </Box>}
       <Box flexDirection={isNarrow ? 'column' : 'row'} justifyContent={isNarrow ? 'flex-start' : 'space-between'} paddingX={2} gap={isNarrow ? 0 : 1}>
         <Box flexDirection="column" flexShrink={isNarrow ? 0 : 1}>
-          {mode === 'prompt' && !isShort && !exitMessage.show && !isPasting && statusLineShouldDisplay(settings) && <StatusLine messagesRef={messagesRef} lastAssistantMessageId={lastAssistantMessageId} vimMode={vimMode} />}
           <PromptInputFooterLeftSide exitMessage={exitMessage} vimMode={vimMode} mode={mode} toolPermissionContext={toolPermissionContext} suppressHint={suppressHint} isLoading={isLoading} tasksSelected={pillSelected} teamsSelected={teamsSelected} teammateFooterIndex={teammateFooterIndex} tmuxSelected={tmuxSelected} isPasting={isPasting} isSearching={isSearching} historyQuery={historyQuery} setHistoryQuery={setHistoryQuery} historyFailedMatch={historyFailedMatch} onOpenTasksDialog={onOpenTasksDialog} />
         </Box>
         <Box flexGrow={isNarrow ? 0 : 1} flexShrink={1} minWidth={0} flexDirection="column" alignItems={isNarrow ? 'flex-start' : 'flex-end'}>
@@ -166,13 +171,13 @@ function BridgeStatusIndicator({
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
   const enabled = useAppState(s => s.replBridgeEnabled);
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
-  const connected = useAppState(s_0 => s_0.replBridgeConnected);
+  const connected = useAppState(s => s.replBridgeConnected);
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
-  const sessionActive = useAppState(s_1 => s_1.replBridgeSessionActive);
+  const sessionActive = useAppState(s => s.replBridgeSessionActive);
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
-  const reconnecting = useAppState(s_2 => s_2.replBridgeReconnecting);
+  const reconnecting = useAppState(s => s.replBridgeReconnecting);
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
-  const explicit = useAppState(s_3 => s_3.replBridgeExplicit);
+  const explicit = useAppState(s => s.replBridgeExplicit);
 
   // Failed state is surfaced via notification (useReplBridge), not a footer pill.
   if (!isBridgeEnabled() || !enabled) return null;
