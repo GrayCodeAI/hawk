@@ -54,7 +54,7 @@ sequenceDiagram
 
   U->>C: Prompt / command
   C->>Q: submitMessage(...)
-  Q->>A: query(...) / getLLMClient(...)
+  Q->>A: getLLMClient(...)
   A->>E: detect provider + resolve runtime
   E-->>A: mode + base URL + model + key source
   A->>P: Chat request (stream/non-stream)

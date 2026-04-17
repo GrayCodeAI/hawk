@@ -456,12 +456,12 @@ class SmartRouter:
                     f"SmartRouter: {provider.name} OK "
                     f"({elapsed_ms:.0f}ms, status={resp.status_code})"
                 )
-                else:
-                    provider.healthy = False
-                    logger.warning(
-                        f"SmartRouter: {provider.name} unhealthy "
-                        f"(status={resp.status_code})"
-                    )
+            else:
+                provider.healthy = False
+                logger.warning(
+                    f"SmartRouter: {provider.name} unhealthy "
+                    f"(status={resp.status_code})"
+                )
         except Exception as e:
             provider.healthy = False
             logger.warning(f"SmartRouter: {provider.name} unreachable — {e}")
