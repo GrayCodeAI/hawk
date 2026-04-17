@@ -488,42 +488,18 @@ export class QueryEngine {
     const mainLoopModel = modelFromUserInput ?? initialMainLoopModel
 
     // Recreate after processing the prompt to pick up updated messages and
-    // model (from slash commands).
+    // model (from slash commands). Use spread with targeted overrides to
+    // avoid duplicating the entire object.
+    const { setMessages: _unused, ...contextWithoutSetMessages } =
+      processUserInputContext
     processUserInputContext = {
+      ...contextWithoutSetMessages,
       messages,
       setMessages: () => {},
-      onChangeAPIKey: () => {},
-      handleElicitation: this.config.handleElicitation,
       options: {
-        commands,
-        debug: false,
-        tools,
-        verbose,
+        ...processUserInputContext.options,
         mainLoopModel,
-        thinkingConfig: initialThinkingConfig,
-        mcpClients,
-        mcpResources: {},
-        ideInstallationStatus: null,
-        isNonInteractiveSession: true,
-        customSystemPrompt,
-        appendSystemPrompt,
-        theme: resolveThemeSetting(getGlobalConfig().theme),
-        agentDefinitions: { activeAgents: agents, allAgents: [] },
-        maxBudgetUsd,
       },
-      getAppState,
-      setAppState,
-      abortController: this.abortController,
-      readFileState: this.readFileState,
-      nestedMemoryAttachmentTriggers: new Set<string>(),
-      loadedNestedMemoryPaths: this.loadedNestedMemoryPaths,
-      dynamicSkillDirTriggers: new Set<string>(),
-      discoveredSkillNames: this.discoveredSkillNames,
-      setInProgressToolUseIDs: () => {},
-      setResponseLength: () => {},
-      updateFileHistoryState: processUserInputContext.updateFileHistoryState,
-      updateAttributionState: processUserInputContext.updateAttributionState,
-      setSDKStatus,
     }
 
     headlessProfilerCheckpoint('before_skills_plugins')

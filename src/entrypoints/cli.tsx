@@ -56,6 +56,28 @@ function isOpenAICompatibleModeEnabled(): boolean {
   )
 }
 
+function isPlaceholderApiKey(key: string | undefined): boolean {
+  if (!key) return false
+  const lower = key.toLowerCase().trim()
+  const placeholders = [
+    'sua_chave',
+    'your-api-key',
+    'your_api_key',
+    'yourapikey',
+    'your_key',
+    'yourkey',
+    'sk-xxx',
+    'sk-xxxx',
+    'sk-placeholder',
+    'placeholder',
+    'changeme',
+    'change_me',
+    'replace-me',
+    'insert-your-api-key-here',
+  ]
+  return placeholders.includes(lower)
+}
+
 function validateProviderEnvOrExit(): void {
   if (!isOpenAICompatibleModeEnabled()) {
     return
@@ -64,7 +86,7 @@ function validateProviderEnvOrExit(): void {
   const runtime = resolveOpenAICompatibleRuntime()
   const request = runtime.request
 
-  if (runtime.apiKey === 'SUA_CHAVE') {
+  if (isPlaceholderApiKey(runtime.apiKey)) {
     const keyLabel =
       runtime.mode === 'gemini'
         ? 'GEMINI_API_KEY'
@@ -75,7 +97,7 @@ function validateProviderEnvOrExit(): void {
           : runtime.mode === 'grok'
             ? 'GROK_API_KEY/XAI_API_KEY'
             : 'OPENAI_API_KEY'
-    console.error(`Invalid ${keyLabel}: placeholder value SUA_CHAVE detected. Set a real key or unset for local providers.`)
+    console.error(`Invalid ${keyLabel}: placeholder value detected. Set a real API key or unset it for local providers.`)
     process.exit(1)
   }
 
@@ -137,7 +159,10 @@ async function main(): Promise<void> {
       getMainLoopModel
     } = await import('../utils/model/model.js');
     const modelIdx = args.indexOf('--model');
-    const model = modelIdx !== -1 && args[modelIdx + 1] || getMainLoopModel();
+    const modelValue = modelIdx !== -1 && args[modelIdx + 1] !== undefined && !args[modelIdx + 1]!.startsWith('--')
+      ? args[modelIdx + 1]
+      : undefined;
+    const model = modelValue || getMainLoopModel();
     const {
       getSystemPrompt
     } = await import('../constants/prompts.js');
@@ -146,21 +171,21 @@ async function main(): Promise<void> {
     console.log(prompt.join('\n'));
     return;
   }
-  if (process.argv[2] === '--hawk-in-chrome-mcp') {
+  if (args[0] === '--hawk-in-chrome-mcp') {
     profileCheckpoint('cli_hawk_in_chrome_mcp_path');
     const {
       runHawkInChromeMcpServer
     } = await import('../utils/hawkInChrome/mcpServer.js');
     await runHawkInChromeMcpServer();
     return;
-  } else if (process.argv[2] === '--chrome-native-host') {
+  } else if (args[0] === '--chrome-native-host') {
     profileCheckpoint('cli_chrome_native_host_path');
     const {
       runChromeNativeHost
     } = await import('../utils/hawkInChrome/chromeNativeHost.js');
     await runChromeNativeHost();
     return;
-  } else if (feature('CHICAGO_MCP') && process.argv[2] === '--computer-use-mcp') {
+  } else if (feature('CHICAGO_MCP') && args[0] === '--computer-use-mcp') {
     profileCheckpoint('cli_computer_use_mcp_path');
     const {
       runComputerUseMcpServer
@@ -271,12 +296,24 @@ async function main(): Promise<void> {
         await bg.psHandler(args.slice(1));
         break;
       case 'logs':
+        if (!args[1]) {
+          const { exitWithError } = await import('../utils/process.js');
+          exitWithError('Error: session ID required. Usage: hawk logs <session-id>');
+        }
         await bg.logsHandler(args[1]);
         break;
       case 'attach':
+        if (!args[1]) {
+          const { exitWithError } = await import('../utils/process.js');
+          exitWithError('Error: session ID required. Usage: hawk attach <session-id>');
+        }
         await bg.attachHandler(args[1]);
         break;
       case 'kill':
+        if (!args[1]) {
+          const { exitWithError } = await import('../utils/process.js');
+          exitWithError('Error: session ID required. Usage: hawk kill <session-id>');
+        }
         await bg.killHandler(args[1]);
         break;
       default:
