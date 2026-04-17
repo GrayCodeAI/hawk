@@ -106,6 +106,8 @@ import {
   isResultSuccessful,
   normalizeMessage,
 } from './utils/queryHelpers.js'
+import type { QueryEngineConfig } from './QueryEngineTypes.js'
+export type { QueryEngineConfig } from './QueryEngineTypes.js'
 
 // Dead code elimination: conditional import for coordinator mode
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -126,51 +128,6 @@ const snipProjection = feature('HISTORY_SNIP')
   ? (require('./services/compact/snipProjection.js') as typeof import('./services/compact/snipProjection.js'))
   : null
 /* eslint-enable @typescript-eslint/no-require-imports */
-
-export type QueryEngineConfig = {
-  cwd: string
-  tools: Tools
-  commands: Command[]
-  mcpClients: MCPServerConnection[]
-  agents: AgentDefinition[]
-  canUseTool: CanUseToolFn
-  getAppState: () => AppState
-  setAppState: (f: (prev: AppState) => AppState) => void
-  initialMessages?: Message[]
-  readFileCache: FileStateCache
-  customSystemPrompt?: string
-  appendSystemPrompt?: string
-  userSpecifiedModel?: string
-  fallbackModel?: string
-  thinkingConfig?: ThinkingConfig
-  maxTurns?: number
-  maxBudgetUsd?: number
-  taskBudget?: { total: number }
-  jsonSchema?: Record<string, unknown>
-  verbose?: boolean
-  replayUserMessages?: boolean
-  /** Handler for URL elicitations triggered by MCP tool -32042 errors. */
-  handleElicitation?: ToolUseContext['handleElicitation']
-  includePartialMessages?: boolean
-  setSDKStatus?: (status: SDKStatus) => void
-  abortController?: AbortController
-  orphanedPermission?: OrphanedPermission
-  /**
-   * Snip-boundary handler: receives each yielded system message plus the
-   * current mutableMessages store. Returns undefined if the message is not a
-   * snip boundary; otherwise returns the replayed snip result. Injected by
-   * ask() when HISTORY_SNIP is enabled so feature-gated strings stay inside
-   * the gated module (keeps QueryEngine free of excluded strings and testable
-   * despite feature() returning false under bun test). SDK-only: the REPL
-   * keeps full history for UI scrollback and projects on demand via
-   * projectSnippedView; QueryEngine truncates here to bound memory in long
-   * headless sessions (no UI to preserve).
-   */
-  snipReplay?: (
-    yieldedSystemMsg: Message,
-    store: Message[],
-  ) => { messages: Message[]; executed: boolean } | undefined
-}
 
 /**
  * QueryEngine owns the query lifecycle and session state for a conversation.
