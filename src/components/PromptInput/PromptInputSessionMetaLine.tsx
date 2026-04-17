@@ -1,26 +1,29 @@
 import { homedir } from 'os'
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { getTotalDuration, getSdkBetas } from '../../bootstrap/state.js'
 import {
   getTotalCacheCreationInputTokens,
   getTotalCacheReadInputTokens,
   getTotalCost,
   getTotalInputTokens,
   getTotalOutputTokens,
-  getTurnTotalTokens,
 } from '../../cost-tracker.js'
-import { getTotalDuration } from '../../bootstrap/state.js'
+import { useMainLoopModel } from '../../hooks/useMainLoopModel.js'
 import { Box, Text } from '../../ink.js'
 import type { Message } from '../../types/message.js'
-import { getBranch } from '../../utils/git.js'
-import { modelDisplayString } from '../../utils/model/model.js'
-import { getAPIProvider } from '../../utils/model/providers.js'
 import {
-  isDefaultMode,
-  permissionModeTitle,
-  type PermissionMode,
-} from '../../utils/permissions/PermissionMode.js'
-import { useAppState } from '../../state/AppState.js'
+  calculateContextPercentages,
+  getContextWindowForModel,
+} from '../../utils/context.js'
+import { formatTokens } from '../../utils/format.js'
+import { getBranch } from '../../utils/git.js'
+import { getRuntimeMainLoopModel } from '../../utils/model/model.js'
+import type { PermissionMode } from '../../utils/permissions/PermissionMode.js'
+import {
+  doesMostRecentAssistantMessageExceed200k,
+  getCurrentUsage,
+} from '../../utils/tokens.js'
 
 type Props = {
   permissionMode: PermissionMode
@@ -41,9 +44,9 @@ export function PromptInputSessionMetaLine({
   permissionMode,
   messages,
 }: Props): React.ReactNode {
-  const mainLoopModel = useAppState(s => s.mainLoopModel)
   const [displayPath] = useState(() => getDisplayCwd())
   const [branchLabel, setBranchLabel] = useState<string>('—')
+  const mainLoopModel = useMainLoopModel()
 
   useEffect(() => {
     let cancelled = false
@@ -70,23 +73,49 @@ export function PromptInputSessionMetaLine({
     getTotalOutputTokens() +
     getTotalCacheReadInputTokens() +
     getTotalCacheCreationInputTokens()
-  const turnTokenDelta = getTurnTotalTokens()
-  const hasAssistantMessages = messages.some(m => m.type === 'assistant')
-  const hasAPIUsage = contextTokenTotal > 0
-  
+
   // Format context size with full number (e.g., "12,943")
   const roundedContextTotal = Math.max(0, Math.round(contextTokenTotal))
   const contextValueLabel = roundedContextTotal.toLocaleString()
-  
+
   // Simple display: just show total tokens
   const tokenLabel = `${contextValueLabel} tokens`
-  // Always bright green
-  const tokenColor = 'ansi:greenBright'
-  const modeLabel = isDefaultMode(permissionMode)
-    ? 'default'
-    : permissionModeTitle(permissionMode).toLowerCase()
-  const provider = getAPIProvider()
-  const modelLabel = `${provider}: ${modelDisplayString(mainLoopModel)}`
+  const runtimeMainLoopModel = useMemo(
+    () =>
+      getRuntimeMainLoopModel({
+        permissionMode,
+        mainLoopModel,
+        exceeds200kTokens: doesMostRecentAssistantMessageExceed200k(messages),
+      }),
+    [permissionMode, mainLoopModel, messages],
+  )
+  const currentUsage = useMemo(() => getCurrentUsage(messages), [messages])
+  const contextWindowSize = useMemo(
+    () => getContextWindowForModel(runtimeMainLoopModel, getSdkBetas()),
+    [runtimeMainLoopModel],
+  )
+  const currentContextTokens =
+    currentUsage === null
+      ? 0
+      : currentUsage.input_tokens +
+        currentUsage.cache_creation_input_tokens +
+        currentUsage.cache_read_input_tokens
+  const currentContextLabel = formatTokens(currentContextTokens).replace(
+    /m$/,
+    'M',
+  )
+  const contextWindowLabel = formatTokens(contextWindowSize).replace(/m$/, 'M')
+  const contextUsage = calculateContextPercentages(
+    currentUsage
+      ? {
+          input_tokens: currentUsage.input_tokens,
+          cache_creation_input_tokens:
+            currentUsage.cache_creation_input_tokens,
+          cache_read_input_tokens: currentUsage.cache_read_input_tokens,
+        }
+      : null,
+    contextWindowSize,
+  )
   const totalCost = getTotalCost()
   const costLabel =
     totalCost === 0
@@ -108,36 +137,48 @@ export function PromptInputSessionMetaLine({
       : `⏱ ${durationSec}s`
 
   // Unique bright color scheme for each footer element
-  const dimGray = 'ansi:blackBright'
-  const modeColor = 'ansi:redBright'
-  const modelColor = '#DA70D6'
-  const pathColor = 'ansi:blueBright'
-  const branchColor = 'ansi:yellowBright'
-  const costColor = 'ansi:magentaBright'
-  const durationColor = 'ansi:cyanBright'
-  const versionColor = 'ansi:whiteBright'
+  const separatorColor = '#6b7280'
+  const pathColor = '#61afef'
+  const branchColor = '#e5c07b'
+  const tokenColor = '#98c379'
+  const contextIconColor = '#56b6c2'
+  const currentContextColor = '#f0f6fc'
+  const totalContextColor = '#c678dd'
+  const contextPercentColor = '#ff7a90'
+  const costColor = '#d19a66'
+  const durationColor = '#7dcfff'
+  const versionColor = '#bb9af7'
 
   return (
     <Box height={1} overflow="hidden" width="100%" justifyContent="flex-end">
       <Box flexShrink={1} minWidth={0}>
         <Text wrap="truncate">
-          <Text color={modeColor}>◆ {modeLabel}</Text>
-          <Text color={dimGray}>  </Text>
-          <Text color={modelColor}>◇ {modelLabel}</Text>
-          <Text color={dimGray}>  </Text>
           <Text color={pathColor}>▢ {displayPath}</Text>
-          <Text color={dimGray}>:</Text>
+          <Text color={separatorColor}>:</Text>
           <Text color={branchColor}>⎇ {branchLabel}</Text>
-          <Text color={dimGray}>  </Text>
+          <Text color={separatorColor}> · </Text>
         </Text>
       </Box>
       <Text>
         <Text color={tokenColor}>◉ {tokenLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
+        <Text color={contextIconColor}>◔ </Text>
+        <Text color={currentContextColor}>{currentContextLabel}</Text>
+        <Text color={separatorColor}> / </Text>
+        <Text color={totalContextColor}>{contextWindowLabel}</Text>
+        <Text color={separatorColor}> ctx</Text>
+        {contextUsage.used === null ? null : (
+          <>
+            <Text color={separatorColor}> (</Text>
+            <Text color={contextPercentColor}>{contextUsage.used}%</Text>
+            <Text color={separatorColor}>)</Text>
+          </>
+        )}
+        <Text color={separatorColor}> · </Text>
         <Text color={costColor}>{costLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
         <Text color={durationColor}>{durationLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
         <Text color={versionColor}>⌖ {version}</Text>
       </Text>
     </Box>
