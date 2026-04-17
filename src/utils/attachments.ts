@@ -70,6 +70,7 @@ import type {
   ImageBlockParam,
   Base64ImageSource,
 } from '@hawk/eyrie'
+import { resolvePastedImageContent } from './imagePaste.js'
 import { maybeResizeAndDownsampleImageBlock } from './imageResizer.js'
 import type { PastedContent } from './config.js'
 import { getGlobalConfig } from './config.js'
@@ -1110,8 +1111,14 @@ async function buildImageContentBlocks(
   if (imageContents.length === 0) {
     return []
   }
+  const resolvedImages = (
+    await Promise.all(imageContents.map(resolvePastedImageContent))
+  ).filter((img): img is PastedContent => img !== null)
+  if (resolvedImages.length === 0) {
+    return []
+  }
   const results = await Promise.all(
-    imageContents.map(async img => {
+    resolvedImages.map(async img => {
       const imageBlock: ImageBlockParam = {
         type: 'image',
         source: {

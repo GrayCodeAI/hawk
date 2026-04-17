@@ -72,7 +72,16 @@ import {
 import { formatTokens } from '../../utils/format.js';
 import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js';
 import type { PromptInputHelpers } from '../../utils/handlePromptSubmit.js';
-import { getImageFromClipboard, PASTE_THRESHOLD } from '../../utils/imagePaste.js';
+import {
+  asPotentialFilePath,
+  extractPotentialFilePaths,
+  getImageFromClipboard,
+  isMacFileReferencePath,
+  isImageFilePath,
+  isPureFilePathPaste,
+  PASTE_THRESHOLD,
+  tryReadImageFromPath,
+} from '../../utils/imagePaste.js';
 import type { ImageDimensions } from '../../utils/imageResizer.js';
 import { cacheImagePath, storeImage } from '../../utils/imageStore.js';
 import { isMacosOptionChar, MACOS_OPTION_SPECIAL_CHARS } from '../../utils/keyboardShortcuts.js';
@@ -275,14 +284,24 @@ function PromptInput({
     show: false
   });
   const [cursorOffset, setCursorOffset] = useState<number>(input.length);
-  // Track the last input value set via internal handlers so we can detect
-  // external input changes (e.g. speech-to-text injection) and move cursor to end.
+  // Track the last input value set via internal handlers so external updates
+  // (for example speech-to-text injection) can still move the cursor to end
+  // without clobbering a pending internal keystroke during render.
   const lastInternalInputRef = React.useRef(input);
-  if (input !== lastInternalInputRef.current) {
-    // Input changed externally (not through any internal handler) — move cursor to end
-    setCursorOffset(input.length);
+  const lastPropInputRef = React.useRef(input);
+  React.useLayoutEffect(() => {
+    if (input === lastPropInputRef.current) {
+      return;
+    }
+
+    lastPropInputRef.current = input;
+    if (input === lastInternalInputRef.current) {
+      return;
+    }
+
     lastInternalInputRef.current = input;
-  }
+    setCursorOffset(prev => prev === input.length ? prev : input.length);
+  }, [input]);
   // Wrap onInputChange to track internal changes before they trigger re-render
   const trackAndSetInput = React.useCallback((value: string) => {
     lastInternalInputRef.current = value;
@@ -1176,9 +1195,8 @@ function PromptInput({
   function onImagePaste(image: string, mediaType?: string, filename?: string, dimensions?: ImageDimensions, sourcePath?: string) {
     logEvent('tengu_paste_image', {});
     onModeChange('prompt');
-    const pasteId = nextPasteIdRef.current++;
     const newContent: PastedContent = {
-      id: pasteId,
+      id: nextPasteIdRef.current++,
       type: 'image',
       content: image,
       mediaType: mediaType || 'image/png',
@@ -1188,23 +1206,41 @@ function PromptInput({
       sourcePath
     };
 
-    // Cache path immediately (fast) so links work on render
-    cacheImagePath(newContent);
+    if (newContent.content.length > 0) {
+      // Cache path immediately (fast) so links work on render
+      cacheImagePath(newContent);
 
-    // Store image to disk in background
-    void storeImage(newContent);
+      // Store image to disk in background
+      void storeImage(newContent);
+    }
 
-    // Update UI
+    insertImageRef(newContent);
+  }
+  function insertImageRef(newContent: PastedContent) {
     setPastedContents(prev => ({
       ...prev,
-      [pasteId]: newContent
+      [newContent.id]: newContent
     }));
     // Multi-image paste calls onImagePaste in a loop. If the ref is already
     // armed, the previous pill's lazy space fires now (before this pill)
     // rather than being lost.
     const prefix = pendingSpaceAfterPillRef.current ? ' ' : '';
-    insertTextAtCursor(prefix + formatImageRef(pasteId));
+    insertTextAtCursor(prefix + formatImageRef(newContent.id));
     pendingSpaceAfterPillRef.current = true;
+  }
+  function onImagePathPaste(sourcePath: string) {
+    logEvent('tengu_paste_image_path', {});
+    onModeChange('prompt');
+    const normalizedPath = asPotentialFilePath(sourcePath) || sourcePath.trim();
+    const filename = isMacFileReferencePath(normalizedPath) ? 'Dropped image' : path.basename(normalizedPath) || 'Dropped image';
+    insertImageRef({
+      id: nextPasteIdRef.current++,
+      type: 'image',
+      content: '',
+      mediaType: 'image/png',
+      filename,
+      sourcePath: normalizedPath
+    });
   }
 
   // Prune images whose [Image #N] placeholder is no longer in the input text.
@@ -1236,6 +1272,53 @@ function PromptInput({
         text = getValueFromInput(text);
       }
     }
+
+    // Fallback path: some terminals don't flag drag/drop as image-paste events.
+    // If pasted text looks like file paths, attempt to attach image files here.
+    const imagePathCandidates = extractPotentialFilePaths(text).filter(candidate => isImageFilePath(candidate) || isMacFileReferencePath(candidate) || !!asPotentialFilePath(candidate));
+    if (imagePathCandidates.length > 0) {
+      logForDebugging(`[paste] text handler pathCandidates=${imagePathCandidates.length} sample=${JSON.stringify(text.slice(0, 160))}`);
+      void Promise.all(imagePathCandidates.map(candidate => tryReadImageFromPath(candidate))).then(results => {
+        let insertedAny = false;
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          const candidate = imagePathCandidates[i];
+          if (result) {
+            insertedAny = true;
+            onImagePaste(result.base64, result.mediaType, path.basename(result.path), result.dimensions, result.path);
+          } else if (candidate && (isImageFilePath(candidate) || isMacFileReferencePath(candidate))) {
+            insertedAny = true;
+            onImagePathPaste(candidate);
+          }
+        }
+        if (!insertedAny) {
+          if (getPlatform() === 'macos') {
+            logForDebugging('[paste] text handler paths unresolved; trying clipboard fallback');
+            void getImageFromClipboard().then(imageData => {
+              if (imageData) {
+                logForDebugging('[paste] text handler clipboard fallback success');
+                onImagePaste(imageData.base64, imageData.mediaType, undefined, imageData.dimensions);
+              } else {
+                logForDebugging('[paste] text handler clipboard fallback returned null; inserting text');
+                insertTextAtCursor(text);
+              }
+            }).catch(error => {
+              logError(error as Error);
+              insertTextAtCursor(text);
+            });
+            return;
+          }
+          insertTextAtCursor(text);
+        } else if (!isPureFilePathPaste(text, imagePathCandidates)) {
+          insertTextAtCursor(text);
+        }
+      }).catch(error => {
+        logError(error as Error);
+        insertTextAtCursor(text);
+      });
+      return;
+    }
+
     const numLines = getPastedTextRefNumLines(text);
     // Limit the number of lines to show in the input
     // If the overall layout is too high then Ink will repaint
@@ -1269,12 +1352,24 @@ function PromptInput({
     if (isNonSpacePrintable(input, key)) return ' ' + input;
     return input;
   }, []);
+  // Ref mirrors cursorOffset for use in synchronous loops (e.g. image drop
+  // insertion) where React batches state updates and the closure value is stale.
+  const cursorOffsetRef = useRef(cursorOffset);
+  cursorOffsetRef.current = cursorOffset;
   function insertTextAtCursor(text: string) {
-    // Push current state to buffer before inserting
-    pushToBuffer(input, cursorOffset, pastedContents);
-    const newInput = input.slice(0, cursorOffset) + text + input.slice(cursorOffset);
+    // Use refs for input/cursor so back-to-back calls in the same event
+    // chain correctly instead of each reading stale closure values.
+    const currentInput = lastInternalInputRef.current;
+    const currentOffset = cursorOffsetRef.current;
+    pushToBuffer(currentInput, currentOffset, pastedContents);
+    const newInput =
+      currentInput.slice(0, currentOffset) +
+      text +
+      currentInput.slice(currentOffset);
     trackAndSetInput(newInput);
-    setCursorOffset(cursorOffset + text.length);
+    const newOffset = currentOffset + text.length;
+    cursorOffsetRef.current = newOffset;
+    setCursorOffset(newOffset);
   }
   const doublePressEscFromEmpty = useDoublePress(() => {}, () => onShowMessageSelector());
 
@@ -2213,6 +2308,7 @@ function PromptInput({
       key
     }),
     onImagePaste,
+    onImagePathPaste,
     columns: textInputColumns,
     maxVisibleLines,
     disableCursorMovementForUpDownKeys: suggestions.length > 0 || !!footerItemSelected,

@@ -81,6 +81,118 @@ interface OpenAITool {
   }
 }
 
+const OPENCODEGO_QUICK_VISION_MAX_TOKENS = 256
+const QUICK_VISION_PROMPT_MAX_LENGTH = 220
+const QUICK_VISION_PROMPT_MAX_WORDS = 28
+const IMAGE_REF_REGEX = /\[Image #\d+\]/gi
+const QUICK_VISION_START_REGEX =
+  /^(?:explain|describe|summari[sz]e|caption|analy[sz]e|identify|extract|read|ocr|what(?:'s| is)|list|tell me)/i
+const CONTEXT_HEAVY_KEYWORDS_REGEX =
+  /\b(?:repo|repository|project|code|file|files|path|diff|commit|branch|build|test|debug|refactor|function|class|api|stacktrace|error|fix|implement)\b/i
+const REQUESTED_WORD_LIMIT_REGEX = /\b(?:max\s+)?(\d{1,3})\s+words?\b/i
+
+type OpenAITextPart = { type: 'text'; text?: string }
+type OpenAIImagePart = { type: 'image_url'; image_url?: { url: string } }
+
+function getLastUserImagePromptText(messages: OpenAIMessage[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (!msg || msg.role !== 'user') {
+      continue
+    }
+
+    if (!Array.isArray(msg.content)) {
+      return null
+    }
+
+    const parts = msg.content as Array<OpenAITextPart | OpenAIImagePart>
+    const hasImage = parts.some(part => part.type === 'image_url')
+    if (!hasImage) {
+      return null
+    }
+
+    const text = parts
+      .filter((part): part is OpenAITextPart => part.type === 'text')
+      .map(part => part.text ?? '')
+      .join(' ')
+
+    return text
+  }
+
+  return null
+}
+
+function getRequestedWordLimit(text: string): number | null {
+  const match = text.match(REQUESTED_WORD_LIMIT_REGEX)
+  if (!match) {
+    return null
+  }
+
+  const parsed = Number.parseInt(match[1] ?? '', 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null
+  }
+
+  return parsed
+}
+
+function getQuickVisionMaxTokens(promptText: string): number | null {
+  const normalized = promptText
+    .replace(IMAGE_REF_REGEX, '')
+    .replace(/^[\s:;,\-–—|>]+/, '')
+    .trim()
+
+  if (normalized.length === 0) {
+    return OPENCODEGO_QUICK_VISION_MAX_TOKENS
+  }
+
+  if (normalized.length > QUICK_VISION_PROMPT_MAX_LENGTH) {
+    return null
+  }
+
+  const words = normalized.split(/\s+/).filter(Boolean)
+  if (words.length > QUICK_VISION_PROMPT_MAX_WORDS) {
+    return null
+  }
+
+  if (CONTEXT_HEAVY_KEYWORDS_REGEX.test(normalized)) {
+    return null
+  }
+
+  if (!QUICK_VISION_START_REGEX.test(normalized)) {
+    return null
+  }
+
+  const requestedWordLimit = getRequestedWordLimit(normalized)
+  if (requestedWordLimit !== null) {
+    return Math.max(48, Math.min(OPENCODEGO_QUICK_VISION_MAX_TOKENS, requestedWordLimit * 4))
+  }
+
+  return OPENCODEGO_QUICK_VISION_MAX_TOKENS
+}
+
+function getOpenCodeGOThinkingMode(
+  params: ShimCreateParams,
+): 'enabled' | 'disabled' {
+  const override = process.env.HAWK_CODE_OPENCODEGO_THINKING
+    ?.trim()
+    .toLowerCase()
+
+  if (override === 'enabled' || override === 'true' || override === '1') {
+    return 'enabled'
+  }
+  if (override === 'disabled' || override === 'false' || override === '0') {
+    return 'disabled'
+  }
+
+  const thinking = params.thinking as { type?: string } | undefined
+  if (thinking && thinking.type && thinking.type !== 'disabled') {
+    return 'enabled'
+  }
+
+  return 'disabled'
+}
+
 function convertSystemPrompt(
   system: unknown,
 ): string {
@@ -625,12 +737,20 @@ class OpenAIShimMessages {
       stream: params.stream ?? false,
     }
 
-    // Handle thinking parameter for OpenCodeGO/Kimi
-    // Kimi supports thinking but requires reasoning_content in all assistant messages
-    // This is complex to implement - disabling for now
-    // if (params.thinking && request.baseUrl.includes('opencode.ai')) {
-    //   body.thinking = { type: 'enabled' }
-    // }
+    // OpenCodeGO/Kimi defaults can be reasoning-heavy and hurt latency on
+    // short prompts. Always send an explicit thinking mode so we don't rely on
+    // backend defaults. reasoning_content wiring is handled in convertMessages.
+    if (isOpenCodeGO) {
+      body.thinking = { type: getOpenCodeGOThinkingMode(params) }
+
+      const lastUserImagePromptText = getLastUserImagePromptText(openaiMessages)
+      if (lastUserImagePromptText !== null) {
+        const quickVisionMaxTokens = getQuickVisionMaxTokens(lastUserImagePromptText)
+        if (quickVisionMaxTokens !== null) {
+          body.max_tokens = Math.min(params.max_tokens, quickVisionMaxTokens)
+        }
+      }
+    }
 
     if (params.stream) {
       body.stream_options = { include_usage: true }
