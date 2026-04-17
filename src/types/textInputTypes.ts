@@ -129,6 +129,12 @@ export type BaseTextInputProps = {
   ) => void
 
   /**
+   * Optional callback when terminal paste/drop yields an image file path that
+   * should attach as a pending image placeholder instead of plain text.
+   */
+  readonly onImagePathPaste?: (sourcePath: string) => void
+
+  /**
    * Optional callback when a large text (over 800 chars) is pasted
    */
   readonly onPaste?: (text: string) => void
@@ -358,14 +364,20 @@ export type QueuedCommand = {
 }
 
 /**
- * Type guard for image PastedContent with non-empty data. Empty-content
- * images (e.g. from a 0-byte file drag) yield empty base64 strings that
- * the API rejects with `image cannot be empty`. Use this at every site
- * that converts PastedContent → ImageBlockParam so the filter and the
- * ID list stay in sync.
+ * Type guard for image PastedContent that can be sent to the model.
+ * Images may already contain base64 data, or they may still be pending and
+ * carry only a sourcePath from terminal drag/drop until submit time.
  */
 export function isValidImagePaste(c: PastedContent): boolean {
-  return c.type === 'image' && c.content.length > 0
+  return c.type === 'image' && (c.content.length > 0 || !!c.sourcePath)
+}
+
+/**
+ * Type guard for pending image PastedContent that has a sourcePath but
+ * no content yet. These need to be loaded from disk before sending to the API.
+ */
+export function isPendingImagePaste(c: PastedContent): boolean {
+  return c.type === 'image' && c.content.length === 0 && !!c.sourcePath
 }
 
 /** Extract image paste IDs from a QueuedCommand's pastedContents. */

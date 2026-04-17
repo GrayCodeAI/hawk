@@ -9,10 +9,16 @@ import type { KeybindingBlock } from './types.js'
  * These are loaded first, then user keybindings.json overrides them.
  */
 
-// Platform-specific image paste shortcut:
+// Platform-specific image paste shortcuts:
 // - Windows: alt+v (ctrl+v is system paste)
+// - macOS: cmd+v and ctrl+v (terminal-dependent; support both)
 // - Other platforms: ctrl+v
-const IMAGE_PASTE_KEY = getPlatform() === 'windows' ? 'alt+v' : 'ctrl+v'
+const IMAGE_PASTE_BINDINGS =
+  getPlatform() === 'windows'
+    ? ({ 'alt+v': 'chat:imagePaste' } as const)
+    : getPlatform() === 'macos'
+      ? ({ 'ctrl+v': 'chat:imagePaste', 'cmd+v': 'chat:imagePaste' } as const)
+      : ({ 'ctrl+v': 'chat:imagePaste' } as const)
 
 // Modifier-only chords (like shift+tab) may fail on Windows Terminal without VT mode
 // See: https://github.com/microsoft/terminal/issues/879#issuecomment-618801651
@@ -83,8 +89,8 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       'ctrl+x ctrl+e': 'chat:externalEditor',
       'ctrl+g': 'chat:externalEditor',
       'ctrl+s': 'chat:stash',
-      // Image paste shortcut (platform-specific key defined above)
-      [IMAGE_PASTE_KEY]: 'chat:imagePaste',
+      // Image paste shortcut(s) (platform-specific keys defined above)
+      ...IMAGE_PASTE_BINDINGS,
       ...(feature('MESSAGE_ACTIONS')
         ? { 'shift+up': 'chat:messageActions' as const }
         : {}),
