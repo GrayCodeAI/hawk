@@ -65,7 +65,6 @@ export {
   getTurnInputTokens,
   getTurnOutputTokens,
   getTurnTotalTokens,
-  formatCost,
   hasUnknownModelCost,
   resetStateForTests,
   resetCostState,
@@ -180,8 +179,8 @@ export function saveCurrentSessionCosts(fpsMetrics?: FpsMetrics): void {
   }))
 }
 
-function formatCost(cost: number, maxDecimalPlaces: number = 4): string {
-  return `$${cost > 0.5 ? round(cost, 100).toFixed(2) : cost.toFixed(maxDecimalPlaces)}`
+export function formatCost(cost: number, maxDecimalPlaces: number = 4): string {
+  return `$${cost > 0.5 ? roundCost(cost, 100).toFixed(2) : cost.toFixed(maxDecimalPlaces)}`
 }
 
 function formatModelUsage(): string {
@@ -257,8 +256,8 @@ export function resetTokenTracking(): void {
   lastInputTokensByModel.clear()
 }
 
-function round(number: number, precision: number): number {
-  return Math.round(number * precision) / precision
+function roundCost(value: number, precision: number): number {
+  return Math.round(value * precision) / precision
 }
 
 function addToTotalModelUsage(
@@ -330,44 +329,64 @@ export function addToTotalSessionCost(
   usage: Usage,
   model: string,
 ): number {
-  const modelUsage = addToTotalModelUsage(cost, usage, model)
-  addToTotalCostState(cost, modelUsage, model)
+  // Use a queue to process advisor usages iteratively instead of recursively
+  const pending: Array<{ cost: number; usage: Usage; model: string }> = [
+    { cost, usage, model },
+  ]
+  let totalCost = 0
 
-  const attrs =
-    isFastModeEnabled() && usage.speed === 'fast'
-      ? { model, speed: 'fast' }
-      : { model }
-
-  getCostCounter()?.add(cost, attrs)
-  getTokenCounter()?.add(usage.input_tokens, { ...attrs, type: 'input' })
-  getTokenCounter()?.add(usage.output_tokens, { ...attrs, type: 'output' })
-  getTokenCounter()?.add(usage.cache_read_input_tokens ?? 0, {
-    ...attrs,
-    type: 'cacheRead',
-  })
-  getTokenCounter()?.add(usage.cache_creation_input_tokens ?? 0, {
-    ...attrs,
-    type: 'cacheCreation',
-  })
-
-  let totalCost = cost
-  for (const advisorUsage of getAdvisorUsage(usage)) {
-    const advisorCost = calculateUSDCost(advisorUsage.model, advisorUsage)
-    logEvent('tengu_advisor_tool_token_usage', {
-      advisor_model:
-        advisorUsage.model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
-      input_tokens: advisorUsage.input_tokens,
-      output_tokens: advisorUsage.output_tokens,
-      cache_read_input_tokens: advisorUsage.cache_read_input_tokens ?? 0,
-      cache_creation_input_tokens:
-        advisorUsage.cache_creation_input_tokens ?? 0,
-      cost_usd_micros: Math.round(advisorCost * 1_000_000),
-    })
-    totalCost += addToTotalSessionCost(
-      advisorCost,
-      advisorUsage,
-      advisorUsage.model,
+  while (pending.length > 0) {
+    const { cost: currentCost, usage: currentUsage, model: currentModel } =
+      pending.shift()!
+    const modelUsage = addToTotalModelUsage(
+      currentCost,
+      currentUsage,
+      currentModel,
     )
+    addToTotalCostState(currentCost, modelUsage, currentModel)
+
+    const attrs =
+      isFastModeEnabled() && currentUsage.speed === 'fast'
+        ? { model: currentModel, speed: 'fast' }
+        : { model: currentModel }
+
+    getCostCounter()?.add(currentCost, attrs)
+    getTokenCounter()?.add(currentUsage.input_tokens, {
+      ...attrs,
+      type: 'input',
+    })
+    getTokenCounter()?.add(currentUsage.output_tokens, {
+      ...attrs,
+      type: 'output',
+    })
+    getTokenCounter()?.add(currentUsage.cache_read_input_tokens ?? 0, {
+      ...attrs,
+      type: 'cacheRead',
+    })
+    getTokenCounter()?.add(currentUsage.cache_creation_input_tokens ?? 0, {
+      ...attrs,
+      type: 'cacheCreation',
+    })
+
+    totalCost += currentCost
+    for (const advisorUsage of getAdvisorUsage(currentUsage)) {
+      const advisorCost = calculateUSDCost(advisorUsage.model, advisorUsage)
+      logEvent('tengu_advisor_tool_token_usage', {
+        advisor_model:
+          advisorUsage.model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+        input_tokens: advisorUsage.input_tokens,
+        output_tokens: advisorUsage.output_tokens,
+        cache_read_input_tokens: advisorUsage.cache_read_input_tokens ?? 0,
+        cache_creation_input_tokens:
+          advisorUsage.cache_creation_input_tokens ?? 0,
+        cost_usd_micros: Math.round(advisorCost * 1_000_000),
+      })
+      pending.push({
+        cost: advisorCost,
+        usage: advisorUsage,
+        model: advisorUsage.model,
+      })
+    }
   }
   return totalCost
 }

@@ -2,7 +2,7 @@
 // These wrappers ease error handling and cross-platform compatbility
 // By using execa, Windows automatically gets shell escaping + BAT / CMD handling
 
-import { type ExecaError, execa } from 'execa'
+import { type ExecaError, type ExecaReturnValue, execa } from 'execa'
 import { getCwd } from '../utils/cwd.js'
 import { logError } from './log.js'
 
@@ -55,11 +55,6 @@ type ExecFileWithCwdOptions = {
   input?: string
 }
 
-type ExecaResultWithError = {
-  shortMessage?: string
-  signal?: string
-}
-
 /**
  * Extracts a human-readable error message from an execa result.
  *
@@ -70,10 +65,7 @@ type ExecaResultWithError = {
  * 2. signal - the signal that killed the process (e.g., "SIGTERM")
  * 3. errorCode - fallback to just the numeric exit code
  */
-function getErrorMessage(
-  result: ExecaResultWithError,
-  errorCode: number,
-): string {
+function getErrorMessage(result: ExecaReturnValue, errorCode: number): string {
   if (result.shortMessage) {
     return result.shortMessage
   }
@@ -122,20 +114,17 @@ export function execFileNoThrowWithCwd(
         if (result.failed) {
           if (finalPreserveOutput) {
             const errorCode = result.exitCode ?? 1
-            void resolve({
+            resolve({
               stdout: result.stdout || '',
               stderr: result.stderr || '',
               code: errorCode,
-              error: getErrorMessage(
-                result as unknown as ExecaResultWithError,
-                errorCode,
-              ),
+              error: getErrorMessage(result, errorCode),
             })
           } else {
-            void resolve({ stdout: '', stderr: '', code: result.exitCode ?? 1 })
+            resolve({ stdout: '', stderr: '', code: result.exitCode ?? 1 })
           }
         } else {
-          void resolve({
+          resolve({
             stdout: result.stdout,
             stderr: result.stderr,
             code: 0,
@@ -144,7 +133,12 @@ export function execFileNoThrowWithCwd(
       })
       .catch((error: ExecaError) => {
         logError(error)
-        void resolve({ stdout: '', stderr: '', code: 1 })
+        resolve({
+          stdout: error.stdout ?? '',
+          stderr: error.stderr ?? '',
+          code: error.exitCode ?? 1,
+          error: error.shortMessage ?? error.message,
+        })
       })
   })
 }
