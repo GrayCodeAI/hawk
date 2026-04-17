@@ -43,7 +43,7 @@ const DEFAULT_PLACEHOLDERS: Record<FeedbackType, string> = {
  * - Transforming options to Select-compatible format
  */
 export function PermissionPrompt(t0) {
-  const $ = _c(54);
+  const $ = _c(55);
   const {
     options,
     onSelect,
@@ -53,11 +53,12 @@ export function PermissionPrompt(t0) {
   } = t0;
   const question = t1 === undefined ? "Do you want to proceed?" : t1;
   const setAppState = useSetAppState();
+  const defaultOptionValue = options[0]?.value;
   const [acceptFeedback, setAcceptFeedback] = useState("");
   const [rejectFeedback, setRejectFeedback] = useState("");
   const [acceptInputMode, setAcceptInputMode] = useState(false);
   const [rejectInputMode, setRejectInputMode] = useState(false);
-  const [focusedValue, setFocusedValue] = useState(null);
+  const [focusedValue, setFocusedValue] = useState(defaultOptionValue ?? null);
   const [acceptFeedbackModeEntered, setAcceptFeedbackModeEntered] = useState(false);
   const [rejectFeedbackModeEntered, setRejectFeedbackModeEntered] = useState(false);
   let t2;
@@ -292,35 +293,36 @@ export function PermissionPrompt(t0) {
     t9 = $[41];
   }
   let t10;
-  if ($[42] !== handleCancel || $[43] !== handleInputModeToggle || $[44] !== handleSelect || $[45] !== selectOptions || $[46] !== t9) {
-    t10 = <Select options={selectOptions} inlineDescriptions={true} onChange={handleSelect} onCancel={handleCancel} onFocus={t9} onInputModeToggle={handleInputModeToggle} />;
-    $[42] = handleCancel;
-    $[43] = handleInputModeToggle;
-    $[44] = handleSelect;
-    $[45] = selectOptions;
-    $[46] = t9;
-    $[47] = t10;
+  if ($[42] !== defaultOptionValue || $[43] !== handleCancel || $[44] !== handleInputModeToggle || $[45] !== handleSelect || $[46] !== selectOptions || $[47] !== t9) {
+    t10 = <Select options={selectOptions} defaultValue={defaultOptionValue} defaultFocusValue={defaultOptionValue} inlineDescriptions={true} onChange={handleSelect} onCancel={handleCancel} onFocus={t9} onInputModeToggle={handleInputModeToggle} />;
+    $[42] = defaultOptionValue;
+    $[43] = handleCancel;
+    $[44] = handleInputModeToggle;
+    $[45] = handleSelect;
+    $[46] = selectOptions;
+    $[47] = t9;
+    $[48] = t10;
   } else {
-    t10 = $[47];
+    t10 = $[48];
   }
   const t11 = showTabHint && " \xB7 Tab to amend";
   let t12;
-  if ($[48] !== t11) {
+  if ($[49] !== t11) {
     t12 = <Box marginTop={1}><Text dimColor={true}>Esc to cancel{t11}</Text></Box>;
-    $[48] = t11;
-    $[49] = t12;
+    $[49] = t11;
+    $[50] = t12;
   } else {
-    t12 = $[49];
+    t12 = $[50];
   }
   let t13;
-  if ($[50] !== t10 || $[51] !== t12 || $[52] !== t8) {
+  if ($[51] !== t10 || $[52] !== t12 || $[53] !== t8) {
     t13 = <Box flexDirection="column">{t8}{t10}{t12}</Box>;
-    $[50] = t10;
-    $[51] = t12;
-    $[52] = t8;
-    $[53] = t13;
+    $[51] = t10;
+    $[52] = t12;
+    $[53] = t8;
+    $[54] = t13;
   } else {
-    t13 = $[53];
+    t13 = $[54];
   }
   return t13;
 }

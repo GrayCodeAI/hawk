@@ -49,6 +49,7 @@ import {
   maybeResizeAndDownsampleImageBuffer,
 } from '../../utils/imageResizer.js'
 import { lazySchema } from '../../utils/lazySchema.js'
+import { logForDebugging } from '../../utils/debug.js'
 import { logError } from '../../utils/log.js'
 import { isAutoMemFile } from '../../utils/memoryFileDetection.js'
 import { createUserMessage } from '../../utils/messages.js'
@@ -583,7 +584,9 @@ export const FileReadTool = buildTool({
           context.dynamicSkillDirTriggers?.add(dir)
         }
         // Don't await - let skill loading happen in the background
-        addSkillDirectories(newSkillDirs).catch(() => {})
+        addSkillDirectories(newSkillDirs).catch(err => {
+          logForDebugging(`Failed to add skill directories: ${err}`)
+        })
       }
 
       // Activate conditional skills whose path patterns match this file
@@ -646,6 +649,28 @@ export const FileReadTool = buildTool({
         }
         throw new Error(message)
       }
+
+      // Handle permission denied
+      if (code === 'EACCES') {
+        throw new Error(
+          `Permission denied: Cannot read '${file_path}'. Check file permissions and try again.`,
+        )
+      }
+
+      // Handle attempt to read a directory
+      if (code === 'EISDIR') {
+        throw new Error(
+          `Cannot read '${file_path}': It is a directory. Use a file path instead.`,
+        )
+      }
+
+      // Handle too many open files
+      if (code === 'EMFILE') {
+        throw new Error(
+          `Too many open files. Close some files or increase system limits and try again.`,
+        )
+      }
+
       throw error
     }
   },
