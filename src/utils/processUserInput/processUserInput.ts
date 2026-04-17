@@ -42,11 +42,15 @@ import {
   executeUserPromptSubmitHooks,
   getUserPromptSubmitHookBlockingMessage,
 } from '../hooks.js'
+import { logForDebugging } from '../debug.js'
+import { isEnvTruthy } from '../envUtils.js'
 import {
   createImageMetadataText,
   maybeResizeAndDownsampleImageBlock,
 } from '../imageResizer.js'
+import { resolvePastedImageContent } from '../imagePaste.js'
 import { storeImages } from '../imageStore.js'
+import { getAPIProvider } from '../model/providers.js'
 import {
   createCommandInputMessage,
   createSystemMessage,
@@ -60,6 +64,52 @@ import {
 } from '../ultraplan/keyword.js'
 import { processTextPrompt } from './processTextPrompt.js'
 export type ProcessUserInputContext = ToolUseContext & LocalJSXCommandContext
+
+const IMAGE_REF_REGEX = /\[Image #\d+\]/g
+const QUICK_IMAGE_PROMPT_MAX_LENGTH = 220
+const QUICK_IMAGE_PROMPT_MAX_WORDS = 24
+const QUICK_IMAGE_PROMPT_START_REGEX =
+  /^(?:explain|describe|summari[sz]e|caption|analy[sz]e|identify|extract|read|ocr|what(?:'s| is)|list|tell me)/i
+const CONTEXT_HEAVY_KEYWORDS_REGEX =
+  /\b(?:repo|repository|project|code|file|files|path|diff|commit|branch|build|test|debug|refactor|function|class|api|stacktrace|error|fix|implement)\b/i
+
+function isQuickImageVisionPrompt(
+  mode: PromptInputMode,
+  inputString: string | null,
+  imageContentBlocks: ContentBlockParam[],
+): boolean {
+  if (mode !== 'prompt' || inputString === null || imageContentBlocks.length === 0) {
+    return false
+  }
+
+  const promptWithoutImageRefs = inputString.replace(IMAGE_REF_REGEX, '').trim()
+  const normalizedPrompt = promptWithoutImageRefs
+    .replace(/^[\s:;,\-–—|>]+/, '')
+    .trim()
+
+  if (normalizedPrompt.length === 0) {
+    return true
+  }
+
+  if (normalizedPrompt.length > QUICK_IMAGE_PROMPT_MAX_LENGTH) {
+    return false
+  }
+
+  const words = normalizedPrompt
+    .split(/\s+/)
+    .map(w => w.trim())
+    .filter(Boolean)
+
+  if (words.length > QUICK_IMAGE_PROMPT_MAX_WORDS) {
+    return false
+  }
+
+  if (CONTEXT_HEAVY_KEYWORDS_REGEX.test(normalizedPrompt)) {
+    return false
+  }
+
+  return QUICK_IMAGE_PROMPT_START_REGEX.test(normalizedPrompt)
+}
 
 export type ProcessUserInputBaseResult = {
   messages: (
@@ -353,18 +403,28 @@ async function processUserInputBase(
   const imageContents = pastedContents
     ? Object.values(pastedContents).filter(isValidImagePaste)
     : []
-  const imagePasteIds = imageContents.map(img => img.id)
+  const resolvedImageContents = (
+    await Promise.all(imageContents.map(resolvePastedImageContent))
+  ).filter((img): img is PastedContent => img !== null)
+  const imagePasteIds = resolvedImageContents.map(img => img.id)
 
   // Store images to disk so Hawk can reference the path in context
-  // (for manipulation with CLI tools, uploading to PRs, etc.)
-  const storedImagePaths = pastedContents
-    ? await storeImages(pastedContents)
-    : new Map<number, string>()
+  // (for manipulation with CLI tools, uploading to PRs, etc.).
+  // Run this in parallel with resize/compression to reduce prompt-submit
+  // latency when multiple large images are attached.
+  const storedImagePathsPromise =
+    resolvedImageContents.length > 0
+      ? storeImages(
+          Object.fromEntries(
+            resolvedImageContents.map(image => [image.id, image]),
+          ),
+        )
+      : Promise.resolve(new Map<number, string>())
 
   // Resize pasted images to ensure they fit within API limits (parallel processing)
   queryCheckpoint('query_pasted_image_processing_start')
-  const imageProcessingResults = await Promise.all(
-    imageContents.map(async pastedImage => {
+  const imageProcessingResultsPromise = Promise.all(
+    resolvedImageContents.map(async pastedImage => {
       const imageBlock: ImageBlockParam = {
         type: 'image',
         source: {
@@ -379,20 +439,26 @@ async function processUserInputBase(
       })
       const resized = await maybeResizeAndDownsampleImageBlock(imageBlock)
       return {
+        imageId: pastedImage.id,
         resized,
         originalDimensions: pastedImage.dimensions,
-        sourcePath:
-          pastedImage.sourcePath ?? storedImagePaths.get(pastedImage.id),
+        sourcePath: pastedImage.sourcePath,
       }
     }),
   )
+  const [storedImagePaths, imageProcessingResults] = await Promise.all([
+    storedImagePathsPromise,
+    imageProcessingResultsPromise,
+  ])
   // Collect results preserving order
   const imageContentBlocks: ContentBlockParam[] = []
   for (const {
+    imageId,
     resized,
     originalDimensions,
-    sourcePath,
+    sourcePath: pastedSourcePath,
   } of imageProcessingResults) {
+    const sourcePath = pastedSourcePath ?? storedImagePaths.get(imageId)
     // Collect image metadata for isMeta message (prefer resized dimensions)
     if (resized.dimensions) {
       const metadataText = createImageMetadataText(
@@ -418,6 +484,22 @@ async function processUserInputBase(
     imageContentBlocks.push(resized.block)
   }
   queryCheckpoint('query_pasted_image_processing_end')
+
+  if (imageContentBlocks.length > 0 && getAPIProvider() === 'opencodego') {
+    const msg =
+      'Image input is currently unreliable with the OpenCodeGO provider in Hawk. The image was attached, but this provider/model path may ignore or hang on vision requests. Switch to a provider with known image support such as OpenAI, Gemini, or Anthropic for this prompt.'
+    return {
+      messages: [
+        createUserMessage({
+          content: inputString ?? '',
+          uuid,
+        }),
+        createCommandInputMessage(`<local-command-stdout>${msg}</local-command-stdout>`),
+      ],
+      shouldQuery: false,
+      resultText: msg,
+    }
+  }
 
   // Bridge-safe slash command override: mobile/web clients set bridgeOrigin
   // with skipSlashCommands still true (defense-in-depth against exit words and
@@ -493,8 +575,19 @@ async function processUserInputBase(
   }
 
   // For slash commands, attachments will be extracted within getMessagesForSlashCommand
+  const skipAttachmentsForQuickImagePrompt =
+    !isEnvTruthy(process.env.HAWK_CODE_FORCE_ATTACHMENTS_WITH_IMAGES) &&
+    isQuickImageVisionPrompt(mode, inputString, imageContentBlocks)
+
+  if (skipAttachmentsForQuickImagePrompt) {
+    logForDebugging(
+      `[attachments] skipping auto attachments for quick image prompt (images=${imageContentBlocks.length}, chars=${inputString?.length ?? 0})`,
+    )
+  }
+
   const shouldExtractAttachments =
     !skipAttachments &&
+    !skipAttachmentsForQuickImagePrompt &&
     inputString !== null &&
     (mode !== 'prompt' || effectiveSkipSlash || !inputString.startsWith('/'))
 

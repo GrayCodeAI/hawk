@@ -1483,6 +1483,23 @@ async function* queryModel(
     messagesForAPI,
     isFastMode,
   )
+  const requestContainsImages = messagesForAPI.some(message => {
+    const content =
+      typeof message === 'object' && message !== null && 'content' in message
+        ? (message as { content?: unknown }).content
+        : undefined
+
+    return (
+      Array.isArray(content) &&
+      content.some(
+        block =>
+          typeof block === 'object' &&
+          block !== null &&
+          'type' in block &&
+          block.type === 'image',
+      )
+    )
+  })
 
   const startIncludingRetries = Date.now()
   let start = Date.now()
@@ -1571,12 +1588,6 @@ async function* queryModel(
       thinkingConfig.type !== 'disabled' &&
       !isEnvTruthy(process.env.HAWK_CODE_DISABLE_THINKING)
     let thinking: BetaMessageStreamParams['thinking'] | undefined = undefined
-    
-    // For OpenCodeGO (Moonshot/Kimi), use OpenAI-compatible thinking format
-    let openCodeGOThinking: { type: 'enabled' | 'disabled' } | undefined = undefined
-    if (getAPIProvider() === 'opencodego' && hasThinking) {
-      openCodeGOThinking = { type: 'enabled' }
-    }
 
     // IMPORTANT: Do not change the adaptive-vs-budget thinking selection below
     // without notifying the model launch DRI and research. This is a sensitive
@@ -2327,11 +2338,18 @@ async function* queryModel(
       // structured output (--json-schema), the model calls a StructuredOutput tool
       // on turn 1, then on turn 2 responds with end_turn and no content blocks.
       // That's a legitimate empty response, not an incomplete stream.
-      if (!partialMessage || (newMessages.length === 0 && !stopReason)) {
+      if (
+        !partialMessage ||
+        (newMessages.length === 0 &&
+          (!stopReason ||
+            (requestContainsImages && stopReason === 'end_turn')))
+      ) {
         logForDebugging(
           !partialMessage
             ? 'Stream completed without receiving message_start event - triggering non-streaming fallback'
-            : 'Stream completed with message_start but no content blocks completed - triggering non-streaming fallback',
+            : requestContainsImages && stopReason === 'end_turn'
+              ? 'Stream completed with empty end_turn for image input - triggering non-streaming fallback'
+              : 'Stream completed with message_start but no content blocks completed - triggering non-streaming fallback',
           { level: 'error' },
         )
         logEvent('tengu_stream_no_events', {
@@ -2569,6 +2587,15 @@ async function* queryModel(
           advisorModel,
         }),
       }
+      if (
+        requestContainsImages &&
+        Array.isArray(m.message.content) &&
+        m.message.content.length === 0
+      ) {
+        throw new Error(
+          'Model returned an empty response for an image input in non-streaming mode',
+        )
+      }
       newMessages.push(m)
       fallbackMessage = m
       yield m
@@ -2661,6 +2688,15 @@ async function* queryModel(
           ...(process.env.USER_TYPE === 'ant' &&
             research !== undefined && { research }),
           ...(advisorModel && { advisorModel }),
+        }
+        if (
+          requestContainsImages &&
+          Array.isArray(m.message.content) &&
+          m.message.content.length === 0
+        ) {
+          throw new Error(
+            'Model returned an empty response for an image input in non-streaming mode',
+          )
         }
         newMessages.push(m)
         fallbackMessage = m
