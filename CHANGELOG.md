@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **.gitignore**: Comprehensive patterns for OS, IDE, cache, and Python files
 
 ### Removed
-- Test Python files from repository tracking (fibonacci.py, ollama_provider.py, smart_router.py, test_*.py)
+- No files removed in this release
 
 ### Fixed
 - Discord badge showing "invalid" by using static badge style

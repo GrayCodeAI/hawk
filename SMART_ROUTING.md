@@ -37,7 +37,8 @@ import { withProviderFallback } from './utils/providerFallback.js'
 
 const result = await withProviderFallback(
   async (provider) => {
-    return await queryProvider(provider, messages)
+    const client = getLLMClient(provider)
+    return await client.messages.create({ messages })
   },
   {
     maxAttempts: 3,
@@ -58,10 +59,10 @@ Tracks API costs across providers:
 
 **Usage:**
 ```typescript
-import { trackProviderCost, getSessionCost, formatCost } from './utils/costTracking.js'
+import { trackProviderCost, getSessionCost, formatCostUsd } from './utils/costTracking.js'
 
 trackProviderCost('openai', 'gpt-4o', 1000, 500)
-console.log(`Session cost: ${formatCost(getSessionCost())}`)
+console.log(`Session cost: ${formatCostUsd(getSessionCost())}`)
 ```
 
 ### 4. Enhanced Model Catalog (`src/utils/model/enhancedCatalog.ts`)
@@ -223,7 +224,7 @@ const result = await withProviderFallback(async (provider) => {
 
 ## Future Enhancements
 
-See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for planned Phase 2 and 3 features:
+Planned future enhancements:
 - Provider capability detection
 - Cost budget alerts
 - Provider-specific optimizations
@@ -233,9 +234,9 @@ See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for planned Phase 2 and 3 features:
 
 To add a new provider:
 
-1. Add to `PROVIDER_PRIORITY` in `src/utils/providerRegistry.ts`
-2. Add cost data to `costMap` in `smartRouter.ts`
-3. Add model entries to `ENHANCED_MODEL_CATALOG`
+1. Add the provider to the default providers list in `smartRouter.py`
+2. Add cost data to the `costMap` in `src/services/api/smartRouter.ts`
+3. Add model entries to the enhanced model catalog
 4. Update tests
 
 ## License

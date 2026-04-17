@@ -152,9 +152,10 @@ Configure any compatible provider using the `/config` command inside Hawk, or ed
 
 ```json
 {
+  "active_provider": "openai",
   "openai_api_key": "your-key",
-  "openai_base_url": "https://your-endpoint.com/v1",
-  "active_model": "model-name"
+  "openai_base_url": "https://api.openai.com/v1",
+  "openai_model": "gpt-4o"
 }
 ```
 
