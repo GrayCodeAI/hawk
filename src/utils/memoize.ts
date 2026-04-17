@@ -10,7 +10,7 @@ import memoize from 'lodash-es/memoize.js';
  * @param keyResolver - Function to generate cache key from arguments
  * @returns Memoized function
  */
-export function memoizeWithKey<T extends (...args: any[]) => any>(
+export function memoizeWithKey<T extends (...args: unknown[]) => unknown>(
   fn: T,
   keyResolver: (...args: Parameters<T>) => string
 ): T {
@@ -27,7 +27,7 @@ export function memoizeWithKey<T extends (...args: any[]) => any>(
   }) as T;
 
   // Expose cache for testing and clearing
-  (memoized as any).cache = cache;
+  (memoized as unknown as { cache: typeof cache }).cache = cache;
 
   return memoized;
 }
@@ -38,7 +38,7 @@ export function memoizeWithKey<T extends (...args: any[]) => any>(
  * @param ttlMs - Time to live in milliseconds
  * @returns Memoized function with TTL
  */
-export function memoizeWithTTL<T extends (...args: any[]) => any>(
+export function memoizeWithTTL<T extends (...args: unknown[]) => unknown>(
   fn: T,
   ttlMs: number
 ): T & { clear: () => void } {
@@ -74,7 +74,7 @@ export function memoizeWithTTL<T extends (...args: any[]) => any>(
  * @param keyResolver - Function to generate cache key from arguments
  * @returns Memoized async function
  */
-export function memoizeAsync<T extends (...args: any[]) => Promise<any>>(
+export function memoizeAsync<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   keyResolver: (...args: Parameters<T>) => string
 ): T {
@@ -127,7 +127,7 @@ export { memoize };
  * @param ttlMs - Time to live in milliseconds
  * @returns Memoized async function with TTL
  */
-export function memoizeWithTTLAsync<T extends (...args: any[]) => Promise<any>>(
+export function memoizeWithTTLAsync<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   keyResolver: (...args: Parameters<T>) => string,
   ttlMs: number
@@ -174,7 +174,7 @@ interface LRUCacheEntry<V> {
  * @param maxSize - Maximum number of entries to cache
  * @returns Memoized function with LRU cache
  */
-export function memoizeWithLRU<T extends (...args: any[]) => any>(
+export function memoizeWithLRU<T extends (...args: unknown[]) => unknown>(
   fn: T,
   keyResolver: (...args: Parameters<T>) => string,
   maxSize: number
