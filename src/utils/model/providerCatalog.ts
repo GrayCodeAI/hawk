@@ -121,6 +121,19 @@ export function getProviderCatalogEntries(
   return modelsForProvider(cachedCatalog, provider)
 }
 
+export function getProviderCatalogEntry(
+  provider: APIProvider,
+  model: string,
+): ModelCatalogEntry | undefined {
+  const normalizedModel = model.trim().toLowerCase().replace(/\[1m\]$/i, '')
+  const entries = getProviderCatalogEntries(provider)
+
+  const exact = entries.find(entry => entry.id.toLowerCase() === normalizedModel)
+  if (exact) return exact
+
+  return entries.find(entry => normalizedModel.startsWith(entry.id.toLowerCase()))
+}
+
 export type ProviderCatalogDebugSnapshot = {
   cachePath: string
   source: string

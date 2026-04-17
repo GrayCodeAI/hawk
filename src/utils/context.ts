@@ -5,6 +5,8 @@ import { isEnvTruthy } from './envUtils.js'
 import { getCanonicalName } from './model/model.js'
 import { getModelCapability } from './model/modelCapabilities.js'
 import { getOpenAIContextWindow, getOpenAIMaxOutputTokens } from './model/openaiContextWindows.js'
+import { getProviderCatalogEntry } from './model/providerCatalog.js'
+import { getAPIProvider } from './model/providers.js'
 
 // Model context window size (200k tokens for all models right now)
 export const MODEL_CONTEXT_WINDOW_DEFAULT = 200_000
@@ -73,6 +75,17 @@ export function getContextWindowForModel(
   // [1m] suffix — explicit client-side opt-in, respected over all detection
   if (has1mContext(model)) {
     return 1_000_000
+  }
+
+  const providerCatalogEntry = getProviderCatalogEntry(getAPIProvider(), model)
+  if (providerCatalogEntry) {
+    if (
+      providerCatalogEntry.context_window > MODEL_CONTEXT_WINDOW_DEFAULT &&
+      is1mContextDisabled()
+    ) {
+      return MODEL_CONTEXT_WINDOW_DEFAULT
+    }
+    return providerCatalogEntry.context_window
   }
 
   // OpenAI-compatible provider — use known context windows for the model
@@ -193,6 +206,14 @@ export function getModelMaxOutputTokens(model: string): {
     const openaiMax = getOpenAIMaxOutputTokens(model)
     if (openaiMax !== undefined) {
       return { default: openaiMax, upperLimit: openaiMax }
+    }
+  }
+
+  const providerCatalogEntry = getProviderCatalogEntry(getAPIProvider(), model)
+  if (providerCatalogEntry) {
+    return {
+      default: providerCatalogEntry.max_output,
+      upperLimit: providerCatalogEntry.max_output,
     }
   }
 
