@@ -65,7 +65,10 @@ import { env } from '../../utils/env.js';
 import { errorMessage } from '../../utils/errors.js';
 import { isBilledAsExtraUsage } from '../../utils/extraUsage.js';
 import { getFastModeUnavailableReason, isFastModeAvailable, isFastModeCooldown, isFastModeEnabled, isFastModeSupportedByModel } from '../../utils/fastMode.js';
-import { getContextWindowForModel } from '../../utils/context.js';
+import {
+  calculateContextPercentages,
+  getContextWindowForModel,
+} from '../../utils/context.js';
 import { formatTokens } from '../../utils/format.js';
 import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js';
 import type { PromptInputHelpers } from '../../utils/handlePromptSubmit.js';
@@ -96,7 +99,10 @@ import { writeToMailbox } from '../../utils/teammateMailbox.js';
 import type { TextHighlight } from '../../utils/textHighlighting.js';
 import type { Theme } from '../../utils/theme.js';
 import { findThinkingTriggerPositions, getRainbowColor, isUltrathinkEnabled } from '../../utils/thinking.js';
-import { doesMostRecentAssistantMessageExceed200k } from '../../utils/tokens.js';
+import {
+  doesMostRecentAssistantMessageExceed200k,
+  getCurrentUsage,
+} from '../../utils/tokens.js';
 import { findTokenBudgetPositions } from '../../utils/tokenBudget.js';
 import { findUltraplanTriggerPositions, findUltrareviewTriggerPositions } from '../../utils/ultraplan/keyword.js';
 import { AutoModeOptInDialog } from '../AutoModeOptInDialog.js';
@@ -2286,7 +2292,7 @@ function PromptInput({
           <Text color={swarmBanner.bgColor}>{'─'.repeat(columns)}</Text>
         </> : <>
           <Box width="100%" justifyContent="flex-end" paddingRight={1}>
-            <Text>{buildModelTitle(runtimeMainLoopModel)}</Text>
+            <Text>{buildModelTitle(runtimeMainLoopModel, messages)}</Text>
           </Box>
           <Box flexDirection="row" alignItems="flex-start" justifyContent="flex-start" borderColor={getBorderColor()} borderStyle="round" borderLeft={false} borderRight={false} borderBottom width="100%" borderText={buildBorderText(showFastIcon ?? false, showFastIconHint, fastModeCooldown)}>
             <PromptInputModeIndicator mode={mode} isLoading={isLoading} viewingAgentName={viewingAgentName} viewingAgentColor={viewingAgentColor} />
@@ -2349,16 +2355,56 @@ function getInitialPasteId(messages: Message[]): number {
   }
   return maxId + 1;
 }
-function buildModelTitle(mainLoopModel: string): string {
+function buildModelTitle(mainLoopModel: string, messages: Message[]): string {
   const providerLabel = PROVIDER_LABELS[getAPIProvider()];
-  const contextWindowLabel = formatTokens(
-    getContextWindowForModel(mainLoopModel, getSdkBetas()),
-  ).replace(/m$/, 'M');
+  const contextWindowSize = getContextWindowForModel(mainLoopModel, getSdkBetas());
+  const contextWindowLabel = formatTokens(contextWindowSize).replace(/m$/, 'M');
+  const currentUsage = getCurrentUsage(messages);
+  const currentContextTokens =
+    currentUsage === null
+      ? 0
+      : currentUsage.input_tokens +
+        currentUsage.cache_creation_input_tokens +
+        currentUsage.cache_read_input_tokens;
+  const currentContextLabel = formatTokens(currentContextTokens).replace(
+    /m$/,
+    'M',
+  );
+  const contextUsage = calculateContextPercentages(
+    currentUsage
+      ? {
+          input_tokens: currentUsage.input_tokens,
+          cache_creation_input_tokens:
+            currentUsage.cache_creation_input_tokens,
+          cache_read_input_tokens: currentUsage.cache_read_input_tokens,
+        }
+      : null,
+    contextWindowSize,
+  );
+  const modelContextLabel =
+    contextUsage.used === null
+      ? `${contextWindowLabel} ctx`
+      : `${currentContextLabel} / ${contextWindowLabel} ctx (${contextUsage.used}%)`;
   const customModelOption = getGlobalConfig().additionalModelOptionsCache?.find(option => option.value === mainLoopModel);
   const envCustomModel = process.env.GRAYCODE_CUSTOM_MODEL_OPTION === mainLoopModel;
   const modelLabel = envCustomModel ? process.env.GRAYCODE_CUSTOM_MODEL_OPTION_NAME ?? mainLoopModel : customModelOption?.label ?? renderModelName(mainLoopModel);
   const customSuffix = envCustomModel || customModelOption ? ' [custom]' : '';
-  return chalk.hex('#DA70D6')(`◇ ${providerLabel} ${modelLabel}${customSuffix} (${contextWindowLabel})`);
+  const modelPrefix = chalk.hex('#ff79c6')(
+    `◇ ${providerLabel} ${modelLabel}${customSuffix}`,
+  );
+  const separator = chalk.hex('#6b7280')(' · ');
+  if (contextUsage.used === null) {
+    const totalOnly = `${chalk.hex('#f1fa8c')(contextWindowLabel)}${chalk.hex('#6b7280')(' ctx')}`;
+    return `${modelPrefix}${separator}${totalOnly}`;
+  }
+  const currentCtx = chalk.hex('#8be9fd')(currentContextLabel);
+  const slash = chalk.hex('#6b7280')(' / ');
+  const totalCtx = chalk.hex('#f1fa8c')(contextWindowLabel);
+  const ctxLabel = chalk.hex('#6b7280')(' ctx ');
+  const open = chalk.hex('#6b7280')('(');
+  const percent = chalk.hex('#ff5555')(`${contextUsage.used}%`);
+  const close = chalk.hex('#6b7280')(')');
+  return `${modelPrefix}${separator}${currentCtx}${slash}${totalCtx}${ctxLabel}${open}${percent}${close}`;
 }
 
 function buildBorderText(showFastIcon: boolean, showFastIconHint: boolean, fastModeCooldown: boolean): BorderTextOptions | undefined {
