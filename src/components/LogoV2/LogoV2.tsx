@@ -118,13 +118,10 @@ export function LogoV2() {
     t3 = $[4];
   }
   useEffect(t2, t3);
+  const forceFullLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO);
+  const forceCondensedLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_CONDENSED_LOGO);
   let t4;
-  if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
-    t4 = !hasReleaseNotes && !showOnboarding && !isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO);
-    $[5] = t4;
-  } else {
-    t4 = $[5];
-  }
+  t4 = forceCondensedLogo && !forceFullLogo;
   const isCondensedMode = t4;
   let t5;
   let t6;
@@ -181,7 +178,7 @@ export function LogoV2() {
     t10 = $[14];
   }
   const modelDisplayName = t10;
-  if (!hasReleaseNotes && !showOnboarding && !isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO)) {
+  if (isCondensedMode) {
     let t11;
     let t12;
     let t13;
