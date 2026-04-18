@@ -68,7 +68,7 @@ import {
 } from '../../utils/context.js'
 import { resolveAppliedEffort } from '../../utils/effort.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
-import { errorMessage } from '../../utils/errors.js'
+import { errorMessage, ContentBlockError, StreamTimeoutError } from '../../utils/errors.js'
 import { computeFingerprintFromMessages } from '../../utils/fingerprint.js'
 import { captureAPIRequest, logError } from '../../utils/log.js'
 import {
@@ -733,7 +733,7 @@ export async function queryModelWithoutStreaming({
     if (signal.aborted) {
       throw new APIUserAbortError()
     }
-    throw new Error('No assistant message found')
+    throw new ContentBlockError('assistant_message', 'undefined')
   }
   return assistantMessage
 }
@@ -2067,7 +2067,7 @@ async function* queryModel(
                   actual_type:
                     contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                 })
-                throw new Error('Content block is not a connector_text block')
+                throw new ContentBlockError('connector_text', contentBlock.type)
               }
               contentBlock.connector_text += delta.connector_text
             } else {
@@ -2088,7 +2088,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a input_json block')
+                    throw new ContentBlockError('tool_use|server_tool_use', contentBlock.type)
                   }
                   if (typeof contentBlock.input !== 'string') {
                     logEvent('tengu_streaming_error', {
@@ -2097,7 +2097,7 @@ async function* queryModel(
                       input_type:
                         typeof contentBlock.input as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block input is not a string')
+                    throw new ContentBlockError('string_input', typeof contentBlock.input)
                   }
                   contentBlock.input += delta.partial_json
                   break
@@ -2111,7 +2111,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a text block')
+                    throw new ContentBlockError('text', contentBlock.type)
                   }
                   contentBlock.text += delta.text
                   break
@@ -2132,7 +2132,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a thinking block')
+                    throw new ContentBlockError('thinking', contentBlock.type)
                   }
                   contentBlock.signature = delta.signature
                   break
@@ -2146,7 +2146,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a thinking block')
+                    throw new ContentBlockError('thinking', contentBlock.type)
                   }
                   contentBlock.thinking += delta.thinking
                   break
@@ -2178,7 +2178,7 @@ async function* queryModel(
                 part_type:
                   part.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
               })
-              throw new Error('Message not found')
+              throw new ContentBlockError('partial_message', 'undefined')
             }
             const m: AssistantMessage = {
               message: {
@@ -2322,7 +2322,7 @@ async function* queryModel(
         // Prevent double-emit: this throw lands in the catch block below,
         // whose exit_path='error' probe guards on streamWatchdogFiredAt.
         streamWatchdogFiredAt = null
-        throw new Error('Stream idle timeout - no chunks received')
+        throw new StreamTimeoutError('no chunks received', options.timeout)
       }
 
       // Detect when the stream completed without producing any assistant messages.
@@ -2358,7 +2358,7 @@ async function* queryModel(
           request_id: (streamRequestId ??
             'unknown') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         })
-        throw new Error('Stream ended without receiving any events')
+        throw new StreamTimeoutError('stream ended without events')
       }
 
       // Log summary if any stalls occurred during streaming
