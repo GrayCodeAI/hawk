@@ -368,7 +368,7 @@ class SmartRouter:
         providers: Optional[list[Provider]] = None,
         strategy: Optional[str] = None,
         fallback_enabled: Optional[bool] = None,
-    ):
+    ) -> None:
         self.providers = providers or build_default_providers()
         self.strategy = strategy or os.getenv("ROUTER_STRATEGY", "balanced")
         self.fallback_enabled = (

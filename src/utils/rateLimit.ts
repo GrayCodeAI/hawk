@@ -3,6 +3,9 @@
  * Prevents abuse and ensures fair resource allocation
  */
 
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import os from 'node:os'
 import { logError } from './log.js'
 import { SECOND, MINUTE } from '../constants/numbers.js'
 
@@ -182,6 +185,55 @@ export class RateLimiter {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval)
     }
+  }
+
+  /**
+   * Persist rate limit state to disk for recovery across restarts
+   * @param filePath - Optional file path (defaults to OS temp dir)
+   */
+  async saveState(filePath?: string): Promise<void> {
+    const statePath = filePath || this.getDefaultStatePath()
+    const state: Record<string, RateLimitEntry> = {}
+    for (const [key, entry] of this.requests.entries()) {
+      state[key] = entry
+    }
+    try {
+      await fs.writeFile(statePath, JSON.stringify(state, null, 2), 'utf-8')
+    } catch (error) {
+      logError(`Failed to save rate limit state: ${error}`)
+    }
+  }
+
+  /**
+   * Load rate limit state from disk after restart
+   * @param filePath - Optional file path (defaults to OS temp dir)
+   */
+  async loadState(filePath?: string): Promise<void> {
+    const statePath = filePath || this.getDefaultStatePath()
+    try {
+      const data = await fs.readFile(statePath, 'utf-8')
+      const state: Record<string, RateLimitEntry> = JSON.parse(data)
+      const now = Date.now()
+      for (const [key, entry] of Object.entries(state)) {
+        // Only restore entries that are still within the window
+        if (now - entry.windowStart <= this.config.windowMs) {
+          this.requests.set(key, entry)
+        }
+      }
+    } catch (error) {
+      // File doesn't exist or is invalid - start fresh
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        logError(`Failed to load rate limit state: ${error}`)
+      }
+    }
+  }
+
+  /**
+   * Get default state file path in OS temp directory
+   */
+  private getDefaultStatePath(): string {
+    const safePrefix = this.config.keyPrefix.replace(/[^a-zA-Z0-9_-]/g, '_')
+    return path.join(os.tmpdir(), `hawk-ratelimit-${safePrefix}.json`)
   }
 }
 

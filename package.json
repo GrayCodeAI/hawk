@@ -37,6 +37,7 @@
     "dev:code": "bun run profile:code && bun run dev:profile",
     "start": "node dist/cli.mjs",
     "typecheck": "tsc --noEmit --noResolve -p tsconfig.runtime-check.json",
+    "lint": "eslint . --ext .ts,.tsx",
     "smoke": "bun run build && node dist/cli.mjs --version",
     "test:provider": "bun test src/services/api/*.test.ts",
     "doctor:runtime": "bun run scripts/system-check.ts",
