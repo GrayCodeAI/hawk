@@ -81,6 +81,29 @@ export { isFastModeAvailable, isFastModeCooldown, isFastModeEnabled, isFastModeS
 // Async utilities
 export { returnValue } from './generators.js'
 
+// Rate limiting utilities
+export {
+  RateLimiter,
+  apiRequestLimiter,
+  fileUploadLimiter,
+  toolInvocationLimiter,
+  mcpCallLimiter,
+  withRateLimit,
+  isRateLimitError,
+} from './rateLimit.js'
+export type { RateLimiterConfig } from './rateLimit.js'
+
+// Batch request utilities
+export {
+  BatchProcessor,
+  batchAsync,
+  RequestDeduplicator,
+  globalDeduplicator,
+  withDeduplication,
+  BatchPresets,
+} from './batchRequests.js'
+export type { BatchConfig } from './batchRequests.js'
+
 // Type utilities
 export type { NonNullableUsage } from '../services/api/logging.js'
 export type { Message } from '../types/message.js'
