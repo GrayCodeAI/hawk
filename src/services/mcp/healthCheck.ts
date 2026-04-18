@@ -3,7 +3,8 @@
  * Monitors MCP server health and provides automatic recovery
  */
 
-import { logError, logForDebugging } from '../../utils/log.js'
+import { logError } from '../../utils/log.js'
+import { logForDebugging } from '../../utils/debug.js'
 import { SECOND, MINUTE } from '../../constants/numbers.js'
 import type { MCPServerConnection } from './types.js'
 

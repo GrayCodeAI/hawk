@@ -4,7 +4,7 @@
  */
 
 import { SECOND } from '../constants/numbers.js'
-import { logForDebugging } from './log.js'
+import { logForDebugging } from './debug.js'
 
 /**
  * Configuration for batch processor

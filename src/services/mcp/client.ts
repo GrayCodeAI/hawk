@@ -37,8 +37,9 @@ import {
   type ResourceLink,
 } from '@modelcontextprotocol/sdk/types.js'
 import mapValues from 'lodash-es/mapValues.js'
-import memoize from 'lodash-es/memoize.js'
 import zipObject from 'lodash-es/zipObject.js'
+import { memoizeWithTTL } from '../../utils/memoize.js'
+import { LONG_TTL_MS } from '../../constants/numbers.js'
 import pMap from 'p-map'
 import { getOriginalCwd, getSessionId } from '../../bootstrap/state.js'
 import type { Command } from '../../commands.js'
@@ -586,13 +587,13 @@ export function getServerCacheKey(
 }
 
 /**
- * TODO (ollie): The memoization here increases complexity by a lot, and im not sure it really improves performance
  * Attempts to connect to a single MCP server
+ * Uses TTL memoization to cache connections with automatic expiration
  * @param name Server name
  * @param serverRef Scoped server configuration
  * @returns A wrapped client (either connected or failed)
  */
-export const connectToServer = memoize(
+export const connectToServer = memoizeWithTTL(
   async (
     name: string,
     serverRef: ScopedMcpServerConfig,
@@ -1637,7 +1638,8 @@ export const connectToServer = memoize(
       }
     }
   },
-  getServerCacheKey,
+  (name, serverRef) => getServerCacheKey(name, serverRef),
+  LONG_TTL_MS,
 )
 
 /**
