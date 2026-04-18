@@ -2073,7 +2073,19 @@ async function* queryModel(
             } else {
               switch (delta.type) {
                 case 'citations_delta':
-                  // TODO: handle citations
+                  // Handle citations - track sources for AI-generated content
+                  if ('citations' in delta && Array.isArray(delta.citations)) {
+                    // Log citations for debugging and potential future use
+                    logForDebugging(
+                      `Received ${delta.citations.length} citation(s) for content`,
+                      { level: 'verbose' }
+                    )
+                    // Store citations on the content block if it supports them
+                    if (contentBlock && typeof contentBlock === 'object') {
+                      const block = contentBlock as Record<string, unknown>
+                      block.citations = [...(block.citations as unknown[] ?? []), ...delta.citations]
+                    }
+                  }
                   break
                 case 'input_json_delta':
                   if (

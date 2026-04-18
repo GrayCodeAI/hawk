@@ -678,9 +678,14 @@ export const connectToServer = memoizeWithTTL(
         logMCPDebug(name, `SSE transport initialized, awaiting connection`)
       } else if (serverRef.type === 'sse-ide') {
         logMCPDebug(name, `Setting up SSE-IDE transport to ${serverRef.url}`)
-        // IDE servers don't need authentication
-        // TODO: Use the auth token provided in the lockfile
+        // IDE servers use auth token from lockfile if available
         const proxyOptions = getProxyFetchOptions()
+        const headers: Record<string, string> = {
+          'User-Agent': getMCPUserAgent(),
+          ...(serverRef.authToken && {
+            'X-Hawk-Code-Ide-Authorization': serverRef.authToken,
+          }),
+        }
         const transportOptions: SSEClientTransportOptions =
           proxyOptions.dispatcher
             ? {
@@ -691,14 +696,27 @@ export const connectToServer = memoizeWithTTL(
                       ...init,
                       ...proxyOptions,
                       headers: {
-                        'User-Agent': getMCPUserAgent(),
+                        ...headers,
                         ...init?.headers,
                       },
                     })
                   },
                 },
               }
-            : {}
+            : {
+                eventSourceInit: {
+                  fetch: async (url: string | URL, init?: RequestInit) => {
+                    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
+                    return fetch(url, {
+                      ...init,
+                      headers: {
+                        ...headers,
+                        ...init?.headers,
+                      },
+                    })
+                  },
+                },
+              }
 
         transport = new SSEClientTransport(
           new URL(serverRef.url),
