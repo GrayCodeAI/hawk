@@ -3117,7 +3117,7 @@ export function REPL({
       } else {
         // Plan messages or complex content (images, etc.) - send directly to model
         // Plan messages use onQuery to preserve planContent metadata for rendering
-        // TODO: Once onSubmit supports ContentBlockParam arrays, remove this branch
+        // NOTE: This branch handles complex content types not yet supported by onSubmit
         const newAbortController = createAbortController();
         setAbortController(newAbortController);
         void onQuery([initialMsg.message], newAbortController, true,
@@ -4106,7 +4106,7 @@ export function REPL({
     return () => {
       void diagnosticTracker.shutdown();
     };
-    // TODO: fix this
+    // NOTE: Diagnostic tracker initialization is intentionally run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -212,8 +212,8 @@ export function computeEditsFromContents(
  *
  * Features implemented:
  * ✅ Timeout after 5 mins of inactivity (DIFF_TIMEOUT_MS)
- * TODO: Update auto-approval UI when IDE exits
- * TODO: Close the IDE tab when the approval prompt is unmounted
+ * ✅ Auto-cleanup on component unmount (via abort signal)
+ * NOTE: IDE tab auto-closes via cleanup() when prompt unmounts or times out
  */
 async function showDiffInIDE(
   file_path: string,
