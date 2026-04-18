@@ -20,20 +20,10 @@ jobs:
         with:
           path: hawk
 
-      - name: Checkout Eyrie (local dependency)
-        uses: actions/checkout@v5
-        with:
-          repository: GrayCodeAI/eyrie
-          path: eyrie
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
-      - name: Install Eyrie deps
-        working-directory: eyrie
-        run: npm ci
 
       - name: Install
         run: bun install
