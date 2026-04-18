@@ -14,7 +14,7 @@ import * as path from 'path'
 import { count } from '../../utils/array.js'
 import { getCwd } from '../../utils/cwd.js'
 import { logForDebugging } from '../../utils/debug.js'
-import { errorMessage } from '../../utils/errors.js'
+import { errorMessage, FileOperationError } from '../../utils/errors.js'
 import { logError } from '../../utils/log.js'
 import { sleep } from '../../utils/sleep.js'
 import {
@@ -119,7 +119,7 @@ async function retryWithBackoff<T>(
     }
   }
 
-  throw new Error(`${lastError} after ${MAX_RETRIES} attempts`)
+  throw new FileOperationError(`${lastError} after ${MAX_RETRIES} attempts`, 'unknown', 'download')
 }
 
 /**
@@ -160,13 +160,13 @@ export async function downloadFile(
 
       // Non-retriable errors - throw immediately
       if (response.status === 404) {
-        throw new Error(`File not found: ${fileId}`)
+        throw new FileOperationError('file not found', fileId, 'read')
       }
       if (response.status === 401) {
-        throw new Error('Authentication failed: invalid or missing API key')
+        throw new FileOperationError('authentication failed', fileId, 'read')
       }
       if (response.status === 403) {
-        throw new Error(`Access denied to file: ${fileId}`)
+        throw new FileOperationError('access denied', fileId, 'read')
       }
 
       return { done: false, error: `status ${response.status}` }
@@ -659,14 +659,14 @@ export async function listFilesCreatedAfter(
               error_type:
                 'auth' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
             })
-            throw new Error('Authentication failed: invalid or missing API key')
+            throw new FileOperationError('authentication failed', fileId, 'read')
           }
           if (response.status === 403) {
             logEvent('tengu_file_list_failed', {
               error_type:
                 'forbidden' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
             })
-            throw new Error('Access denied to list files')
+            throw new FileOperationError('access denied', 'list', 'read')
           }
 
           return { done: false, error: `status ${response.status}` }

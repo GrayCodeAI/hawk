@@ -60,6 +60,128 @@ export class ShellError extends Error {
   }
 }
 
+/**
+ * Error for invalid content block types in API responses
+ */
+export class ContentBlockError extends HawkError {
+  constructor(
+    public readonly expectedType: string,
+    public readonly actualType: string,
+  ) {
+    super(`Expected ${expectedType} block, received ${actualType}`)
+    this.name = 'ContentBlockError'
+  }
+}
+
+/**
+ * Error for stream timeout conditions
+ */
+export class StreamTimeoutError extends HawkError {
+  constructor(
+    public readonly reason: string,
+    public readonly duration?: number,
+  ) {
+    super(`Stream timeout: ${reason}${duration ? ` after ${duration}ms` : ''}`)
+    this.name = 'StreamTimeoutError'
+  }
+}
+
+/**
+ * Error for API-related issues
+ */
+export class APIError extends HawkError {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly responseBody?: unknown,
+  ) {
+    super(message)
+    this.name = 'APIError'
+  }
+}
+
+/**
+ * Error for authentication/authorization failures
+ */
+export class AuthError extends HawkError {
+  constructor(
+    message: string,
+    public readonly provider?: string,
+  ) {
+    super(message)
+    this.name = 'AuthError'
+  }
+}
+
+/**
+ * Error for file operation failures
+ */
+export class FileOperationError extends HawkError {
+  constructor(
+    message: string,
+    public readonly filePath: string,
+    public readonly operation: 'read' | 'write' | 'delete' | 'copy' | 'move',
+  ) {
+    super(`${operation} failed for ${filePath}: ${message}`)
+    this.name = 'FileOperationError'
+  }
+}
+
+/**
+ * Error for validation failures
+ */
+export class ValidationError extends HawkError {
+  constructor(
+    message: string,
+    public readonly field?: string,
+    public readonly value?: unknown,
+  ) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+/**
+ * Error for rate limit exceeded
+ */
+export class RateLimitError extends HawkError {
+  constructor(
+    message: string,
+    public readonly retryAfter?: number,
+    public readonly limitType?: 'requests' | 'tokens',
+  ) {
+    super(message)
+    this.name = 'RateLimitError'
+  }
+}
+
+/**
+ * Error for tool execution failures
+ */
+export class ToolExecutionError extends HawkError {
+  constructor(
+    message: string,
+    public readonly toolName?: string,
+    public readonly toolInput?: unknown,
+  ) {
+    super(message)
+    this.name = 'ToolExecutionError'
+  }
+}
+
+/**
+ * Error for MCP server connection issues
+ */
+export class MCPServerError extends HawkError {
+  constructor(
+    message: string,
+    public readonly serverName?: string,
+  ) {
+    super(message)
+    this.name = 'MCPServerError'
+  }
+}
+
 export class TeleportOperationError extends Error {
   constructor(
     message: string,
