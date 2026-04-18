@@ -284,9 +284,8 @@ function SpinnerWithVerbInner({
             <TaskListV2 tasks={tasksV2} />
           </MessageResponse>
         </Box> : nextTask || effectiveTip || budgetText ?
-    // IMPORTANT: we need this width="100%" to avoid an Ink bug where the
-    // tip gets duplicated over and over while the spinner is running if
-    // the terminal is very small. TODO: fix this in Ink.
+    // IMPORTANT: width="100%" prevents Ink bug where tips duplicate in small terminals
+    // This is a workaround for an upstream Ink rendering issue
     <Box width="100%" flexDirection="column">
           {budgetText && <MessageResponse>
               <Text dimColor>{budgetText}</Text>

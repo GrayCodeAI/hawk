@@ -122,8 +122,10 @@ function sanitizeMessageHTML(message: string): string {
 export function sanitizeAPIError(apiError: APIError): string {
   const message = apiError.message
   if (!message) {
-    // Sometimes message is undefined
-    // TODO: figure out why
+    // Message can be undefined when APIError is deserialized from JSON
+    // (e.g., from session storage) as the message property is non-enumerable
+    // and gets lost during JSON round-tripping. See comment below about
+    // session JSONL deserialization shapes.
     return ''
   }
   return sanitizeMessageHTML(message)

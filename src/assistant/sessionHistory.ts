@@ -54,7 +54,10 @@ async function fetchPage(
       timeout: 15000,
       validateStatus: () => true,
     })
-    .catch(() => null)
+    .catch((error) => {
+      logForDebugging(`[${label}] Request failed: ${error.message}`)
+      return null
+    })
   if (!resp || resp.status !== 200) {
     logForDebugging(`[${label}] HTTP ${resp?.status ?? 'error'}`)
     return null

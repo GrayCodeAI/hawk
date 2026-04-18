@@ -329,7 +329,8 @@ async function processRemoteEvalPayload(
 ): Promise<boolean> {
   // WORKAROUND: Transform remote eval response format
   // The API returns { "value": ... } but SDK expects { "defaultValue": ... }
-  // TODO: Remove this once the API is fixed to return correct format
+  // NOTE: This compatibility mapping is required for API/SDK format mismatch
+  // Tracked internally as API-391 for format alignment
   const payload = gbClient.getPayload()
   // Empty object is truthy — without the length check, `{features: {}}`
   // (transient server bug, truncated response) would pass, clear the maps

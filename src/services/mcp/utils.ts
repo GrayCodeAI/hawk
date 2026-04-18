@@ -354,10 +354,13 @@ export function getProjectMcpServerStatus(
   const settings = getSettings_DEPRECATED()
   const normalizedName = normalizeNameForMCP(serverName)
 
-  // TODO: This fails an e2e test if the ?. is not present. This is likely a bug in the e2e test.
-  // Will fix this in a follow-up PR.
+  // Handle undefined settings gracefully - getInitialSettings can return empty object
+  const disabledServers = settings?.disabledMcpjsonServers ?? []
+  const enabledServers = settings?.enabledMcpjsonServers ?? []
+  const enableAll = settings?.enableAllProjectMcpServers ?? false
+
   if (
-    settings?.disabledMcpjsonServers?.some(
+    disabledServers.some(
       name => normalizeNameForMCP(name) === normalizedName,
     )
   ) {
@@ -365,10 +368,10 @@ export function getProjectMcpServerStatus(
   }
 
   if (
-    settings?.enabledMcpjsonServers?.some(
+    enabledServers.some(
       name => normalizeNameForMCP(name) === normalizedName,
     ) ||
-    settings?.enableAllProjectMcpServers
+    enableAll
   ) {
     return 'approved'
   }

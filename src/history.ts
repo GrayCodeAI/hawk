@@ -63,7 +63,7 @@ export function parseReferences(
   input: string,
 ): Array<{ id: number; match: string; index: number }> {
   const referencePattern =
-    /\[(Pasted text|Image|\.\.\.Truncated text) #(\d+)(?: \+\d+ lines)?(\.)*\]/g
+    /\[(Pasted text|Image|\.\.\.Truncated text) #(\d+)(?: \+\d+ lines)?(?:\.)*\]/g
   const matches = [...input.matchAll(referencePattern)]
   return matches
     .map(match => ({
@@ -131,6 +131,11 @@ async function* makeLogEntryReader(): AsyncGenerator<LogEntry> {
       } catch (error) {
         // Not a critical error - just skip malformed lines
         logForDebugging(`Failed to parse history line: ${error}`)
+        // Track frequency to detect data corruption
+        const skipCount = skippedTimestamps.size
+        if (skipCount > 10) {
+          logForDebugging(`Warning: ${skipCount} malformed history entries detected`)
+        }
       }
     }
   } catch (e: unknown) {

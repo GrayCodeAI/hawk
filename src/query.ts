@@ -540,7 +540,8 @@ async function* queryLoop(
       }
     }
 
-    //TODO: no need to set toolUseContext.messages during set-up since it is updated here
+    // toolUseContext.messages is managed by the message loop and doesn't need
+    // to be set during initialization as it gets updated dynamically
     toolUseContext = {
       ...toolUseContext,
       messages: messagesForQuery,

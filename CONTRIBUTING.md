@@ -48,3 +48,7 @@ bun run dev
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+## Contact
+
+For questions or feedback, open an issue on [GitHub](https://github.com/GrayCodeAI/hawk/issues).

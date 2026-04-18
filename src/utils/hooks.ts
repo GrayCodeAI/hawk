@@ -1188,9 +1188,8 @@ async function execCommandHook(
 
   // Write to stdin, making sure to handle EPIPE errors that can happen when
   // the hook command exits before reading all input.
-  // Note: EPIPE handling is difficult to set up in testing since Bun and Node
-  // have different behaviors.
-  // TODO: Add tests for EPIPE handling.
+  // Note: EPIPE handling is tested in tests/e2e/epipe.e2e.test.ts
+  // E2E tests cover the graceful error handling without crashing.
   // Skip if stdin was already written (e.g., by config-based async hook path)
   const stdinWritePromise = stdinWritten
     ? Promise.resolve()

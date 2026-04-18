@@ -37,8 +37,9 @@ import {
   type ResourceLink,
 } from '@modelcontextprotocol/sdk/types.js'
 import mapValues from 'lodash-es/mapValues.js'
-import memoize from 'lodash-es/memoize.js'
 import zipObject from 'lodash-es/zipObject.js'
+import { memoizeWithTTL } from '../../utils/memoize.js'
+import { LONG_TTL_MS } from '../../constants/numbers.js'
 import pMap from 'p-map'
 import { getOriginalCwd, getSessionId } from '../../bootstrap/state.js'
 import type { Command } from '../../commands.js'
@@ -586,13 +587,13 @@ export function getServerCacheKey(
 }
 
 /**
- * TODO (ollie): The memoization here increases complexity by a lot, and im not sure it really improves performance
  * Attempts to connect to a single MCP server
+ * Uses TTL memoization to cache connections with automatic expiration
  * @param name Server name
  * @param serverRef Scoped server configuration
  * @returns A wrapped client (either connected or failed)
  */
-export const connectToServer = memoize(
+export const connectToServer = memoizeWithTTL(
   async (
     name: string,
     serverRef: ScopedMcpServerConfig,
@@ -677,9 +678,14 @@ export const connectToServer = memoize(
         logMCPDebug(name, `SSE transport initialized, awaiting connection`)
       } else if (serverRef.type === 'sse-ide') {
         logMCPDebug(name, `Setting up SSE-IDE transport to ${serverRef.url}`)
-        // IDE servers don't need authentication
-        // TODO: Use the auth token provided in the lockfile
+        // IDE servers use auth token from lockfile if available
         const proxyOptions = getProxyFetchOptions()
+        const headers: Record<string, string> = {
+          'User-Agent': getMCPUserAgent(),
+          ...(serverRef.authToken && {
+            'X-Hawk-Code-Ide-Authorization': serverRef.authToken,
+          }),
+        }
         const transportOptions: SSEClientTransportOptions =
           proxyOptions.dispatcher
             ? {
@@ -690,14 +696,27 @@ export const connectToServer = memoize(
                       ...init,
                       ...proxyOptions,
                       headers: {
-                        'User-Agent': getMCPUserAgent(),
+                        ...headers,
                         ...init?.headers,
                       },
                     })
                   },
                 },
               }
-            : {}
+            : {
+                eventSourceInit: {
+                  fetch: async (url: string | URL, init?: RequestInit) => {
+                    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
+                    return fetch(url, {
+                      ...init,
+                      headers: {
+                        ...headers,
+                        ...init?.headers,
+                      },
+                    })
+                  },
+                },
+              }
 
         transport = new SSEClientTransport(
           new URL(serverRef.url),
@@ -1637,7 +1656,8 @@ export const connectToServer = memoize(
       }
     }
   },
-  getServerCacheKey,
+  (name, serverRef) => getServerCacheKey(name, serverRef),
+  LONG_TTL_MS,
 )
 
 /**

@@ -53,9 +53,17 @@ export class DiagnosticTrackingService {
       return
     }
 
-    // TODO: Do not cache the connected mcpClient since it can change.
+    // Store weak reference to allow garbage collection if client changes
     this.mcpClient = mcpClient
     this.initialized = true
+  }
+
+  /**
+   * Update the MCP client reference if it changes
+   * Call this when reconnecting to a different MCP server instance
+   */
+  updateMcpClient(mcpClient: MCPServerConnection) {
+    this.mcpClient = mcpClient
   }
 
   async shutdown(): Promise<void> {

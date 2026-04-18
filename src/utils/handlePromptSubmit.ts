@@ -184,7 +184,7 @@ export async function handlePromptSubmit(
     ),
   )
 
-  const hasImages = Object.values(pastedContents).some(isValidImagePaste)
+  const hasImages = Object.values(pastedContents).some(c => c.type === 'image')
   if (input.trim() === '') {
     return
   }

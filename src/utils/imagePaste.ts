@@ -1,7 +1,9 @@
 import { feature } from 'bun:bundle'
 import { randomBytes } from 'crypto'
 import { execa } from 'execa'
+import { homedir } from 'os'
 import { basename, extname, isAbsolute, join } from 'path'
+import { fileURLToPath } from 'url'
 import {
   IMAGE_MAX_HEIGHT,
   IMAGE_MAX_WIDTH,
@@ -9,6 +11,7 @@ import {
 } from '@hawk/eyrie'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import { getImageProcessor } from '../tools/FileReadTool/imageProcessor.js'
+import { getCwd } from './cwd.js'
 import { logForDebugging } from './debug.js'
 import { execFileNoThrowWithCwd } from './execFileNoThrow.js'
 import { getFsImplementation } from './fsOperations.js'
@@ -18,6 +21,7 @@ import {
   maybeResizeAndDownsampleImageBuffer,
 } from './imageResizer.js'
 import { logError } from './log.js'
+import type { PastedContent } from './config.js'
 
 // Native NSPasteboard reader. GrowthBook gate tengu_collage_kaleidoscope is
 // a kill switch (default on). Falls through to osascript when off.
@@ -267,7 +271,11 @@ export async function getImagePathFromClipboard(): Promise<string | null> {
  * here but not in MIME_BY_EXT (e.g. bmp) uploads as octet-stream and has no
  * /preview variant → broken thumbnail.
  */
-export const IMAGE_EXTENSION_REGEX = /\.(png|jpe?g|gif|webp)$/i
+export const IMAGE_EXTENSION_REGEX =
+  /\.(png|jpe?g|gif|webp|bmp|tiff?|heic|heif|avif)$/i
+
+const MAC_FILE_REFERENCE_REGEX = /^(?:file:\/\/\/\.file\/id=|\/\.file\/id=)/i
+const MAC_FILE_REFERENCE_RESOLVE_TIMEOUT_MS = 1500
 
 /**
  * Remove outer single or double quotes from a string
@@ -282,6 +290,24 @@ function removeOuterQuotes(text: string): string {
     return text.slice(1, -1)
   }
   return text
+}
+
+function stripPathControlChars(text: string): string {
+  return text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+}
+
+/**
+ * Remove common outer wrappers used by terminals around pasted paths.
+ */
+function stripOuterWrappers(text: string): string {
+  const withoutQuotes = removeOuterQuotes(stripPathControlChars(text))
+  if (
+    (withoutQuotes.startsWith('<') && withoutQuotes.endsWith('>')) ||
+    (withoutQuotes.startsWith('(') && withoutQuotes.endsWith(')'))
+  ) {
+    return withoutQuotes.slice(1, -1)
+  }
+  return withoutQuotes
 }
 
 /**
@@ -317,14 +343,138 @@ function stripBackslashEscapes(path: string): string {
 }
 
 /**
+ * Convert a terminal-pasted path-like token into a local filesystem path.
+ * Supports:
+ * - file:// URIs (common in some terminal drag/drop flows)
+ * - ~/ paths (macOS/Linux)
+ */
+function normalizePathToken(path: string): string {
+  if (MAC_FILE_REFERENCE_REGEX.test(path)) {
+    return path
+  }
+
+  if (/^file:\/\//i.test(path)) {
+    try {
+      return fileURLToPath(path)
+    } catch {
+      return path
+    }
+  }
+
+  if (path === '~') {
+    return homedir()
+  }
+
+  if (path.startsWith('~/')) {
+    return join(homedir(), path.slice(2))
+  }
+
+  return path
+}
+
+function trimTrailingPathNoise(text: string): string {
+  return text.replace(/[\s\])}>,"']+$/g, '')
+}
+
+export function extractPotentialFilePaths(text: string): string[] {
+  const sanitized = stripPathControlChars(text)
+  const candidates = new Set<string>()
+
+  const addCandidate = (candidate: string) => {
+    const trimmed = trimTrailingPathNoise(candidate.trim())
+    if (!trimmed) return
+    candidates.add(trimmed)
+  }
+
+  addCandidate(sanitized)
+  for (const line of sanitized.split(/\r?\n/)) {
+    addCandidate(line)
+  }
+
+  for (const match of sanitized.matchAll(/file:\/\/[^\s<>"']+/gi)) {
+    addCandidate(match[0])
+  }
+
+  for (const match of sanitized.matchAll(/(?:\/|[A-Za-z]:\\)[^\r\n\t]+/g)) {
+    addCandidate(match[0])
+  }
+
+  return [...candidates]
+}
+
+export function isMacFileReferencePath(text: string): boolean {
+  return MAC_FILE_REFERENCE_REGEX.test(text.trim())
+}
+
+export function isPureFilePathPaste(
+  text: string,
+  candidates: string[],
+): boolean {
+  if (candidates.length === 0) {
+    return false
+  }
+
+  let remaining = stripPathControlChars(text)
+  for (const candidate of [...candidates].sort((a, b) => b.length - a.length)) {
+    remaining = remaining.replaceAll(candidate, ' ')
+  }
+
+  return remaining.replace(/[\s<>"'()[\],]+/g, '').length === 0
+}
+
+async function resolveMacFileReferencePath(
+  input: string,
+): Promise<string | null> {
+  if (process.platform !== 'darwin') {
+    return null
+  }
+
+  const urlString = input.startsWith('/.file/id=') ? `file://${input}` : input
+  if (!/^file:\/\/\/\.file\/id=/i.test(urlString)) {
+    return null
+  }
+
+  const script = `
+function run(argv) {
+  ObjC.import('Foundation');
+  const url = $.NSURL.URLWithString(argv[0]);
+  if (!url) return '';
+  const filePathUrl = url.filePathURL;
+  if (!filePathUrl) return '';
+  const path = filePathUrl.path;
+  return path ? ObjC.unwrap(path) : '';
+}
+`.trim()
+
+  const result = await execFileNoThrowWithCwd('osascript', [
+    '-l',
+    'JavaScript',
+    '-e',
+    script,
+    '--',
+    urlString,
+  ], {
+    timeout: MAC_FILE_REFERENCE_RESOLVE_TIMEOUT_MS,
+  })
+
+  if (result.code !== 0) {
+    return null
+  }
+
+  const resolved = result.stdout.trim()
+  return resolved || null
+}
+
+/**
  * Check if a given text represents an image file path
  * @param text Text to check
  * @returns Boolean indicating if text is an image path
  */
 export function isImageFilePath(text: string): boolean {
-  const cleaned = removeOuterQuotes(text.trim())
+  const cleaned = stripOuterWrappers(text.trim())
   const unescaped = stripBackslashEscapes(cleaned)
-  return IMAGE_EXTENSION_REGEX.test(unescaped)
+  const normalized = normalizePathToken(unescaped)
+  return IMAGE_EXTENSION_REGEX.test(normalized)
 }
 
 /**
@@ -333,14 +483,120 @@ export function isImageFilePath(text: string): boolean {
  * @returns Cleaned text with quotes removed, whitespace trimmed, and shell escapes removed, or null if not an image path
  */
 export function asImageFilePath(text: string): string | null {
-  const cleaned = removeOuterQuotes(text.trim())
+  const cleaned = stripOuterWrappers(text.trim())
   const unescaped = stripBackslashEscapes(cleaned)
+  const normalized = normalizePathToken(unescaped)
 
-  if (IMAGE_EXTENSION_REGEX.test(unescaped)) {
-    return unescaped
+  if (IMAGE_EXTENSION_REGEX.test(normalized)) {
+    return normalized
   }
 
   return null
+}
+
+/**
+ * Parse text as a filesystem path token even if it has no image extension.
+ */
+export function asPotentialFilePath(text: string): string | null {
+  const cleaned = stripOuterWrappers(text.trim())
+  const unescaped = stripBackslashEscapes(cleaned)
+  const normalized = normalizePathToken(unescaped)
+
+  if (
+    /^file:\/\//i.test(normalized) ||
+    /^\/\.file\/id=/i.test(normalized) ||
+    isAbsolute(normalized) ||
+    /^[A-Za-z]:\\/.test(normalized)
+  ) {
+    return normalized
+  }
+
+  return null
+}
+
+/**
+ * Lightweight file signature check for common image formats.
+ */
+function hasKnownImageSignature(buffer: Uint8Array): boolean {
+  if (buffer.length < 12) return false
+
+  // PNG
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return true
+  }
+  // JPEG
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return true
+  }
+  // GIF
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+    return true
+  }
+  // WebP (RIFF....WEBP)
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return true
+  }
+  // BMP
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return true
+  }
+  // TIFF
+  if (
+    (buffer[0] === 0x49 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x2a &&
+      buffer[3] === 0x00) ||
+    (buffer[0] === 0x4d &&
+      buffer[1] === 0x4d &&
+      buffer[2] === 0x00 &&
+      buffer[3] === 0x2a)
+  ) {
+    return true
+  }
+  // HEIC/HEIF/AVIF ISO BMFF brands
+  if (
+    buffer[4] === 0x66 &&
+    buffer[5] === 0x74 &&
+    buffer[6] === 0x79 &&
+    buffer[7] === 0x70
+  ) {
+    const brand = String.fromCharCode(
+      buffer[8] ?? 0,
+      buffer[9] ?? 0,
+      buffer[10] ?? 0,
+      buffer[11] ?? 0,
+    ).toLowerCase()
+    if (
+      [
+        'heic',
+        'heif',
+        'heix',
+        'hevc',
+        'avif',
+        'avis',
+        'mif1',
+        'msf1',
+      ].includes(brand)
+    ) {
+      return true
+    }
+  }
+
+  return false
 }
 
 /**
@@ -352,25 +608,39 @@ export async function tryReadImageFromPath(
   text: string,
 ): Promise<(ImageWithDimensions & { path: string }) | null> {
   // Strip terminal added spaces or quotes to dragged in paths
-  const cleanedPath = asImageFilePath(text)
+  const explicitImagePath = asImageFilePath(text)
+  const cleanedPath = explicitImagePath ?? asPotentialFilePath(text)
 
   if (!cleanedPath) {
     return null
   }
 
-  const imagePath = cleanedPath
+  let imagePath = cleanedPath
   let imageBuffer
 
   try {
+    const resolvedReference = await resolveMacFileReferencePath(imagePath)
+    if (resolvedReference) {
+      imagePath = resolvedReference
+    }
+
     if (isAbsolute(imagePath)) {
       imageBuffer = getFsImplementation().readFileBytesSync(imagePath)
     } else {
+      const cwdPath = join(getCwd(), imagePath)
+      if (getFsImplementation().existsSync(cwdPath)) {
+        imageBuffer = getFsImplementation().readFileBytesSync(cwdPath)
+        imagePath = cwdPath
+      }
       // VSCode Terminal just grabs the text content which is the filename
       // instead of getting the full path of the file pasted with cmd-v. So
       // we check if it matches the filename of the image in the clipboard.
-      const clipboardPath = await getImagePathFromClipboard()
-      if (clipboardPath && imagePath === basename(clipboardPath)) {
-        imageBuffer = getFsImplementation().readFileBytesSync(clipboardPath)
+      if (!imageBuffer) {
+        const clipboardPath = await getImagePathFromClipboard()
+        if (clipboardPath && imagePath === basename(clipboardPath)) {
+          imageBuffer = getFsImplementation().readFileBytesSync(clipboardPath)
+          imagePath = clipboardPath
+        }
       }
     }
   } catch (e) {
@@ -385,32 +655,83 @@ export async function tryReadImageFromPath(
     return null
   }
 
-  // BMP is not supported by the API — convert to PNG via Sharp.
-  if (
-    imageBuffer.length >= 2 &&
-    imageBuffer[0] === 0x42 &&
-    imageBuffer[1] === 0x4d
-  ) {
-    const sharp = await getImageProcessor()
-    imageBuffer = await sharp(imageBuffer).png().toBuffer()
+  // If the path did not have a recognized image extension, require a known
+  // image signature so we don't treat arbitrary dropped files as images.
+  if (!explicitImagePath && !hasKnownImageSignature(imageBuffer)) {
+    return null
   }
 
-  // Resize if needed to stay under 5MB API limit
-  // Extract extension from path for format hint
-  const ext = extname(imagePath).slice(1).toLowerCase() || 'png'
-  const resized = await maybeResizeAndDownsampleImageBuffer(
-    imageBuffer,
-    imageBuffer.length,
-    ext,
-  )
-  const base64Image = resized.buffer.toString('base64')
+  try {
+    const inputExt = extname(imagePath).slice(1).toLowerCase()
+    const nativeApiFormats = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp'])
 
-  // Detect format from the actual file contents using magic bytes
-  const mediaType = detectImageFormatFromBase64(base64Image)
+    // BMP is not supported by the API — convert to PNG via Sharp.
+    if (
+      imageBuffer.length >= 2 &&
+      imageBuffer[0] === 0x42 &&
+      imageBuffer[1] === 0x4d
+    ) {
+      const sharp = await getImageProcessor()
+      imageBuffer = await sharp(imageBuffer).png().toBuffer()
+    }
+
+    // Convert formats not accepted directly by the API (e.g. heic/tiff/avif)
+    // to PNG so drag/drop from macOS Photos/Finder still works.
+    if (!nativeApiFormats.has(inputExt)) {
+      const sharp = await getImageProcessor()
+      imageBuffer = await sharp(imageBuffer).png().toBuffer()
+    }
+
+    // Resize if needed to stay under 5MB API limit
+    // Extract extension from path for format hint
+    const ext = nativeApiFormats.has(inputExt) ? inputExt : 'png'
+    const resized = await maybeResizeAndDownsampleImageBuffer(
+      imageBuffer,
+      imageBuffer.length,
+      ext,
+    )
+    const base64Image = resized.buffer.toString('base64')
+
+    // Detect format from the actual file contents using magic bytes
+    const mediaType = detectImageFormatFromBase64(base64Image)
+    return {
+      path: imagePath,
+      base64: base64Image,
+      mediaType,
+      dimensions: resized.dimensions,
+    }
+  } catch (e) {
+    logError(e as Error)
+    return null
+  }
+}
+
+export async function resolvePastedImageContent(
+  content: PastedContent,
+): Promise<PastedContent | null> {
+  if (content.type !== 'image') {
+    return null
+  }
+
+  if (content.content.length > 0) {
+    return content
+  }
+
+  if (!content.sourcePath) {
+    return null
+  }
+
+  const resolved = await tryReadImageFromPath(content.sourcePath)
+  if (!resolved) {
+    return null
+  }
+
   return {
-    path: imagePath,
-    base64: base64Image,
-    mediaType,
-    dimensions: resized.dimensions,
+    ...content,
+    content: resolved.base64,
+    mediaType: resolved.mediaType || content.mediaType || 'image/png',
+    dimensions: resolved.dimensions ?? content.dimensions,
+    filename: content.filename || basename(resolved.path),
+    sourcePath: resolved.path,
   }
 }

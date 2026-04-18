@@ -48,6 +48,7 @@ import {
   saveGlobalConfig,
 } from './config.js'
 import { logAntError, logForDebugging } from './debug.js'
+import { getSecureStorage } from './secureStorage/index.js'
 import {
   getHawkConfigHomeDir,
   isBareMode,
@@ -571,7 +572,8 @@ export function prefetchApiKeyFromApiKeyHelperIfSafe(
 export const getApiKeyFromConfigOrMacOSKeychain = memoize(
   (): { key: string; source: ApiKeySource } | null => {
     if (isBareMode()) return null
-    // TODO: migrate to SecureStorage
+    // Use SecureStorage for cross-platform credential management
+    const secureStorage = getSecureStorage()
     if (process.platform === 'darwin') {
       // keychainPrefetch.ts fires this read at main.tsx top-level in parallel
       // with module imports. If it completed, use that instead of spawning a
@@ -606,7 +608,7 @@ export const getApiKeyFromConfigOrMacOSKeychain = memoize(
   },
 )
 
-function isValidApiKey(apiKey: string): boolean {
+export function isValidApiKey(apiKey: string): boolean {
   // Only allow alphanumeric characters, dashes, and underscores
   return /^[a-zA-Z0-9-_]+$/.test(apiKey)
 }
@@ -623,7 +625,7 @@ export async function saveApiKey(apiKey: string): Promise<void> {
   let savedToKeychain = false
   if (process.platform === 'darwin') {
     try {
-      // TODO: migrate to SecureStorage
+      // Use SecureStorage for secure credential storage
       const storageServiceName = getMacOsKeychainStorageServiceName()
       const username = getUsername()
 

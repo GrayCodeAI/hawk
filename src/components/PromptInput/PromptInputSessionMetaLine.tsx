@@ -1,31 +1,16 @@
 import { homedir } from 'os'
 import * as React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getTotalDuration } from '../../bootstrap/state.js'
 import {
   getTotalCacheCreationInputTokens,
   getTotalCacheReadInputTokens,
   getTotalCost,
   getTotalInputTokens,
   getTotalOutputTokens,
-  getTurnTotalTokens,
 } from '../../cost-tracker.js'
-import { getTotalDuration } from '../../bootstrap/state.js'
 import { Box, Text } from '../../ink.js'
-import type { Message } from '../../types/message.js'
 import { getBranch } from '../../utils/git.js'
-import { modelDisplayString } from '../../utils/model/model.js'
-import { getAPIProvider } from '../../utils/model/providers.js'
-import {
-  isDefaultMode,
-  permissionModeTitle,
-  type PermissionMode,
-} from '../../utils/permissions/PermissionMode.js'
-import { useAppState } from '../../state/AppState.js'
-
-type Props = {
-  permissionMode: PermissionMode
-  messages: Message[]
-}
 
 function getDisplayCwd(): string {
   const cwd = process.cwd()
@@ -37,11 +22,7 @@ function getDisplayCwd(): string {
   return cwd
 }
 
-export function PromptInputSessionMetaLine({
-  permissionMode,
-  messages,
-}: Props): React.ReactNode {
-  const mainLoopModel = useAppState(s => s.mainLoopModel)
+export function PromptInputSessionMetaLine(): React.ReactNode {
   const [displayPath] = useState(() => getDisplayCwd())
   const [branchLabel, setBranchLabel] = useState<string>('—')
 
@@ -70,23 +51,13 @@ export function PromptInputSessionMetaLine({
     getTotalOutputTokens() +
     getTotalCacheReadInputTokens() +
     getTotalCacheCreationInputTokens()
-  const turnTokenDelta = getTurnTotalTokens()
-  const hasAssistantMessages = messages.some(m => m.type === 'assistant')
-  const hasAPIUsage = contextTokenTotal > 0
-  
+
   // Format context size with full number (e.g., "12,943")
   const roundedContextTotal = Math.max(0, Math.round(contextTokenTotal))
   const contextValueLabel = roundedContextTotal.toLocaleString()
-  
+
   // Simple display: just show total tokens
   const tokenLabel = `${contextValueLabel} tokens`
-  // Always bright green
-  const tokenColor = 'ansi:greenBright'
-  const modeLabel = isDefaultMode(permissionMode)
-    ? 'default'
-    : permissionModeTitle(permissionMode).toLowerCase()
-  const provider = getAPIProvider()
-  const modelLabel = `${provider}: ${modelDisplayString(mainLoopModel)}`
   const totalCost = getTotalCost()
   const costLabel =
     totalCost === 0
@@ -108,36 +79,31 @@ export function PromptInputSessionMetaLine({
       : `⏱ ${durationSec}s`
 
   // Unique bright color scheme for each footer element
-  const dimGray = 'ansi:blackBright'
-  const modeColor = 'ansi:redBright'
-  const modelColor = '#DA70D6'
-  const pathColor = 'ansi:blueBright'
-  const branchColor = 'ansi:yellowBright'
-  const costColor = 'ansi:magentaBright'
-  const durationColor = 'ansi:cyanBright'
-  const versionColor = 'ansi:whiteBright'
+  const separatorColor = '#6b7280'
+  const pathColor = '#61afef'
+  const branchColor = '#ff9e64'
+  const tokenColor = '#98c379'
+  const costColor = '#e06c75'
+  const durationColor = '#56b6c2'
+  const versionColor = '#c678dd'
 
   return (
     <Box height={1} overflow="hidden" width="100%" justifyContent="flex-end">
       <Box flexShrink={1} minWidth={0}>
         <Text wrap="truncate">
-          <Text color={modeColor}>◆ {modeLabel}</Text>
-          <Text color={dimGray}>  </Text>
-          <Text color={modelColor}>◇ {modelLabel}</Text>
-          <Text color={dimGray}>  </Text>
           <Text color={pathColor}>▢ {displayPath}</Text>
-          <Text color={dimGray}>:</Text>
+          <Text color={separatorColor}>:</Text>
           <Text color={branchColor}>⎇ {branchLabel}</Text>
-          <Text color={dimGray}>  </Text>
+          <Text color={separatorColor}> · </Text>
         </Text>
       </Box>
       <Text>
         <Text color={tokenColor}>◉ {tokenLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
         <Text color={costColor}>{costLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
         <Text color={durationColor}>{durationLabel}</Text>
-        <Text color={dimGray}>  </Text>
+        <Text color={separatorColor}> · </Text>
         <Text color={versionColor}>⌖ {version}</Text>
       </Text>
     </Box>
