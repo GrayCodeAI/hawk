@@ -22,6 +22,8 @@ import {
   getDefaultMainLoopModelSetting,
   type ModelShortName,
 } from './model/model.js'
+import { getProviderCatalogEntry } from './model/providerCatalog.js'
+import { getAPIProvider } from './model/providers.js'
 
 // @see https://platform.hawk.com/docs/en/about-hawk/pricing
 export type ModelCosts = {
@@ -336,6 +338,27 @@ function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {
   )
 }
 
+/**
+ * Try to get costs from Eyrie catalog (for OpenCodeGO, OpenRouter, CanopyWave)
+ * Falls back to hardcoded MODEL_COSTS for Anthropic and other providers
+ */
+function getCostsFromCatalog(model: string): ModelCosts | null {
+  const provider = getAPIProvider()
+  const entry = getProviderCatalogEntry(provider, model)
+
+  if (entry?.input_price_per_1m !== undefined && entry?.output_price_per_1m !== undefined) {
+    return {
+      inputTokens: entry.input_price_per_1m,
+      outputTokens: entry.output_price_per_1m,
+      promptCacheWriteTokens: entry.input_price_per_1m, // Use input price as default
+      promptCacheReadTokens: entry.input_price_per_1m * 0.1, // Rough estimate
+      webSearchRequests: 0.01,
+    }
+  }
+
+  return null
+}
+
 export function getModelCosts(model: string, usage: Usage): ModelCosts {
   const shortName = getCanonicalName(model)
 
@@ -345,6 +368,12 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
   ) {
     const isFastMode = usage.speed === 'fast'
     return getOpus46CostTier(isFastMode)
+  }
+
+  // Try to get costs from Eyrie catalog first (for 3P providers like OpenCodeGO)
+  const catalogCosts = getCostsFromCatalog(model)
+  if (catalogCosts) {
+    return catalogCosts
   }
 
   // Try to find costs by canonical name first
