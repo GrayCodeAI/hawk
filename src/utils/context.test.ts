@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
+  calculateContextPercentages,
   getContextWindowForModel,
   getModelMaxOutputTokens,
   MODEL_CONTEXT_WINDOW_DEFAULT,
@@ -49,5 +50,19 @@ describe('context provider catalog fallback', () => {
       default: 65_536,
       upperLimit: 65_536,
     })
+  })
+
+  test('calculateContextPercentages does not double-count cache tokens', () => {
+    // input_tokens already includes cache tokens for providers that report them
+    const result = calculateContextPercentages(
+      {
+        input_tokens: 1200, // includes 200 cache read
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 200,
+      },
+      200_000,
+    )
+    // Should be 1200/200000 = 0.6%, not 1400/200000 = 0.7%
+    expect(result.used).toBe(1)
   })
 })

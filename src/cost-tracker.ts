@@ -25,7 +25,7 @@ import {
   getTurnTotalTokens,
   getUsageForModel,
   hasUnknownModelCost,
-  resetCostState,
+  resetCostState as _resetCostState,
   resetStateForTests,
   setCostStateForRestore,
   setHasUnknownModelCost,
@@ -67,10 +67,20 @@ export {
   getTurnTotalTokens,
   hasUnknownModelCost,
   resetStateForTests,
-  resetCostState,
   setHasUnknownModelCost,
   getModelUsage,
   getUsageForModel,
+}
+
+/**
+ * Reset cost state and token tracking together.
+ * Token tracking must be cleared when the session resets so delta-based
+ * input token counting (used by OpenAI-compatible providers) doesn't
+ * carry stale state into the next session.
+ */
+export function resetCostState(): void {
+  _resetCostState()
+  resetTokenTracking()
 }
 
 type StoredCostState = {

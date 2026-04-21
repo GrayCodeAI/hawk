@@ -203,6 +203,17 @@ export function getAssistantMessageContentLength(
 }
 
 /**
+ * Estimate output tokens from an assistant message when the API doesn't
+ * provide usage data (common for OpenAI-compatible providers).
+ * Uses characters / 4 as a rough heuristic.
+ */
+export function estimateOutputTokensFromMessage(
+  message: AssistantMessage,
+): number {
+  return Math.ceil(getAssistantMessageContentLength(message) / 4)
+}
+
+/**
  * Get the current context window size in tokens.
  *
  * This is the CANONICAL function for measuring context size when checking

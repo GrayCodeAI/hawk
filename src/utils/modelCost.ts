@@ -118,6 +118,60 @@ export const COST_GPT4O_MINI = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
+// Pricing for OpenAI GPT-4.1: $2.00 input / $8.00 output per Mtok
+export const COST_GPT4_1 = {
+  inputTokens: 2,
+  outputTokens: 8,
+  promptCacheWriteTokens: 2,
+  promptCacheReadTokens: 1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI GPT-4.1-mini: $0.40 input / $1.60 output per Mtok
+export const COST_GPT4_1_MINI = {
+  inputTokens: 0.4,
+  outputTokens: 1.6,
+  promptCacheWriteTokens: 0.4,
+  promptCacheReadTokens: 0.2,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI GPT-4.1-nano: $0.10 input / $0.50 output per Mtok
+export const COST_GPT4_1_NANO = {
+  inputTokens: 0.1,
+  outputTokens: 0.5,
+  promptCacheWriteTokens: 0.1,
+  promptCacheReadTokens: 0.05,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o3-mini: $1.10 input / $4.40 output per Mtok
+export const COST_O3_MINI = {
+  inputTokens: 1.1,
+  outputTokens: 4.4,
+  promptCacheWriteTokens: 1.1,
+  promptCacheReadTokens: 0.55,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o4-mini: $1.10 input / $4.40 output per Mtok
+export const COST_O4_MINI = {
+  inputTokens: 1.1,
+  outputTokens: 4.4,
+  promptCacheWriteTokens: 1.1,
+  promptCacheReadTokens: 0.55,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o3: $10.00 input / $40.00 output per Mtok
+export const COST_O3 = {
+  inputTokens: 10,
+  outputTokens: 40,
+  promptCacheWriteTokens: 10,
+  promptCacheReadTokens: 5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
 // Pricing for Gemini 2.0 Flash: $0.10 input / $0.40 output per Mtok
 export const COST_GEMINI_FLASH = {
   inputTokens: 0.1,
@@ -277,6 +331,12 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   'gpt-4o-2024-08-06': COST_GPT4O,
   'gpt-4o-2024-05-13': COST_GPT4O,
   'gpt-4o-mini-2024-07-18': COST_GPT4O_MINI,
+  'gpt-4.1': COST_GPT4_1,
+  'gpt-4.1-mini': COST_GPT4_1_MINI,
+  'gpt-4.1-nano': COST_GPT4_1_NANO,
+  'o3-mini': COST_O3_MINI,
+  'o4-mini': COST_O4_MINI,
+  'o3': COST_O3,
 
   // Gemini models
   'gemini-2.0-flash': COST_GEMINI_FLASH,
@@ -323,16 +383,25 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
 }
 
 /**
- * Calculates the USD cost based on token usage and model cost configuration
+ * Calculates the USD cost based on token usage and model cost configuration.
+ *
+ * IMPORTANT: For providers that include cache tokens in input_tokens (Anthropic),
+ * we subtract cache tokens from input_tokens before applying the input price
+ * to avoid double-counting cache tokens at both full input price and cache price.
  */
 function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {
+  const cacheRead = usage.cache_read_input_tokens ?? 0
+  const cacheCreation = usage.cache_creation_input_tokens ?? 0
+  // If input_tokens includes cache tokens, subtract them to avoid double-counting.
+  // For providers without cache (OpenAI-compatible), cacheRead/cacheCreation are 0
+  // so this is a no-op.
+  const nonCacheInput = Math.max(0, usage.input_tokens - cacheRead - cacheCreation)
+
   return (
-    (usage.input_tokens / 1_000_000) * modelCosts.inputTokens +
+    (nonCacheInput / 1_000_000) * modelCosts.inputTokens +
     (usage.output_tokens / 1_000_000) * modelCosts.outputTokens +
-    ((usage.cache_read_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheReadTokens +
-    ((usage.cache_creation_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheWriteTokens +
+    (cacheRead / 1_000_000) * modelCosts.promptCacheReadTokens +
+    (cacheCreation / 1_000_000) * modelCosts.promptCacheWriteTokens +
     (usage.server_tool_use?.web_search_requests ?? 0) *
       modelCosts.webSearchRequests
   )
@@ -389,6 +458,17 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
     // Handle OpenRouter-style prefixes (e.g., "openai/gpt-4o")
     const withoutPrefix = model.split('/').pop() ?? model
     costs = MODEL_COSTS[withoutPrefix as ModelShortName]
+  }
+
+  // If still not found, try prefix matching for dated variants
+  // (e.g., "gpt-4.1-2025-04-14" → "gpt-4.1")
+  if (!costs) {
+    for (const key of Object.keys(MODEL_COSTS)) {
+      if (model.startsWith(key + '-') || model.startsWith(key + '.')) {
+        costs = MODEL_COSTS[key as ModelShortName]
+        break
+      }
+    }
   }
 
   if (!costs) {

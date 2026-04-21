@@ -159,10 +159,10 @@ export function calculateContextPercentages(
     return { used: null, remaining: null }
   }
 
-  const totalInputTokens =
-    currentUsage.input_tokens +
-    currentUsage.cache_creation_input_tokens +
-    currentUsage.cache_read_input_tokens
+  // input_tokens from the API includes cache tokens for providers that report
+  // them (Anthropic). For providers without cache (OpenAI-compatible), cache
+  // fields are 0. So total context window usage is just input_tokens.
+  const totalInputTokens = currentUsage.input_tokens
 
   const usedPercentage = Math.round(
     (totalInputTokens / contextWindowSize) * 100,
