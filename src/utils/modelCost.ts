@@ -152,6 +152,15 @@ export const COST_KIMI_K2_5 = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
+// Pricing for OpenCodeGO/Kimi K2.6: $2 input / $8 output per Mtok
+export const COST_KIMI_K2_6 = {
+  inputTokens: 2,
+  outputTokens: 8,
+  promptCacheWriteTokens: 2,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
 // Pricing for local Ollama models: $0 (self-hosted)
 export const COST_OLLAMA = {
   inputTokens: 0,
@@ -209,6 +218,8 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   // OpenCodeGO / Kimi models
   'kimi-k2.5': COST_KIMI_K2_5,
   'moonshotai/kimi-k2.5': COST_KIMI_K2_5,
+  'kimi-k2.6': COST_KIMI_K2_6,
+  'moonshotai/kimi-k2.6': COST_KIMI_K2_6,
 
   // Ollama (local) models
   'llama3.1:8b': COST_OLLAMA,
