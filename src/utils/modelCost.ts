@@ -143,8 +143,53 @@ export const COST_GROK_2 = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
-// Pricing for OpenCodeGO/Kimi K2.5: $2 input / $8 output per Mtok
+// Pricing for OpenCodeGO/Kimi K2.5: $3 input / $10 output per Mtok (matches Eyrie catalog)
 export const COST_KIMI_K2_5 = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Kimi K2.6: $3 input / $10 output per Mtok (matches Eyrie catalog)
+export const COST_KIMI_K2_6 = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/GLM-5.1: $5 input / $15 output per Mtok (matches Eyrie catalog)
+export const COST_GLM_5_1 = {
+  inputTokens: 5,
+  outputTokens: 15,
+  promptCacheWriteTokens: 5,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/GLM-5: $5 input / $15 output per Mtok (matches Eyrie catalog)
+export const COST_GLM_5 = {
+  inputTokens: 5,
+  outputTokens: 15,
+  promptCacheWriteTokens: 5,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiMo V2 Pro: $3 input / $10 output per Mtok (matches Eyrie catalog)
+export const COST_MIMO_V2_PRO = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiMo V2 Omni: $2 input / $8 output per Mtok (matches Eyrie catalog)
+export const COST_MIMO_V2_OMNI = {
   inputTokens: 2,
   outputTokens: 8,
   promptCacheWriteTokens: 2,
@@ -152,12 +197,39 @@ export const COST_KIMI_K2_5 = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
-// Pricing for OpenCodeGO/Kimi K2.6: $2 input / $8 output per Mtok
-export const COST_KIMI_K2_6 = {
-  inputTokens: 2,
-  outputTokens: 8,
-  promptCacheWriteTokens: 2,
+// Pricing for OpenCodeGO/MiniMax M2.7: $1 input / $3 output per Mtok (matches Eyrie catalog)
+export const COST_MINIMAX_M2_7 = {
+  inputTokens: 1,
+  outputTokens: 3,
+  promptCacheWriteTokens: 1,
   promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiniMax M2.5: $0.5 input / $1.5 output per Mtok (matches Eyrie catalog)
+export const COST_MINIMAX_M2_5 = {
+  inputTokens: 0.5,
+  outputTokens: 1.5,
+  promptCacheWriteTokens: 0.5,
+  promptCacheReadTokens: 0.25,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Qwen3.6 Plus: $0.3 input / $1.7 output per Mtok (matches Eyrie catalog)
+export const COST_QWEN_3_6_PLUS = {
+  inputTokens: 0.3,
+  outputTokens: 1.7,
+  promptCacheWriteTokens: 0.3,
+  promptCacheReadTokens: 0.1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Qwen3.5 Plus: $0.26 input / $1.56 output per Mtok (matches Eyrie catalog)
+export const COST_QWEN_3_5_PLUS = {
+  inputTokens: 0.26,
+  outputTokens: 1.56,
+  promptCacheWriteTokens: 0.26,
+  promptCacheReadTokens: 0.08,
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
@@ -220,6 +292,24 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   'moonshotai/kimi-k2.5': COST_KIMI_K2_5,
   'kimi-k2.6': COST_KIMI_K2_6,
   'moonshotai/kimi-k2.6': COST_KIMI_K2_6,
+
+  // OpenCodeGO / GLM models
+  'glm-5.1': COST_GLM_5_1,
+  'glm-5': COST_GLM_5,
+  'zhipuai/glm-5.1': COST_GLM_5_1,
+  'zhipuai/glm-5': COST_GLM_5,
+
+  // OpenCodeGO / MiMo models
+  'mimo-v2-pro': COST_MIMO_V2_PRO,
+  'mimo-v2-omni': COST_MIMO_V2_OMNI,
+
+  // OpenCodeGO / MiniMax models
+  'minimax-m2.7': COST_MINIMAX_M2_7,
+  'minimax-m2.5': COST_MINIMAX_M2_5,
+
+  // OpenCodeGO / Qwen models
+  'qwen3.6-plus': COST_QWEN_3_6_PLUS,
+  'qwen3.5-plus': COST_QWEN_3_5_PLUS,
 
   // Ollama (local) models
   'llama3.1:8b': COST_OLLAMA,
