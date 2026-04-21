@@ -58,88 +58,6 @@ function formatContextWindow(windowSize: number): string {
   return `${windowSize} context`
 }
 
-/**
- * Get friendly display name and description for OpenCodeGO models
- */
-function getOpenCodeGOModelInfo(modelId: string): {
-  label: string
-  description: string
-} | null {
-  const lowerId = modelId.toLowerCase()
-
-  // GLM models (Zhipu AI)
-  if (lowerId === 'glm-5.1') {
-    return {
-      label: 'GLM-5.1',
-      description: 'Zhipu GLM-5.1 · Advanced reasoning model',
-    }
-  }
-  if (lowerId === 'glm-5') {
-    return {
-      label: 'GLM-5',
-      description: 'Zhipu GLM-5 · Powerful general-purpose model',
-    }
-  }
-
-  // Kimi models (Moonshot AI)
-  if (lowerId === 'kimi-k2.6') {
-    return {
-      label: 'Kimi K2.6',
-      description: 'Moonshot Kimi K2.6 · Enhanced long-context model',
-    }
-  }
-  if (lowerId === 'kimi-k2.5') {
-    return {
-      label: 'Kimi K2.5',
-      description: 'Moonshot Kimi K2.5 · Long-context specialist',
-    }
-  }
-
-  // MiMo models
-  if (lowerId === 'mimo-v2-pro') {
-    return {
-      label: 'MiMo V2 Pro',
-      description: 'MiMo V2 Pro · Professional-grade model',
-    }
-  }
-  if (lowerId === 'mimo-v2-omni') {
-    return {
-      label: 'MiMo V2 Omni',
-      description: 'MiMo V2 Omni · Versatile multimodal model',
-    }
-  }
-
-  // MiniMax models
-  if (lowerId === 'minimax-m2.7') {
-    return {
-      label: 'MiniMax M2.7',
-      description: 'MiniMax M2.7 · Latest generation with 1M context',
-    }
-  }
-  if (lowerId === 'minimax-m2.5') {
-    return {
-      label: 'MiniMax M2.5',
-      description: 'MiniMax M2.5 · Cost-effective with 1M context',
-    }
-  }
-
-  // Qwen models (Alibaba)
-  if (lowerId === 'qwen3.6-plus') {
-    return {
-      label: 'Qwen3.6 Plus',
-      description: 'Alibaba Qwen3.6 Plus · Latest Qwen with 1M context',
-    }
-  }
-  if (lowerId === 'qwen3.5-plus') {
-    return {
-      label: 'Qwen3.5 Plus',
-      description: 'Alibaba Qwen3.5 Plus · Strong coding capabilities',
-    }
-  }
-
-  return null
-}
-
 function appendProviderCatalogOptions(options: ModelOption[]): void {
   const provider = getAPIProvider()
   const providerConfiguredInEnv =
@@ -170,21 +88,17 @@ function appendProviderCatalogOptions(options: ModelOption[]): void {
       continue
     }
 
-    // Try to get friendly display info for OpenCodeGO models
-    const openCodeGOInfo = getOpenCodeGOModelInfo(entry.id)
-    if (openCodeGOInfo) {
-      options.push({
-        value: entry.id,
-        label: openCodeGOInfo.label,
-        description: `${openCodeGOInfo.description} · ${formatContextWindow(entry.context_window)}`,
-      })
-    } else {
-      options.push({
-        value: entry.id,
-        label: entry.id,
-        description: formatContextWindow(entry.context_window),
-      })
-    }
+    // Use catalog's display_name/description if available, otherwise fall back to ID
+    const label = entry.display_name ?? entry.id
+    const description = entry.description
+      ? `${entry.description} · ${formatContextWindow(entry.context_window)}`
+      : formatContextWindow(entry.context_window)
+
+    options.push({
+      value: entry.id,
+      label,
+      description,
+    })
   }
 }
 
