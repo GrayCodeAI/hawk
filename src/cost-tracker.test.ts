@@ -85,6 +85,26 @@ describe('cost-tracker token counting', () => {
     expect(usage?.inputTokens).toBe(2000)
   })
 
+  test('output tokens are always added even when input_tokens is 0', () => {
+    const model = 'gpt-4o'
+
+    // Some providers report only output tokens in intermediate chunks
+    addToTotalSessionCost(0, {
+      input_tokens: 0,
+      output_tokens: 50,
+      cache_creation_input_tokens: 0,
+      cache_read_input_tokens: 0,
+      server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
+      cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+      service_tier: undefined,
+    }, model)
+
+    const usage = getModelUsage()[model]
+    expect(usage?.outputTokens).toBe(50)
+    // inputTokens should remain 0 since currentInputTokens was 0 (skipped)
+    expect(usage?.inputTokens).toBe(0)
+  })
+
   test('subtracts cache tokens for providers that report them (Anthropic)', () => {
     const model = 'claude-sonnet-4-6'
 

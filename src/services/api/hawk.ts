@@ -175,8 +175,10 @@ import {
 import { returnValue } from 'src/utils/generators.js'
 import { headlessProfilerCheckpoint } from 'src/utils/headlessProfiler.js'
 import { isMcpInstructionsDeltaEnabled } from 'src/utils/mcpInstructionsDelta.js'
+import { getAPIProvider } from 'src/utils/model/providers.js'
 import { calculateUSDCost } from 'src/utils/modelCost.js'
 import { endQueryProfile, queryCheckpoint } from 'src/utils/queryProfiler.js'
+import { estimateOutputTokensFromMessage } from 'src/utils/tokens.js'
 import {
   modelSupportsAdaptiveThinking,
   modelSupportsThinking,
@@ -2250,6 +2252,29 @@ async function* queryModel(
               lastMsg.message.stop_reason = stopReason
             }
 
+            // Fallback: many OpenAI-compatible providers (OpenCodeGO, OpenRouter,
+            // Grok, some Gemini endpoints) don't return usage in streaming mode.
+            // Estimate output tokens from generated content so cost/token tracking
+            // isn't permanently zero.
+            if (
+              usage.output_tokens === 0 &&
+              usage.input_tokens === 0 &&
+              lastMsg &&
+              lastMsg.message.content.length > 0 &&
+              getAPIProvider() !== 'anthropic'
+            ) {
+              const estimatedOutput = estimateOutputTokensFromMessage(lastMsg)
+              if (estimatedOutput > 0) {
+                usage = {
+                  ...usage,
+                  output_tokens: estimatedOutput,
+                }
+                if (lastMsg) {
+                  lastMsg.message.usage = usage
+                }
+              }
+            }
+
             // Update cost
             const costUSDForPart = calculateUSDCost(resolvedModel, usage)
             costUSD += addToTotalSessionCost(
@@ -2846,7 +2871,24 @@ async function* queryModel(
     // message_delta handler before any yield. Fallback pushes to newMessages
     // then yields, so tracking must be here to survive .return() at the yield.
     if (fallbackMessage) {
-      const fallbackUsage = fallbackMessage.message.usage
+      let fallbackUsage = fallbackMessage.message.usage
+      // Fallback path for providers that don't return usage in non-streaming
+      // mode either (rare, but handles consistent missing-usage behavior).
+      if (
+        fallbackUsage.output_tokens === 0 &&
+        fallbackUsage.input_tokens === 0 &&
+        fallbackMessage.message.content.length > 0 &&
+        getAPIProvider() !== 'anthropic'
+      ) {
+        const estimatedOutput = estimateOutputTokensFromMessage(fallbackMessage)
+        if (estimatedOutput > 0) {
+          fallbackUsage = {
+            ...fallbackUsage,
+            output_tokens: estimatedOutput,
+          }
+          fallbackMessage.message.usage = fallbackUsage
+        }
+      }
       usage = updateUsage(EMPTY_USAGE, fallbackUsage)
       stopReason = fallbackMessage.message.stop_reason
       const fallbackCost = calculateUSDCost(resolvedModel, fallbackUsage)
