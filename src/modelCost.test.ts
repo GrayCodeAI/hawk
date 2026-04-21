@@ -60,6 +60,37 @@ describe('modelCost pricing', () => {
     expect(cost).toBe(5.5)
   })
 
+  test('deduplicates cache tokens from input_tokens in cost calculation', () => {
+    // Anthropic-style usage where input_tokens includes cache tokens
+    const cost = calculateUSDCost('claude-sonnet-4-6', {
+      input_tokens: 1200, // includes 200 cache read
+      output_tokens: 100,
+      cache_creation_input_tokens: 0,
+      cache_read_input_tokens: 200,
+      server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
+      cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+      service_tier: undefined,
+    })
+    // Non-cache input = 1200 - 200 = 1000 tokens
+    // Cost = (1000/1M * $3) + (100/1M * $15) + (200/1M * $0.30)
+    //      = 0.003 + 0.0015 + 0.00006 = 0.00456
+    expect(cost).toBeCloseTo(0.00456, 6)
+  })
+
+  test('handles dated model variants via prefix matching', () => {
+    const costs = getModelCosts('gpt-4.1-2025-04-14', {
+      input_tokens: 0,
+      output_tokens: 0,
+      cache_creation_input_tokens: 0,
+      cache_read_input_tokens: 0,
+      server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
+      cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+      service_tier: undefined,
+    })
+    expect(costs.inputTokens).toBe(2) // Same as gpt-4.1
+    expect(costs.outputTokens).toBe(8)
+  })
+
   test('falls back to catalog pricing for unknown OpenRouter models', () => {
     // This verifies getCostsFromCatalog is attempted before hardcoded fallback
     const costs = getModelCosts('some-unknown-openrouter-model', {

@@ -383,16 +383,25 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
 }
 
 /**
- * Calculates the USD cost based on token usage and model cost configuration
+ * Calculates the USD cost based on token usage and model cost configuration.
+ *
+ * IMPORTANT: For providers that include cache tokens in input_tokens (Anthropic),
+ * we subtract cache tokens from input_tokens before applying the input price
+ * to avoid double-counting cache tokens at both full input price and cache price.
  */
 function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {
+  const cacheRead = usage.cache_read_input_tokens ?? 0
+  const cacheCreation = usage.cache_creation_input_tokens ?? 0
+  // If input_tokens includes cache tokens, subtract them to avoid double-counting.
+  // For providers without cache (OpenAI-compatible), cacheRead/cacheCreation are 0
+  // so this is a no-op.
+  const nonCacheInput = Math.max(0, usage.input_tokens - cacheRead - cacheCreation)
+
   return (
-    (usage.input_tokens / 1_000_000) * modelCosts.inputTokens +
+    (nonCacheInput / 1_000_000) * modelCosts.inputTokens +
     (usage.output_tokens / 1_000_000) * modelCosts.outputTokens +
-    ((usage.cache_read_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheReadTokens +
-    ((usage.cache_creation_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheWriteTokens +
+    (cacheRead / 1_000_000) * modelCosts.promptCacheReadTokens +
+    (cacheCreation / 1_000_000) * modelCosts.promptCacheWriteTokens +
     (usage.server_tool_use?.web_search_requests ?? 0) *
       modelCosts.webSearchRequests
   )
@@ -449,6 +458,17 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
     // Handle OpenRouter-style prefixes (e.g., "openai/gpt-4o")
     const withoutPrefix = model.split('/').pop() ?? model
     costs = MODEL_COSTS[withoutPrefix as ModelShortName]
+  }
+
+  // If still not found, try prefix matching for dated variants
+  // (e.g., "gpt-4.1-2025-04-14" → "gpt-4.1")
+  if (!costs) {
+    for (const key of Object.keys(MODEL_COSTS)) {
+      if (model.startsWith(key + '-') || model.startsWith(key + '.')) {
+        costs = MODEL_COSTS[key as ModelShortName]
+        break
+      }
+    }
   }
 
   if (!costs) {
