@@ -63,10 +63,14 @@ describe('getPreservedSelection', () => {
 
 describe('suggestion arrow navigation', () => {
   it('moves down one row at a time and wraps at the end', () => {
-    expect(getNextSuggestionIndex(-1, 3)).toBe(0)
+    expect(getNextSuggestionIndex(-1, 3)).toBe(1)
     expect(getNextSuggestionIndex(0, 3)).toBe(1)
     expect(getNextSuggestionIndex(1, 3)).toBe(2)
     expect(getNextSuggestionIndex(2, 3)).toBe(0)
+  })
+
+  it('selects the only row when moving down from no explicit selection', () => {
+    expect(getNextSuggestionIndex(-1, 1)).toBe(0)
   })
 
   it('moves up one row at a time and wraps at the beginning', () => {

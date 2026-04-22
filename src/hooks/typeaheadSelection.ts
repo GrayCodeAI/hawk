@@ -57,6 +57,10 @@ export function getNextSuggestionIndex(
     return -1
   }
 
+  if (selectedSuggestion < 0) {
+    return suggestionCount > 1 ? 1 : 0
+  }
+
   return selectedSuggestion >= suggestionCount - 1
     ? 0
     : selectedSuggestion + 1

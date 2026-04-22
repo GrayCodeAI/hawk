@@ -121,6 +121,9 @@
     "@types/bun": "^1.2.0",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^8.57.1",
     "typescript": "^5.7.0"
   },
   "engines": {

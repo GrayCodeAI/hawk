@@ -103,8 +103,7 @@ const SuggestionItemRow = memo(function SuggestionItemRow({
     maxColumnWidth ?? stringWidth(item.displayText) + 5,
     maxNameWidth,
   )
-  const rowTextColor: keyof Theme | undefined =
-    item.color || (isSelected ? 'suggestion' : undefined)
+  const rowTextColor: keyof Theme | undefined = selectedTextColor
 
   let displayText = item.displayText
   if (stringWidth(displayText) > displayTextWidth - 2) {
@@ -116,20 +115,19 @@ const SuggestionItemRow = memo(function SuggestionItemRow({
     ' '.repeat(Math.max(0, displayTextWidth - stringWidth(displayText)))
   const tagText = item.tag ? `[${item.tag}] ` : ''
   const tagWidth = stringWidth(tagText)
-  const descriptionWidth = Math.max(0, columns - displayTextWidth - tagWidth - 4)
+  const descriptionWidth = Math.max(
+    0,
+    columns - displayTextWidth - tagWidth - 4,
+  )
   const description = item.description
     ? truncateToWidth(item.description.replace(/\s+/g, ' '), descriptionWidth)
     : ''
 
   return (
-    <Text wrap="truncate">
-      <Text color={rowTextColor} dimColor={!isSelected}>
-        {paddedDisplayText}
-      </Text>
-      {tagText ? <Text dimColor>{tagText}</Text> : null}
-      <Text color={rowTextColor} dimColor={!isSelected}>
-        {description}
-      </Text>
+    <Text color={rowTextColor} dimColor={!isSelected} wrap="truncate">
+      {paddedDisplayText}
+      {tagText}
+      {description}
     </Text>
   )
 })
@@ -153,6 +151,7 @@ export function PromptInputFooterSuggestions({
   overlay,
 }: Props): ReactNode {
   const { rows } = useTerminalSize()
+  const scrollStartIndexRef = React.useRef(0)
   const maxVisibleItems = overlay
     ? OVERLAY_MAX_ITEMS
     : Math.min(6, Math.max(1, rows - 3))
@@ -168,13 +167,19 @@ export function PromptInputFooterSuggestions({
     0,
     Math.min(selectedSuggestion, suggestions.length - 1),
   )
-  const startIndex = Math.max(
+  const maxStartIndex = Math.max(0, suggestions.length - maxVisibleItems)
+  let startIndex = Math.min(scrollStartIndexRef.current, maxStartIndex)
+  if (clampedSelectedSuggestion < startIndex) {
+    startIndex = clampedSelectedSuggestion
+  } else if (clampedSelectedSuggestion >= startIndex + maxVisibleItems) {
+    startIndex = clampedSelectedSuggestion - maxVisibleItems + 1
+  }
+  startIndex = Math.max(
     0,
-    Math.min(
-      clampedSelectedSuggestion - Math.floor(maxVisibleItems / 2),
-      suggestions.length - maxVisibleItems,
-    ),
+    Math.min(startIndex, maxStartIndex),
   )
+  scrollStartIndexRef.current = startIndex
+
   const endIndex = Math.min(startIndex + maxVisibleItems, suggestions.length)
   const visibleItems = suggestions.slice(startIndex, endIndex)
 
@@ -183,14 +188,21 @@ export function PromptInputFooterSuggestions({
       flexDirection="column"
       justifyContent={overlay ? undefined : 'flex-end'}
     >
-      {visibleItems.map((item, index) => (
-        <SuggestionItemRow
-          key={`${item.id}-${startIndex + index}`}
-          item={item}
-          maxColumnWidth={maxColumnWidth}
-          isSelected={startIndex + index === clampedSelectedSuggestion}
-        />
-      ))}
+      {visibleItems.map((item, index) => {
+        const absoluteIndex = startIndex + index
+        const isSelected = absoluteIndex === clampedSelectedSuggestion
+
+        return (
+          <SuggestionItemRow
+            key={`${item.id}-${absoluteIndex}-${
+              isSelected ? 'selected' : 'idle'
+            }`}
+            item={item}
+            maxColumnWidth={maxColumnWidth}
+            isSelected={isSelected}
+          />
+        )
+      })}
     </Box>
   )
 }
