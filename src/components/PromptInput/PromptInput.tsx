@@ -2300,8 +2300,8 @@ function PromptInput({
     // NOT via useKeybindings. This allows useTextInput's upOrHistoryUp/downOrHistoryDown
     // to try cursor movement first and only fall through to history navigation when the
     // cursor can't move further (important for wrapped text and multi-line input).
-    onHistoryUp: suggestions.length > 0 ? undefined : handleHistoryUp,
-    onHistoryDown: suggestions.length > 0 ? undefined : handleHistoryDown,
+    onHistoryUp: suggestions.length > 0 ? handleAutocompletePrevious : handleHistoryUp,
+    onHistoryDown: suggestions.length > 0 ? handleAutocompleteNext : handleHistoryDown,
     onHistoryReset: resetHistory,
     placeholder,
     onExit,

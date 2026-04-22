@@ -28,7 +28,7 @@ import { getShellHistoryCompletion } from '../utils/suggestions/shellHistoryComp
 import { getSlackChannelSuggestions, hasSlackMcpServer } from '../utils/suggestions/slackChannelSuggestions.js';
 import { TEAM_LEAD_NAME } from '../utils/swarm/constants.js';
 import { applyFileSuggestion, findLongestCommonPrefix, onIndexBuildComplete, startBackgroundCacheRefresh } from './fileSuggestions.js';
-import { getNextSuggestionIndex, getPreservedSelection, getPreviousSuggestionIndex } from './typeaheadSelection.js';
+import { getNextSuggestionIndex, getPreservedSelection, getPreviousSuggestionIndex, getSelectionForSuggestionUpdate } from './typeaheadSelection.js';
 import { generateUnifiedSuggestions } from './unifiedSuggestions.js';
 
 // Unicode-aware character class for file path tokens:
@@ -757,10 +757,17 @@ export function useTypeahead({
         // (set above when hasExactlyOneTrailingSpace is true)
       }
       const commandItems = generateCommandSuggestions(value, commands);
+      const shouldResetCommandSelection = commandSuggestionInputRef.current !== value;
+      commandSuggestionInputRef.current = value;
       setSuggestionsState(prev => ({
         commandArgumentHint,
         suggestions: commandItems,
-        selectedSuggestion: getPreservedSelection(prev.suggestions, prev.selectedSuggestion, commandItems)
+        selectedSuggestion: getSelectionForSuggestionUpdate(
+          prev.suggestions,
+          prev.selectedSuggestion,
+          commandItems,
+          shouldResetCommandSelection
+        )
       }));
       setSuggestionType(commandItems.length > 0 ? 'command' : 'none');
 
@@ -1224,21 +1231,43 @@ export function useTypeahead({
 
   // Handler for autocomplete:previous - selects previous suggestion
   const handleAutocompletePrevious = useCallback((): false | void => {
-    if (suggestions.length === 0) return false;
-    setSuggestionsState(prev => ({
-      ...prev,
-      selectedSuggestion: getPreviousSuggestionIndex(prev.selectedSuggestion, suggestions.length)
-    }));
-  }, [suggestions.length, setSuggestionsState]);
+    if (suggestionsRef.current.length === 0) return false;
+    if (autocompleteNavigationInFlightRef.current === 'previous') return;
+    autocompleteNavigationInFlightRef.current = 'previous';
+    queueMicrotask(() => {
+      if (autocompleteNavigationInFlightRef.current === 'previous') {
+        autocompleteNavigationInFlightRef.current = null;
+      }
+    });
+    setSuggestionsState(prev => {
+      const suggestionCount = prev.suggestions.length;
+      if (suggestionCount === 0) return prev;
+      return {
+        ...prev,
+        selectedSuggestion: getPreviousSuggestionIndex(prev.selectedSuggestion, suggestionCount)
+      };
+    });
+  }, [setSuggestionsState]);
 
   // Handler for autocomplete:next - selects next suggestion
   const handleAutocompleteNext = useCallback((): false | void => {
-    if (suggestions.length === 0) return false;
-    setSuggestionsState(prev => ({
-      ...prev,
-      selectedSuggestion: getNextSuggestionIndex(prev.selectedSuggestion, suggestions.length)
-    }));
-  }, [suggestions.length, setSuggestionsState]);
+    if (suggestionsRef.current.length === 0) return false;
+    if (autocompleteNavigationInFlightRef.current === 'next') return;
+    autocompleteNavigationInFlightRef.current = 'next';
+    queueMicrotask(() => {
+      if (autocompleteNavigationInFlightRef.current === 'next') {
+        autocompleteNavigationInFlightRef.current = null;
+      }
+    });
+    setSuggestionsState(prev => {
+      const suggestionCount = prev.suggestions.length;
+      if (suggestionCount === 0) return prev;
+      return {
+        ...prev,
+        selectedSuggestion: getNextSuggestionIndex(prev.selectedSuggestion, suggestionCount)
+      };
+    });
+  }, [setSuggestionsState]);
 
   const autocompleteCoreHandlers = useMemo(() => ({
     'autocomplete:accept': handleAutocompleteAccept,

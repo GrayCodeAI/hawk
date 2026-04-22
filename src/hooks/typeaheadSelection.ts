@@ -23,6 +23,18 @@ export function getPreservedSelection(
   return newIndex >= 0 ? newIndex : 0
 }
 
+export function getSelectionForSuggestionUpdate(
+  prevSuggestions: SuggestionItem[],
+  prevSelection: number,
+  newSuggestions: SuggestionItem[],
+  shouldResetSelection: boolean,
+): number {
+  if (shouldResetSelection) {
+    return newSuggestions.length > 0 ? 0 : -1
+  }
+
+  return getPreservedSelection(prevSuggestions, prevSelection, newSuggestions)
+}
 
 export function getPreviousSuggestionIndex(
   selectedSuggestion: number,
