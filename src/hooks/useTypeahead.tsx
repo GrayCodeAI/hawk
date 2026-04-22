@@ -28,6 +28,7 @@ import { getShellHistoryCompletion } from '../utils/suggestions/shellHistoryComp
 import { getSlackChannelSuggestions, hasSlackMcpServer } from '../utils/suggestions/slackChannelSuggestions.js';
 import { TEAM_LEAD_NAME } from '../utils/swarm/constants.js';
 import { applyFileSuggestion, findLongestCommonPrefix, onIndexBuildComplete, startBackgroundCacheRefresh } from './fileSuggestions.js';
+import { getNextSuggestionIndex, getPreservedSelection, getPreviousSuggestionIndex } from './typeaheadSelection.js';
 import { generateUnifiedSuggestions } from './unifiedSuggestions.js';
 
 // Unicode-aware character class for file path tokens:
@@ -48,30 +49,6 @@ function isPathMetadata(metadata: unknown): metadata is {
   return typeof metadata === 'object' && metadata !== null && 'type' in metadata && (metadata.type === 'directory' || metadata.type === 'file');
 }
 
-// Helper to determine selectedSuggestion when updating suggestions
-function getPreservedSelection(prevSuggestions: SuggestionItem[], prevSelection: number, newSuggestions: SuggestionItem[]): number {
-  // No new suggestions
-  if (newSuggestions.length === 0) {
-    return -1;
-  }
-
-  // No previous selection
-  if (prevSelection < 0) {
-    return 0;
-  }
-
-  // Get the previously selected item
-  const prevSelectedItem = prevSuggestions[prevSelection];
-  if (!prevSelectedItem) {
-    return 0;
-  }
-
-  // Try to find the same item in the new list by ID
-  const newIndex = newSuggestions.findIndex(item => item.id === prevSelectedItem.id);
-
-  // Return the new index if found, otherwise default to 0
-  return newIndex >= 0 ? newIndex : 0;
-}
 function buildResumeInputFromSuggestion(suggestion: SuggestionItem): string {
   const metadata = suggestion.metadata as {
     sessionId: string;
@@ -773,10 +750,10 @@ export function useTypeahead({
         // (set above when hasExactlyOneTrailingSpace is true)
       }
       const commandItems = generateCommandSuggestions(value, commands);
-      setSuggestionsState(() => ({
+      setSuggestionsState(prev => ({
         commandArgumentHint,
         suggestions: commandItems,
-        selectedSuggestion: commandItems.length > 0 ? 0 : -1
+        selectedSuggestion: getPreservedSelection(prev.suggestions, prev.selectedSuggestion, commandItems)
       }));
       setSuggestionType(commandItems.length > 0 ? 'command' : 'none');
 
@@ -1239,44 +1216,54 @@ export function useTypeahead({
   }, [debouncedFetchFileSuggestions, debouncedFetchSlackChannels, clearSuggestions, input]);
 
   // Handler for autocomplete:previous - selects previous suggestion
-  const handleAutocompletePrevious = useCallback(() => {
+  const handleAutocompletePrevious = useCallback((): false | void => {
+    if (suggestions.length === 0) return false;
     setSuggestionsState(prev => ({
       ...prev,
-      selectedSuggestion: prev.selectedSuggestion <= 0 ? suggestions.length - 1 : prev.selectedSuggestion - 1
+      selectedSuggestion: getPreviousSuggestionIndex(prev.selectedSuggestion, suggestions.length)
     }));
   }, [suggestions.length, setSuggestionsState]);
 
   // Handler for autocomplete:next - selects next suggestion
-  const handleAutocompleteNext = useCallback(() => {
+  const handleAutocompleteNext = useCallback((): false | void => {
+    if (suggestions.length === 0) return false;
     setSuggestionsState(prev => ({
       ...prev,
-      selectedSuggestion: prev.selectedSuggestion >= suggestions.length - 1 ? 0 : prev.selectedSuggestion + 1
+      selectedSuggestion: getNextSuggestionIndex(prev.selectedSuggestion, suggestions.length)
     }));
   }, [suggestions.length, setSuggestionsState]);
 
-  // Autocomplete context keybindings - only active when suggestions are visible
-  const autocompleteHandlers = useMemo(() => ({
+  const autocompleteCoreHandlers = useMemo(() => ({
     'autocomplete:accept': handleAutocompleteAccept,
-    'autocomplete:dismiss': handleAutocompleteDismiss,
+    'autocomplete:dismiss': handleAutocompleteDismiss
+  }), [handleAutocompleteAccept, handleAutocompleteDismiss]);
+  const autocompleteNavigationHandlers = useMemo(() => ({
     'autocomplete:previous': handleAutocompletePrevious,
     'autocomplete:next': handleAutocompleteNext
-  }), [handleAutocompleteAccept, handleAutocompleteDismiss, handleAutocompletePrevious, handleAutocompleteNext]);
+  }), [handleAutocompletePrevious, handleAutocompleteNext]);
 
   // Register autocomplete as an overlay so CancelRequestHandler defers ESC handling
   // This ensures ESC dismisses autocomplete before canceling running tasks
-  const isAutocompleteActive = suggestions.length > 0 || !!effectiveGhostText;
+  const hasAutocompleteSuggestions = suggestions.length > 0;
+  const isAutocompleteActive = hasAutocompleteSuggestions || !!effectiveGhostText;
   const isModalOverlayActive = useIsModalOverlayActive();
   useRegisterOverlay('autocomplete', isAutocompleteActive);
-  // Register Autocomplete context so it appears in activeContexts for other handlers.
-  // This allows Chat's resolver to see Autocomplete and defer to its bindings for up/down.
-  useRegisterKeybindingContext('Autocomplete', isAutocompleteActive);
+  // Register list navigation as an active context only when selectable rows exist.
+  // Ghost text still uses Autocomplete's own Tab/Esc handlers below, but should
+  // not make arrow handlers resolve to previous/next with no list to move.
+  useRegisterKeybindingContext('Autocomplete', hasAutocompleteSuggestions && !isModalOverlayActive);
 
   // Disable autocomplete keybindings when a modal overlay (e.g., DiffDialog) is active,
   // so escape reaches the overlay's handler instead of dismissing autocomplete
-  useKeybindings(autocompleteHandlers, {
+  useKeybindings(autocompleteCoreHandlers, {
     context: 'Autocomplete',
     isActive: isAutocompleteActive && !isModalOverlayActive
   });
+  useKeybindings(autocompleteNavigationHandlers, {
+    context: 'Autocomplete',
+    isActive: hasAutocompleteSuggestions && !isModalOverlayActive
+  });
+
   function acceptSuggestionText(text: string): void {
     const detectedMode = getModeFromInput(text);
     if (detectedMode !== 'prompt' && onModeChange) {
@@ -1338,17 +1325,20 @@ export function useTypeahead({
     // Only continue with navigation if we have suggestions
     if (suggestions.length === 0) return;
 
-    // Handle Ctrl-N/P for navigation (arrows handled by keybindings)
-    // Skip if we're in the middle of a chord sequence to allow chords like ctrl+f n
     const hasPendingChord = keybindingContext?.pendingChord != null;
-    if (e.ctrl && e.key === 'n' && !hasPendingChord) {
+
+    // Arrow keys are registered as keybindings, but keep this fallback for
+    // listener-order cases where the text input sees the raw key first.
+    if (e.key === 'down' && !e.shift && !e.ctrl && !e.meta && !e.superKey && !hasPendingChord) {
       e.preventDefault();
       handleAutocompleteNext();
+      e.stopImmediatePropagation();
       return;
     }
-    if (e.ctrl && e.key === 'p' && !hasPendingChord) {
+    if (e.key === 'up' && !e.shift && !e.ctrl && !e.meta && !e.superKey && !hasPendingChord) {
       e.preventDefault();
       handleAutocompletePrevious();
+      e.stopImmediatePropagation();
       return;
     }
 
