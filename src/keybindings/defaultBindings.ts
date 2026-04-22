@@ -109,6 +109,8 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       escape: 'autocomplete:dismiss',
       up: 'autocomplete:previous',
       down: 'autocomplete:next',
+      wheelup: 'autocomplete:previous',
+      wheeldown: 'autocomplete:next',
     },
   },
   {
@@ -123,6 +125,8 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       j: 'select:next',
       'ctrl+p': 'select:previous',
       'ctrl+n': 'select:next',
+      wheelup: 'scroll:lineUp',
+      wheeldown: 'scroll:lineDown',
       // Toggle/activate the selected setting (space only — enter saves & closes)
       space: 'select:accept',
       // Save and close the config panel
@@ -203,8 +207,6 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
     bindings: {
       pageup: 'scroll:pageUp',
       pagedown: 'scroll:pageDown',
-      wheelup: 'scroll:lineUp',
-      wheeldown: 'scroll:lineDown',
       'ctrl+home': 'scroll:top',
       'ctrl+end': 'scroll:bottom',
       // Selection copy. ctrl+shift+c is standard terminal copy.

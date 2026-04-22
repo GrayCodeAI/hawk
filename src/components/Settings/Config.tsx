@@ -1395,8 +1395,7 @@ export function Config({
     'select:previous': () => {
       if (selectedIndex === 0) {
         // ↑ at top enters search mode so users can type-to-filter after
-        // reaching the list boundary. Wheel-up (scroll:lineUp) clamps
-        // instead — overshoot shouldn't move focus away from the list.
+        // reaching the list boundary.
         setShowThinkingWarning(false);
         setIsSearchMode(true);
         setScrollOffset(0);
@@ -1405,10 +1404,8 @@ export function Config({
       }
     },
     'select:next': () => moveSelection(1),
-    // Wheel. ScrollKeybindingHandler's scroll:line* returns false (not
-    // consumed) when the ScrollBox content fits — which it always does
-    // here because the list is paginated (slice). The event falls through
-    // to this handler which navigates the list, clamping at boundaries.
+    // Keep scroll actions available for explicit keybinding overrides.
+    // Default wheel bindings route through select:* row navigation.
     'scroll:lineUp': () => moveSelection(-1),
     'scroll:lineDown': () => moveSelection(1),
     'select:accept': toggleSetting,
