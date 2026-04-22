@@ -4,6 +4,7 @@ import {
   getNextSuggestionIndex,
   getPreservedSelection,
   getPreviousSuggestionIndex,
+  getSelectionForSuggestionUpdate,
 } from './typeaheadSelection.js'
 
 function suggestion(id: string): SuggestionItem {
@@ -78,5 +79,41 @@ describe('suggestion arrow navigation', () => {
   it('does not select anything when there are no suggestions', () => {
     expect(getNextSuggestionIndex(0, 0)).toBe(-1)
     expect(getPreviousSuggestionIndex(0, 0)).toBe(-1)
+  })
+})
+
+describe('getSelectionForSuggestionUpdate', () => {
+  it('resets to the first row when the filter input changes', () => {
+    const previousSuggestions = [
+      suggestion('/command-one'),
+      suggestion('/command-two'),
+      suggestion('/command-three'),
+    ]
+    const newSuggestions = [
+      suggestion('/command-one'),
+      suggestion('/command-two'),
+      suggestion('/command-three'),
+    ]
+
+    expect(
+      getSelectionForSuggestionUpdate(previousSuggestions, 1, newSuggestions, true),
+    ).toBe(0)
+  })
+
+  it('preserves arrow-key selection when the same filter refreshes', () => {
+    const previousSuggestions = [
+      suggestion('/command-one'),
+      suggestion('/command-two'),
+      suggestion('/command-three'),
+    ]
+    const newSuggestions = [
+      suggestion('/command-one'),
+      suggestion('/command-two'),
+      suggestion('/command-three'),
+    ]
+
+    expect(
+      getSelectionForSuggestionUpdate(previousSuggestions, 1, newSuggestions, false),
+    ).toBe(1)
   })
 })
