@@ -179,7 +179,6 @@ export function PromptInputFooterSuggestions({
     Math.min(startIndex, maxStartIndex),
   )
   scrollStartIndexRef.current = startIndex
-
   const endIndex = Math.min(startIndex + maxVisibleItems, suggestions.length)
   const visibleItems = suggestions.slice(startIndex, endIndex)
 
