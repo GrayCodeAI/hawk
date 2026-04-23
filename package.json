@@ -91,7 +91,7 @@
     "jsonc-parser": "^3.3.1",
     "lodash-es": "^4.17.21",
     "lru-cache": "^11.0.0",
-    "marked": "^15.0.0",
+    "marked": "^18.0.2",
     "p-map": "^7.0.3",
     "picomatch": "^4.0.0",
     "proper-lockfile": "^4.1.2",
