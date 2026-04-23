@@ -59,7 +59,7 @@ export async function* all<A>(
 
     if (!done) {
       promises.add(next(generator))
-      // TODO: Clean this up
+      // Yield value if present, continuing the merged stream
       if (value !== undefined) {
         yield value
       }

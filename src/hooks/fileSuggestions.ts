@@ -139,7 +139,6 @@ function getGitIndexMtime(): number | null {
   const repoRoot = findGitRoot(getCwd())
   if (!repoRoot) return null
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs -- mtimeMs is the operation here, not a pre-check. findGitRoot above already stat-walks synchronously; one more stat is marginal vs spawning git ls-files on every keystroke. Async would force startBackgroundCacheRefresh to become async, breaking the synchronous fileListRefreshPromise contract at the cold-start await site.
     return statSync(path.join(repoRoot, '.git', 'index')).mtimeMs
   } catch {
     return null

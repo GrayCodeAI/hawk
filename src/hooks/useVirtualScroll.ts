@@ -268,7 +268,6 @@ export function useVirtualScroll(
   // GC stale cache entries (compaction, /clear, screenToggleId bump). Only
   // runs when itemKeys identity changes — scrolling doesn't touch keys.
   // itemRefs self-cleans via ref(null) on unmount.
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- refs are stable
   useMemo(() => {
     const live = new Set(itemKeys)
     let dirty = false
@@ -317,7 +316,7 @@ export function useVirtualScroll(
   if (frozenRange) {
     // Column just changed. Keep the pre-resize range to avoid mount churn.
     // Clamp to n in case messages were removed (/clear, compaction).
-    ;[start, end] = frozenRange
+    [start, end] = frozenRange
     start = Math.min(start, n)
     end = Math.min(end, n)
   } else if (viewportH === 0 || scrollTop < 0) {

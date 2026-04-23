@@ -43,10 +43,8 @@ function makeXaaFetch(abortSignal?: AbortSignal): FetchLike {
   return (url, init) => {
     const timeout = AbortSignal.timeout(XAA_REQUEST_TIMEOUT_MS)
     const signal = abortSignal
-      ? // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
-        AbortSignal.any([timeout, abortSignal])
+      ? AbortSignal.any([timeout, abortSignal])
       : timeout
-    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
     return fetch(url, { ...init, signal })
   }
 }

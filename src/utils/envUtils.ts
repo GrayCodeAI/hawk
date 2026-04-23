@@ -1,6 +1,8 @@
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
+import { memoizeWithTTL } from './memoize.js'
+import { SHORT_TTL_MS } from '../constants/numbers.js'
 
 // Memoized: 150+ callers, many on hot paths. Keyed off HAWK_CONFIG_DIR so
 // tests that change the env var get a fresh value without explicit cache.clear.
@@ -11,6 +13,17 @@ export const getHawkConfigHomeDir = memoize(
     ).normalize('NFC')
   },
   () => process.env.HAWK_CONFIG_DIR,
+)
+
+// TTL variant for functions that may change during runtime
+// Use for cached computations that might need to refresh
+export const getHawkConfigHomeDirWithTTL = memoizeWithTTL(
+  (): string => {
+    return (
+      process.env.HAWK_CONFIG_DIR ?? join(homedir(), '.hawk')
+    ).normalize('NFC')
+  },
+  SHORT_TTL_MS,
 )
 
 export function getTeamsDir(): string {

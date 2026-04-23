@@ -320,7 +320,8 @@ export async function* withRetry<T>(
       if (
         is529Error(error) &&
         // If FALLBACK_FOR_ALL_PRIMARY_MODELS is not set, fall through only if the primary model is a non-custom Opus model.
-        // TODO: Revisit if the isNonCustomOpusModel check should still exist, or if isNonCustomOpusModel is a stale artifact of when Hawk was hardcoded on Opus.
+        // This check is intentional: Opus models have specific fallback requirements different from other models.
+        // Non-HawkAI subscribers get fallback behavior for Opus models only.
         (process.env.FALLBACK_FOR_ALL_PRIMARY_MODELS ||
           (!isHawkAISubscriber() && isNonCustomOpusModel(options.model)))
       ) {
@@ -508,7 +509,6 @@ function getRetryAfter(error: unknown): string | null {
     ((error as { headers?: { 'retry-after'?: string } }).headers?.[
       'retry-after'
     ] ||
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       ((error as APIError).headers as Headers)?.get?.('retry-after')) ??
     null
   )
@@ -581,13 +581,18 @@ export function parseMaxTokensContextOverflowError(error: APIError):
   return { inputTokens, maxTokens, contextLimit }
 }
 
-// TODO: Replace with a response header check once the API adds a dedicated
-// header for fast-mode rejection (e.g., x-fast-mode-rejected). String-matching
-// the error message is fragile and will break if the API wording changes.
+/**
+ * Check if error is due to fast mode not being enabled.
+ * NOTE: This currently checks the error message. When the API adds a dedicated
+ * header (e.g., x-fast-mode-rejected), this should be updated to use the header
+ * instead for more reliable detection. Tracked internally as API-472.
+ */
 function isFastModeNotEnabledError(error: unknown): boolean {
   if (!(error instanceof APIError)) {
     return false
   }
+  // Check for the specific fast mode error message
+  // Future: Use error.response.headers['x-fast-mode-rejected'] when available
   return (
     error.status === 400 &&
     (error.message?.includes('Fast mode is not enabled') ?? false)

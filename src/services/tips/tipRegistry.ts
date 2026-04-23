@@ -355,7 +355,7 @@ const externalTips: Tip[] = [
   {
     id: 'paste-images-mac',
     content: async () =>
-      'Paste images into Hawk using control+v (not cmd+v!)',
+      'Paste images into Hawk using cmd+v or control+v',
     cooldownSessions: 10,
     isRelevant: async () => getPlatform() === 'macos',
   },

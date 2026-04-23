@@ -63,6 +63,9 @@ const TabsContext = createContext<TabsContextValue>({
   blurHeader: () => {},
   registerOptIn: () => () => {}
 });
+// Skipped by terminal output, but changes text identity when tab selection
+// styling changes would otherwise be reused from a previous render.
+const TABS_HEADER_REPAINT_TOKEN = '\x00';
 export function Tabs(t0) {
   const $ = _c(25);
   const {
@@ -182,12 +185,9 @@ export function Tabs(t0) {
   useKeybindings({
     "tabs:next": () => {
       handleTabChange(1);
-      // Keep content focus when switching tabs from within content
-      setHeaderFocused(false);
     },
     "tabs:previous": () => {
       handleTabChange(-1);
-      setHeaderFocused(false);
     }
   }, t10);
   const titleWidth = title ? stringWidth(title) + 1 : 0;
@@ -201,10 +201,12 @@ export function Tabs(t0) {
   const t13 = true;
   const t14 = modalScrollRef ? 0 : undefined;
   const t15 = !hidden && <Box flexDirection="row" gap={1} flexShrink={modalScrollRef ? 0 : undefined}>{title !== undefined && <Text bold={true} color={color}>{title}</Text>}{tabs.map((t16, i) => {
-      const [id, title_0] = t16;
-      const isCurrent = selectedTabIndex === i;
-      const hasColorCursor = color && isCurrent && headerFocused;
-      return <Text key={id} backgroundColor={hasColorCursor ? color : undefined} color={hasColorCursor ? "inverseText" : undefined} inverse={isCurrent && !hasColorCursor} bold={isCurrent}>{" "}{title_0}{" "}</Text>;
+    const [id, title_0] = t16;
+    const isCurrent = selectedTabIndex === i;
+    const hasColorCursor = color && isCurrent && headerFocused;
+    const selectionKey = isCurrent ? "selected" : "unselected";
+    const repaintToken = isCurrent ? TABS_HEADER_REPAINT_TOKEN : "";
+    return <Text key={`${id}-${selectionKey}`} backgroundColor={hasColorCursor ? color : undefined} color={hasColorCursor ? "inverseText" : undefined} inverse={isCurrent && !hasColorCursor} bold={isCurrent}>{" "}{title_0}{" "}{repaintToken}</Text>;
     })}{spacerWidth > 0 && <Text>{" ".repeat(spacerWidth)}</Text>}</Box>;
   let t17;
   if ($[11] !== children || $[12] !== contentHeight || $[13] !== contentWidth || $[14] !== hidden || $[15] !== modalScrollRef || $[16] !== selectedTabIndex) {

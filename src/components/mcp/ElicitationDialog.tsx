@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRegisterOverlay } from '../../context/overlayContext.js';
 import { useNotifyAfterTimeout } from '../../hooks/useNotifyAfterTimeout.js';
 import { useTerminalSize } from '../../hooks/useTerminalSize.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw text input for elicitation form
 import { Box, Text, useInput } from '../../ink.js';
 import { useKeybinding } from '../../keybindings/useKeybinding.js';
 import type { ElicitationRequestEvent } from '../../services/mcp/elicitationHandler.js';
@@ -1055,7 +1054,6 @@ function ElicitationURLDialog({
     setFocusedButton('open');
   }, [onResponse, url]);
 
-  // eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw input for button navigation
   useInput((_input, key) => {
     if (phase === 'prompt') {
       if (key.leftArrow || key.rightArrow) {

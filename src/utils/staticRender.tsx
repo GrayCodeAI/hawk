@@ -81,7 +81,7 @@ export function renderToAnsiString(node: React.ReactNode, columns?: number): Pro
     // match what the user sees on screen.
     const stream = new PassThrough();
     if (columns !== undefined) {
-      ;
+      
       (stream as unknown as {
         columns: number;
       }).columns = columns;

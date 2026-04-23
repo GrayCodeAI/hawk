@@ -1580,7 +1580,6 @@ export function containsVulnerableUncPath(pathOrCommand: string): boolean {
   // while catching // preceded by quotes, =, or any other non-colon character.
   // Trailing accepts both / and \ since Windows treats both as path separators
   const forwardSlashUncPattern =
-    // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .test() on short command strings
     /(?<!:)\/\/[^\s\\/]+(?:@(?:\d+|ssl))?(?:[\\/]|$|\s)/i
   if (forwardSlashUncPattern.test(pathOrCommand)) {
     return true

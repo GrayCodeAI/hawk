@@ -1,0 +1,38 @@
+# Code Owners
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global fallback — core team owns everything by default
+* @GrayCodeAI/core
+
+# CI/CD configuration
+/.github/workflows/ @GrayCodeAI/core
+/.github/dependabot.yml @GrayCodeAI/core
+
+# Provider runtime and model catalog
+/src/services/api/ @GrayCodeAI/core
+/src/utils/model/ @GrayCodeAI/core
+/src/utils/modelCost.ts @GrayCodeAI/core
+/src/utils/context.ts @GrayCodeAI/core
+
+# Cost tracking and telemetry
+/src/cost-tracker.ts @GrayCodeAI/core
+/src/services/analytics/ @GrayCodeAI/core
+
+# Provider catalog adapter
+/src/utils/model/providerCatalog.ts @GrayCodeAI/core
+
+# OpenAI shim (affects all non-Anthropic providers)
+/src/services/api/openaiShim.ts @GrayCodeAI/core
+/src/services/api/openaiShim/ @GrayCodeAI/core
+
+# Token estimation
+/src/services/tokenEstimation.ts @GrayCodeAI/core
+/src/utils/tokens.ts @GrayCodeAI/core
+
+# Architecture and design docs
+/ARCHITECTURE.md @GrayCodeAI/core
+/COMPONENTS.md @GrayCodeAI/core
+
+# Package and build configuration
+/package.json @GrayCodeAI/core
+/scripts/build.ts @GrayCodeAI/core

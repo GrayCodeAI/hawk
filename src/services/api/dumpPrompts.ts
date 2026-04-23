@@ -167,7 +167,6 @@ export function createDumpPromptsFetch(
       setImmediate(dumpRequest, init.body as string, timestamp, state, filePath)
     }
 
-    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
     const response = await globalThis.fetch(input, init)
 
     // Save response async

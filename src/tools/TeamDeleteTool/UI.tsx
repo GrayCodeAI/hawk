@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { jsonParse } from '../../utils/slowOperations.js';
 import type { Output } from './TeamDeleteTool.js';
 export function renderToolUseMessage(_input: Record<string, unknown>): React.ReactNode {

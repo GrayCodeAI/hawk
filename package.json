@@ -37,6 +37,7 @@
     "dev:code": "bun run profile:code && bun run dev:profile",
     "start": "node dist/cli.mjs",
     "typecheck": "tsc --noEmit --noResolve -p tsconfig.runtime-check.json",
+    "lint": "eslint . --ext .ts,.tsx",
     "smoke": "bun run build && node dist/cli.mjs --version",
     "test:provider": "bun test src/services/api/*.test.ts",
     "doctor:runtime": "bun run scripts/system-check.ts",
@@ -48,9 +49,10 @@
   },
   "dependencies": {
     "@alcalzone/ansi-tokenize": "^0.3.0",
+    "@aws-sdk/credential-provider-node": "^3.972.33",
     "@commander-js/extra-typings": "^12.0.0",
     "@growthbook/growthbook": "^1.3.0",
-    "@hawk/eyrie": "github:GrayCodeAI/eyrie.git#main",
+    "@hawk/eyrie": "github:GrayCodeAI/eyrie.git#bcb4b945b146ff69c556fc10790ecc21549f9df0",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.214.0",
@@ -63,6 +65,7 @@
     "@opentelemetry/sdk-trace-base": "^2.6.1",
     "@opentelemetry/sdk-trace-node": "^2.6.1",
     "@opentelemetry/semantic-conventions": "^1.40.0",
+    "@smithy/node-http-handler": "^4.6.0",
     "ajv": "^8.17.0",
     "auto-bind": "^5.0.1",
     "axios": "^1.14.0",
@@ -118,10 +121,14 @@
     "@types/bun": "^1.2.0",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^8.57.1",
     "typescript": "^5.7.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.0.0",
+    "bun": ">=1.0.0"
   },
   "repository": {
     "type": "git",

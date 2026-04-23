@@ -13,6 +13,7 @@ import { getCwd } from 'src/utils/cwd.js';
 import { isQueuedCommandEditable, popAllEditable } from 'src/utils/messageQueueManager.js';
 import stripAnsi from 'strip-ansi';
 import { companionReservedColumns } from '../../buddy/CompanionSprite.js';
+import { getSdkBetas } from '../../bootstrap/state.js';
 import { findBuddyTriggerPositions, useBuddyNotification } from '../../buddy/useBuddyNotification.js';
 import { FastModePicker } from '../../commands/fast/fast.js';
 import { isUltrareviewEnabled } from '../../commands/review/ultrareviewEnabled.js';
@@ -64,18 +65,34 @@ import { env } from '../../utils/env.js';
 import { errorMessage } from '../../utils/errors.js';
 import { isBilledAsExtraUsage } from '../../utils/extraUsage.js';
 import { getFastModeUnavailableReason, isFastModeAvailable, isFastModeCooldown, isFastModeEnabled, isFastModeSupportedByModel } from '../../utils/fastMode.js';
+import {
+  calculateContextPercentages,
+  getContextWindowForModel,
+} from '../../utils/context.js';
+import { formatTokens } from '../../utils/format.js';
 import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js';
 import type { PromptInputHelpers } from '../../utils/handlePromptSubmit.js';
-import { getImageFromClipboard, PASTE_THRESHOLD } from '../../utils/imagePaste.js';
+import {
+  asPotentialFilePath,
+  extractPotentialFilePaths,
+  getImageFromClipboard,
+  isMacFileReferencePath,
+  isImageFilePath,
+  isPureFilePathPaste,
+  PASTE_THRESHOLD,
+  tryReadImageFromPath,
+} from '../../utils/imagePaste.js';
 import type { ImageDimensions } from '../../utils/imageResizer.js';
 import { cacheImagePath, storeImage } from '../../utils/imageStore.js';
 import { isMacosOptionChar, MACOS_OPTION_SPECIAL_CHARS } from '../../utils/keyboardShortcuts.js';
 import { logError } from '../../utils/log.js';
-import { isOpus1mMergeEnabled, modelDisplayString } from '../../utils/model/model.js';
+import { getRuntimeMainLoopModel, isOpus1mMergeEnabled, modelDisplayString, renderModelName } from '../../utils/model/model.js';
+import { getAPIProvider } from '../../utils/model/providers.js';
 import { setAutoModeActive } from '../../utils/permissions/autoModeState.js';
 import { cyclePermissionMode, getNextPermissionMode } from '../../utils/permissions/getNextPermissionMode.js';
 import { transitionPermissionMode } from '../../utils/permissions/permissionSetup.js';
 import { getPlatform } from '../../utils/platform.js';
+import { PROVIDER_LABELS } from '../../utils/providerRegistry.js';
 import type { ProcessUserInputContext } from '../../utils/processUserInput/processUserInput.js';
 import { editPromptInEditor } from '../../utils/promptEditor.js';
 import { hasAutoModeOptIn } from '../../utils/settings/settings.js';
@@ -91,6 +108,10 @@ import { writeToMailbox } from '../../utils/teammateMailbox.js';
 import type { TextHighlight } from '../../utils/textHighlighting.js';
 import type { Theme } from '../../utils/theme.js';
 import { findThinkingTriggerPositions, getRainbowColor, isUltrathinkEnabled } from '../../utils/thinking.js';
+import {
+  doesMostRecentAssistantMessageExceed200k,
+  getCurrentUsage,
+} from '../../utils/tokens.js';
 import { findTokenBudgetPositions } from '../../utils/tokenBudget.js';
 import { findUltraplanTriggerPositions, findUltrareviewTriggerPositions } from '../../utils/ultraplan/keyword.js';
 import { AutoModeOptInDialog } from '../AutoModeOptInDialog.js';
@@ -236,6 +257,19 @@ function PromptInput({
   voiceInterimRange
 }: Props): React.ReactNode {
   const mainLoopModel = useMainLoopModel();
+  const exceeds200kTokens = useMemo(
+    () => doesMostRecentAssistantMessageExceed200k(messages),
+    [messages],
+  );
+  const runtimeMainLoopModel = useMemo(
+    () =>
+      getRuntimeMainLoopModel({
+        permissionMode: toolPermissionContext.mode,
+        mainLoopModel,
+        exceeds200kTokens,
+      }),
+    [toolPermissionContext.mode, mainLoopModel, exceeds200kTokens],
+  );
   // A local-jsx command (e.g., /mcp while agent is running) renders a full-
   // screen dialog on top of PromptInput via the immediate-command path with
   // shouldHidePromptInput: false. Those dialogs don't register in the overlay
@@ -250,14 +284,24 @@ function PromptInput({
     show: false
   });
   const [cursorOffset, setCursorOffset] = useState<number>(input.length);
-  // Track the last input value set via internal handlers so we can detect
-  // external input changes (e.g. speech-to-text injection) and move cursor to end.
+  // Track the last input value set via internal handlers so external updates
+  // (for example speech-to-text injection) can still move the cursor to end
+  // without clobbering a pending internal keystroke during render.
   const lastInternalInputRef = React.useRef(input);
-  if (input !== lastInternalInputRef.current) {
-    // Input changed externally (not through any internal handler) — move cursor to end
-    setCursorOffset(input.length);
+  const lastPropInputRef = React.useRef(input);
+  React.useLayoutEffect(() => {
+    if (input === lastPropInputRef.current) {
+      return;
+    }
+
+    lastPropInputRef.current = input;
+    if (input === lastInternalInputRef.current) {
+      return;
+    }
+
     lastInternalInputRef.current = input;
-  }
+    setCursorOffset(prev => prev === input.length ? prev : input.length);
+  }, [input]);
   // Wrap onInputChange to track internal changes before they trigger re-render
   const trackAndSetInput = React.useCallback((value: string) => {
     lastInternalInputRef.current = value;
@@ -534,7 +578,6 @@ function PromptInput({
   const tokenBudgetTriggers = useMemo(() => feature('TOKEN_BUDGET') ? findTokenBudgetPositions(displayedValue) : [], [displayedValue]);
   const knownChannelsVersion = useSyncExternalStore(subscribeKnownChannels, getKnownChannelsVersion);
   const slackChannelTriggers = useMemo(() => hasSlackMcpServer(store.getState().mcp.clients) ? findSlackChannelPositions(displayedValue) : [],
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- store is a stable ref
   [displayedValue, knownChannelsVersion]);
 
   // Find @name mentions and highlight with team member's color
@@ -1108,7 +1151,9 @@ function PromptInput({
     selectedSuggestion,
     commandArgumentHint,
     inlineGhostText,
-    maxColumnWidth
+    maxColumnWidth,
+    handleAutocompletePrevious,
+    handleAutocompleteNext
   } = useTypeahead({
     commands,
     onInputChange: trackAndSetInput,
@@ -1151,9 +1196,8 @@ function PromptInput({
   function onImagePaste(image: string, mediaType?: string, filename?: string, dimensions?: ImageDimensions, sourcePath?: string) {
     logEvent('tengu_paste_image', {});
     onModeChange('prompt');
-    const pasteId = nextPasteIdRef.current++;
     const newContent: PastedContent = {
-      id: pasteId,
+      id: nextPasteIdRef.current++,
       type: 'image',
       content: image,
       mediaType: mediaType || 'image/png',
@@ -1163,23 +1207,41 @@ function PromptInput({
       sourcePath
     };
 
-    // Cache path immediately (fast) so links work on render
-    cacheImagePath(newContent);
+    if (newContent.content.length > 0) {
+      // Cache path immediately (fast) so links work on render
+      cacheImagePath(newContent);
 
-    // Store image to disk in background
-    void storeImage(newContent);
+      // Store image to disk in background
+      void storeImage(newContent);
+    }
 
-    // Update UI
+    insertImageRef(newContent);
+  }
+  function insertImageRef(newContent: PastedContent) {
     setPastedContents(prev => ({
       ...prev,
-      [pasteId]: newContent
+      [newContent.id]: newContent
     }));
     // Multi-image paste calls onImagePaste in a loop. If the ref is already
     // armed, the previous pill's lazy space fires now (before this pill)
     // rather than being lost.
     const prefix = pendingSpaceAfterPillRef.current ? ' ' : '';
-    insertTextAtCursor(prefix + formatImageRef(pasteId));
+    insertTextAtCursor(prefix + formatImageRef(newContent.id));
     pendingSpaceAfterPillRef.current = true;
+  }
+  function onImagePathPaste(sourcePath: string) {
+    logEvent('tengu_paste_image_path', {});
+    onModeChange('prompt');
+    const normalizedPath = asPotentialFilePath(sourcePath) || sourcePath.trim();
+    const filename = isMacFileReferencePath(normalizedPath) ? 'Dropped image' : path.basename(normalizedPath) || 'Dropped image';
+    insertImageRef({
+      id: nextPasteIdRef.current++,
+      type: 'image',
+      content: '',
+      mediaType: 'image/png',
+      filename,
+      sourcePath: normalizedPath
+    });
   }
 
   // Prune images whose [Image #N] placeholder is no longer in the input text.
@@ -1211,6 +1273,53 @@ function PromptInput({
         text = getValueFromInput(text);
       }
     }
+
+    // Fallback path: some terminals don't flag drag/drop as image-paste events.
+    // If pasted text looks like file paths, attempt to attach image files here.
+    const imagePathCandidates = extractPotentialFilePaths(text).filter(candidate => isImageFilePath(candidate) || isMacFileReferencePath(candidate) || !!asPotentialFilePath(candidate));
+    if (imagePathCandidates.length > 0) {
+      logForDebugging(`[paste] text handler pathCandidates=${imagePathCandidates.length} sample=${JSON.stringify(text.slice(0, 160))}`);
+      void Promise.all(imagePathCandidates.map(candidate => tryReadImageFromPath(candidate))).then(results => {
+        let insertedAny = false;
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          const candidate = imagePathCandidates[i];
+          if (result) {
+            insertedAny = true;
+            onImagePaste(result.base64, result.mediaType, path.basename(result.path), result.dimensions, result.path);
+          } else if (candidate && (isImageFilePath(candidate) || isMacFileReferencePath(candidate))) {
+            insertedAny = true;
+            onImagePathPaste(candidate);
+          }
+        }
+        if (!insertedAny) {
+          if (getPlatform() === 'macos') {
+            logForDebugging('[paste] text handler paths unresolved; trying clipboard fallback');
+            void getImageFromClipboard().then(imageData => {
+              if (imageData) {
+                logForDebugging('[paste] text handler clipboard fallback success');
+                onImagePaste(imageData.base64, imageData.mediaType, undefined, imageData.dimensions);
+              } else {
+                logForDebugging('[paste] text handler clipboard fallback returned null; inserting text');
+                insertTextAtCursor(text);
+              }
+            }).catch(error => {
+              logError(error as Error);
+              insertTextAtCursor(text);
+            });
+            return;
+          }
+          insertTextAtCursor(text);
+        } else if (!isPureFilePathPaste(text, imagePathCandidates)) {
+          insertTextAtCursor(text);
+        }
+      }).catch(error => {
+        logError(error as Error);
+        insertTextAtCursor(text);
+      });
+      return;
+    }
+
     const numLines = getPastedTextRefNumLines(text);
     // Limit the number of lines to show in the input
     // If the overall layout is too high then Ink will repaint
@@ -1244,12 +1353,24 @@ function PromptInput({
     if (isNonSpacePrintable(input, key)) return ' ' + input;
     return input;
   }, []);
+  // Ref mirrors cursorOffset for use in synchronous loops (e.g. image drop
+  // insertion) where React batches state updates and the closure value is stale.
+  const cursorOffsetRef = useRef(cursorOffset);
+  cursorOffsetRef.current = cursorOffset;
   function insertTextAtCursor(text: string) {
-    // Push current state to buffer before inserting
-    pushToBuffer(input, cursorOffset, pastedContents);
-    const newInput = input.slice(0, cursorOffset) + text + input.slice(cursorOffset);
+    // Use refs for input/cursor so back-to-back calls in the same event
+    // chain correctly instead of each reading stale closure values.
+    const currentInput = lastInternalInputRef.current;
+    const currentOffset = cursorOffsetRef.current;
+    pushToBuffer(currentInput, currentOffset, pastedContents);
+    const newInput =
+      currentInput.slice(0, currentOffset) +
+      text +
+      currentInput.slice(currentOffset);
     trackAndSetInput(newInput);
-    setCursorOffset(cursorOffset + text.length);
+    const newOffset = currentOffset + text.length;
+    cursorOffsetRef.current = newOffset;
+    setCursorOffset(newOffset);
   }
   const doublePressEscFromEmpty = useDoublePress(() => {}, () => onShowMessageSelector());
 
@@ -2178,8 +2299,8 @@ function PromptInput({
     // NOT via useKeybindings. This allows useTextInput's upOrHistoryUp/downOrHistoryDown
     // to try cursor movement first and only fall through to history navigation when the
     // cursor can't move further (important for wrapped text and multi-line input).
-    onHistoryUp: handleHistoryUp,
-    onHistoryDown: handleHistoryDown,
+    onHistoryUp: suggestions.length > 0 ? handleAutocompletePrevious : handleHistoryUp,
+    onHistoryDown: suggestions.length > 0 ? handleAutocompleteNext : handleHistoryDown,
     onHistoryReset: resetHistory,
     placeholder,
     onExit,
@@ -2188,6 +2309,7 @@ function PromptInput({
       key
     }),
     onImagePaste,
+    onImagePathPaste,
     columns: textInputColumns,
     maxVisibleLines,
     disableCursorMovementForUpDownKeys: suggestions.length > 0 || !!footerItemSelected,
@@ -2265,12 +2387,17 @@ function PromptInput({
             </Box>
           </Box>
           <Text color={swarmBanner.bgColor}>{'─'.repeat(columns)}</Text>
-        </> : <Box flexDirection="row" alignItems="flex-start" justifyContent="flex-start" borderColor={getBorderColor()} borderStyle="round" borderLeft={false} borderRight={false} borderBottom width="100%" borderText={buildBorderText(showFastIcon ?? false, showFastIconHint, fastModeCooldown)}>
-          <PromptInputModeIndicator mode={mode} isLoading={isLoading} viewingAgentName={viewingAgentName} viewingAgentColor={viewingAgentColor} />
-          <Box flexGrow={1} flexShrink={1} onClick={handleInputClick}>
-            {textInputElement}
+        </> : <>
+          <Box width="100%" justifyContent="flex-end" paddingRight={1}>
+            <Text>{buildModelTitle(runtimeMainLoopModel, messages)}</Text>
           </Box>
-        </Box>}
+          <Box flexDirection="row" alignItems="flex-start" justifyContent="flex-start" borderColor={getBorderColor()} borderStyle="round" borderLeft={false} borderRight={false} borderBottom width="100%" borderText={buildBorderText(showFastIcon ?? false, showFastIconHint, fastModeCooldown)}>
+            <PromptInputModeIndicator mode={mode} isLoading={isLoading} viewingAgentName={viewingAgentName} viewingAgentColor={viewingAgentColor} />
+            <Box flexGrow={1} flexShrink={1} onClick={handleInputClick}>
+              {textInputElement}
+            </Box>
+          </Box>
+        </>}
       <PromptInputFooter apiKeyStatus={apiKeyStatus} debug={debug} exitMessage={exitMessage} vimMode={isVimModeEnabled() ? vimMode : undefined} mode={mode} autoUpdaterResult={autoUpdaterResult} isAutoUpdating={isAutoUpdating} verbose={verbose} onAutoUpdaterResult={onAutoUpdaterResult} onChangeIsUpdating={setIsAutoUpdating} suggestions={suggestions} selectedSuggestion={selectedSuggestion} maxColumnWidth={maxColumnWidth} toolPermissionContext={effectiveToolPermissionContext} helpOpen={helpOpen} suppressHint={input.length > 0} isLoading={isLoading} tasksSelected={tasksSelected} teamsSelected={teamsSelected} bridgeSelected={bridgeSelected} tmuxSelected={tmuxSelected} teammateFooterIndex={teammateFooterIndex} ideSelection={ideSelection} mcpClients={mcpClients} isPasting={isPasting} isInputWrapped={isInputWrapped} messages={messages} isSearching={isSearchingHistory} historyQuery={historyQuery} setHistoryQuery={setHistoryQuery} historyFailedMatch={historyFailedMatch} onOpenTasksDialog={isFullscreenEnvEnabled() ? handleOpenTasksDialog : undefined} />
       {isFullscreenEnvEnabled() ? null : autoModeOptInDialog}
       {isFullscreenEnvEnabled() ?
@@ -2325,6 +2452,58 @@ function getInitialPasteId(messages: Message[]): number {
   }
   return maxId + 1;
 }
+function buildModelTitle(mainLoopModel: string, messages: Message[]): string {
+  const providerLabel = PROVIDER_LABELS[getAPIProvider()];
+  const contextWindowSize = getContextWindowForModel(mainLoopModel, getSdkBetas());
+  const contextWindowLabel = formatTokens(contextWindowSize).replace(/m$/, 'M');
+  const currentUsage = getCurrentUsage(messages);
+  const currentContextTokens =
+    currentUsage === null
+      ? 0
+      : currentUsage.input_tokens +
+        currentUsage.cache_creation_input_tokens +
+        currentUsage.cache_read_input_tokens;
+  const currentContextLabel = formatTokens(currentContextTokens).replace(
+    /m$/,
+    'M',
+  );
+  const contextUsage = calculateContextPercentages(
+    currentUsage
+      ? {
+          input_tokens: currentUsage.input_tokens,
+          cache_creation_input_tokens:
+            currentUsage.cache_creation_input_tokens,
+          cache_read_input_tokens: currentUsage.cache_read_input_tokens,
+        }
+      : null,
+    contextWindowSize,
+  );
+  const modelContextLabel =
+    contextUsage.used === null
+      ? `${contextWindowLabel} ctx`
+      : `${currentContextLabel} / ${contextWindowLabel} ctx (${contextUsage.used}%)`;
+  const customModelOption = getGlobalConfig().additionalModelOptionsCache?.find(option => option.value === mainLoopModel);
+  const envCustomModel = process.env.GRAYCODE_CUSTOM_MODEL_OPTION === mainLoopModel;
+  const modelLabel = envCustomModel ? process.env.GRAYCODE_CUSTOM_MODEL_OPTION_NAME ?? mainLoopModel : customModelOption?.label ?? renderModelName(mainLoopModel);
+  const customSuffix = envCustomModel || customModelOption ? ' [custom]' : '';
+  const modelPrefix = chalk.hex('#ff79c6')(
+    `◇ ${providerLabel} ${modelLabel}${customSuffix}`,
+  );
+  const separator = chalk.hex('#6b7280')(' · ');
+  if (contextUsage.used === null) {
+    const totalOnly = `${chalk.hex('#f1fa8c')(contextWindowLabel)}${chalk.hex('#6b7280')(' ctx')}`;
+    return `${modelPrefix}${separator}${totalOnly}`;
+  }
+  const currentCtx = chalk.hex('#8be9fd')(currentContextLabel);
+  const slash = chalk.hex('#6b7280')(' / ');
+  const totalCtx = chalk.hex('#f1fa8c')(contextWindowLabel);
+  const ctxLabel = chalk.hex('#6b7280')(' ctx ');
+  const open = chalk.hex('#6b7280')('(');
+  const percent = chalk.hex('#ff5555')(`${contextUsage.used}%`);
+  const close = chalk.hex('#6b7280')(')');
+  return `${modelPrefix}${separator}${currentCtx}${slash}${totalCtx}${ctxLabel}${open}${percent}${close}`;
+}
+
 function buildBorderText(showFastIcon: boolean, showFastIconHint: boolean, fastModeCooldown: boolean): BorderTextOptions | undefined {
   if (!showFastIcon) return undefined;
   const fastSeg = showFastIconHint ? `${getFastIconString(true, fastModeCooldown)} ${chalk.dim('/fast')}` : getFastIconString(true, fastModeCooldown);

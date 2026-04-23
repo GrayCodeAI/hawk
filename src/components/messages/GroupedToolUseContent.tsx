@@ -1,5 +1,5 @@
 import type { ToolResultBlockParam, ToolUseBlockParam } from '@hawk/eyrie';
-import * as React from 'react';
+import type * as React from 'react';
 import { filterToolProgressMessages, findToolByName, type Tools } from '../../Tool.js';
 import type { GroupedToolUseMessage } from '../../types/message.js';
 import type { buildMessageLookups } from '../../utils/messages.js';

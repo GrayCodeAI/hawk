@@ -540,7 +540,8 @@ async function* queryLoop(
       }
     }
 
-    //TODO: no need to set toolUseContext.messages during set-up since it is updated here
+    // toolUseContext.messages is managed by the message loop and doesn't need
+    // to be set during initialization as it gets updated dynamically
     toolUseContext = {
       ...toolUseContext,
       messages: messagesForQuery,
@@ -1560,7 +1561,6 @@ async function* queryLoop(
     // addressed to it — main thread drains agentId===undefined, subagents
     // drain their own agentId. User prompts (mode:'prompt') still go to main
     // only; subagents never see the prompt stream.
-    // eslint-disable-next-line custom-rules/require-tool-match-name -- ToolUseBlock.name has no aliases
     const sleepRan = toolUseBlocks.some(b => b.name === SLEEP_TOOL_NAME)
     const isMainThread =
       querySource.startsWith('repl_main_thread') || querySource === 'sdk'

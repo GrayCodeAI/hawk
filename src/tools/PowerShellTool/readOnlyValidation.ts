@@ -1145,7 +1145,6 @@ export function hasSyncSecurityConcerns(command: string): boolean {
 
   // UNC paths: \\server\share or //server/share can trigger network requests
   // and leak NTLM/Kerberos credentials
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .test() with atom search, short command strings
   if (/\\\\/.test(trimmed) || /(?<!:)\/\//.test(trimmed)) {
     return true
   }

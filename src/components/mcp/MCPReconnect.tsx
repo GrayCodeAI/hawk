@@ -28,7 +28,7 @@ export function MCPReconnect(t0) {
   if ($[0] !== onComplete || $[1] !== reconnectMcpServer || $[2] !== serverName || $[3] !== store) {
     t1 = () => {
       const attemptReconnect = async function attemptReconnect() {
-        ;
+        
         try {
           const server = store.getState().mcp.clients.find(c => c.name === serverName);
           if (!server) {

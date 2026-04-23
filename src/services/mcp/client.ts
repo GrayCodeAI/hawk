@@ -37,8 +37,9 @@ import {
   type ResourceLink,
 } from '@modelcontextprotocol/sdk/types.js'
 import mapValues from 'lodash-es/mapValues.js'
-import memoize from 'lodash-es/memoize.js'
 import zipObject from 'lodash-es/zipObject.js'
+import { memoizeWithTTL } from '../../utils/memoize.js'
+import { LONG_TTL_MS } from '../../constants/numbers.js'
 import pMap from 'p-map'
 import { getOriginalCwd, getSessionId } from '../../bootstrap/state.js'
 import type { Command } from '../../commands.js'
@@ -377,7 +378,6 @@ export function createHawkAiProxyFetch(innerFetch: FetchLike): FetchLike {
       if (!currentTokens) {
         throw new Error('No hawkai OAuth token available')
       }
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const headers = new Headers(init?.headers)
       headers.set('Authorization', `Bearer ${currentTokens.accessToken}`)
       const response = await innerFetch(url, { ...init, headers })
@@ -503,7 +503,6 @@ export function wrapFetchWithTimeout(baseFetch: FetchLike): FetchLike {
     // accepts HeadersInit | undefined and copies from plain objects, tuple arrays,
     // and existing Headers instances — so whatever shape the SDK handed us, the
     // Accept value survives the spread below as an own property of a concrete object.
-    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
     const headers = new Headers(init?.headers)
     if (!headers.has('accept')) {
       headers.set('accept', MCP_STREAMABLE_HTTP_ACCEPT)
@@ -586,13 +585,13 @@ export function getServerCacheKey(
 }
 
 /**
- * TODO (ollie): The memoization here increases complexity by a lot, and im not sure it really improves performance
  * Attempts to connect to a single MCP server
+ * Uses TTL memoization to cache connections with automatic expiration
  * @param name Server name
  * @param serverRef Scoped server configuration
  * @returns A wrapped client (either connected or failed)
  */
-export const connectToServer = memoize(
+export const connectToServer = memoizeWithTTL(
   async (
     name: string,
     serverRef: ScopedMcpServerConfig,
@@ -655,7 +654,6 @@ export const connectToServer = memoize(
             }
 
             const proxyOptions = getProxyFetchOptions()
-            // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
             return fetch(url, {
               ...init,
               ...proxyOptions,
@@ -677,27 +675,43 @@ export const connectToServer = memoize(
         logMCPDebug(name, `SSE transport initialized, awaiting connection`)
       } else if (serverRef.type === 'sse-ide') {
         logMCPDebug(name, `Setting up SSE-IDE transport to ${serverRef.url}`)
-        // IDE servers don't need authentication
-        // TODO: Use the auth token provided in the lockfile
+        // IDE servers use auth token from lockfile if available
         const proxyOptions = getProxyFetchOptions()
+        const headers: Record<string, string> = {
+          'User-Agent': getMCPUserAgent(),
+          ...(serverRef.authToken && {
+            'X-Hawk-Code-Ide-Authorization': serverRef.authToken,
+          }),
+        }
         const transportOptions: SSEClientTransportOptions =
           proxyOptions.dispatcher
             ? {
                 eventSourceInit: {
                   fetch: async (url: string | URL, init?: RequestInit) => {
-                    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
                     return fetch(url, {
                       ...init,
                       ...proxyOptions,
                       headers: {
-                        'User-Agent': getMCPUserAgent(),
+                        ...headers,
                         ...init?.headers,
                       },
                     })
                   },
                 },
               }
-            : {}
+            : {
+                eventSourceInit: {
+                  fetch: async (url: string | URL, init?: RequestInit) => {
+                    return fetch(url, {
+                      ...init,
+                      headers: {
+                        ...headers,
+                        ...init?.headers,
+                      },
+                    })
+                  },
+                },
+              }
 
         transport = new SSEClientTransport(
           new URL(serverRef.url),
@@ -717,7 +731,6 @@ export const connectToServer = memoize(
         let wsClient: WsClientLike
         if (typeof Bun !== 'undefined') {
           // Bun's WebSocket supports headers/proxy/tls options but the DOM typings don't
-          // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
           wsClient = new globalThis.WebSocket(serverRef.url, {
             protocols: ['mcp'],
             headers: wsHeaders,
@@ -766,7 +779,6 @@ export const connectToServer = memoize(
         let wsClient: WsClientLike
         if (typeof Bun !== 'undefined') {
           // Bun's WebSocket supports headers/proxy/tls options but the DOM typings don't
-          // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
           wsClient = new globalThis.WebSocket(serverRef.url, {
             protocols: ['mcp'],
             headers: wsHeaders,
@@ -881,7 +893,6 @@ export const connectToServer = memoize(
 
         logMCPDebug(name, `Using hawkai proxy at ${proxyUrl}`)
 
-        // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
         const fetchWithAuth = createHawkAiProxyFetch(globalThis.fetch)
 
         const proxyOptions = getProxyFetchOptions()
@@ -1637,7 +1648,8 @@ export const connectToServer = memoize(
       }
     }
   },
-  getServerCacheKey,
+  (name, serverRef) => getServerCacheKey(name, serverRef),
+  LONG_TTL_MS,
 )
 
 /**

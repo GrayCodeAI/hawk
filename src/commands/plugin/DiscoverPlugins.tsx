@@ -7,7 +7,6 @@ import { Byline } from '../../components/design-system/Byline.js';
 import { SearchBox } from '../../components/SearchBox.js';
 import { useSearchInput } from '../../hooks/useSearchInput.js';
 import { useTerminalSize } from '../../hooks/useTerminalSize.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- useInput needed for raw search mode text input
 import { Box, Text, useInput, useTerminalFocus } from '../../ink.js';
 import { useKeybinding, useKeybindings } from '../../keybindings/useKeybinding.js';
 import type { LoadedPlugin } from '../../types/plugin.js';

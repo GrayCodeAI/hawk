@@ -695,7 +695,6 @@ export function applyMockHeaders(
   }
 
   // Create a new Headers object with original headers
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
   const newHeaders = new globalThis.Headers(headers)
 
   // Apply mock headers (overwriting originals)

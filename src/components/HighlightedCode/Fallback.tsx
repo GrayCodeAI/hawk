@@ -150,7 +150,7 @@ function Highlighted(t0) {
           logForDebugging(`Language not supported while highlighting code, falling back to markdown: ${language}`);
         }
       }
-      ;
+      
       try {
         t2 = cachedHighlight(hl, codeWithSpaces, highlightLang);
       } catch (t3) {

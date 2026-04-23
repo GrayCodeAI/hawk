@@ -39,6 +39,7 @@ import {
   getMcpInstructionsDeltaAttachment,
 } from '../../utils/attachments.js'
 import { getMemoryPath } from '../../utils/config.js'
+import { isMemoryFilePath } from '../../utils/hawkmd.js'
 import { COMPACT_MAX_OUTPUT_TOKENS } from '../../utils/context.js'
 import {
   analyzeContext,
@@ -1686,19 +1687,20 @@ function shouldExcludeFromPostCompactRestore(
     // If we can't get plan file path, continue with other checks
   }
 
-  // Exclude all types of hawk.md files
-  // TODO: Refactor to use isMemoryFilePath() from hawkmd.ts for consistency
-  // and to also match child directory memory files (.hawk/rules/*.md, etc.)
+  // Exclude all types of hawk.md files using centralized function
+  // This matches HAWK.md, HAWK.local.md, and .hawk/rules/*.md files
   try {
-    const normalizedMemoryPaths = new Set(
-      MEMORY_TYPE_VALUES.map(type => expandPath(getMemoryPath(type))),
-    )
-
-    if (normalizedMemoryPaths.has(normalizedFilename)) {
+    if (isMemoryFilePath(normalizedFilename)) {
       return true
     }
   } catch {
-    // If we can't get memory paths, continue
+    // If check fails, fall back to memory path check
+    const normalizedMemoryPaths = new Set(
+      MEMORY_TYPE_VALUES.map(type => expandPath(getMemoryPath(type))),
+    )
+    if (normalizedMemoryPaths.has(normalizedFilename)) {
+      return true
+    }
   }
 
   return false

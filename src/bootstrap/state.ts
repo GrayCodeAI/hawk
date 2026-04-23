@@ -14,7 +14,6 @@ import type { HookCallbackMatcher } from 'src/types/hooks.js'
 // crypto.ts for crypto.browser.ts). Pure leaf re-export of node:crypto —
 // zero circular-dep risk. Path-alias import bypasses bootstrap-isolation
 // (rule only checks ./ and / prefixes); explicit disable documents intent.
-// eslint-disable-next-line custom-rules/bootstrap-isolation
 import { randomUUID } from 'src/utils/crypto.js'
 import type { ModelSetting } from 'src/utils/model/model.js'
 import type { ModelStrings } from 'src/utils/model/modelStrings.js'

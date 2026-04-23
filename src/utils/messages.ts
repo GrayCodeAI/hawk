@@ -4239,7 +4239,6 @@ You have exited auto mode. The user may now want to interact more directly. You 
     }
     case 'verify_plan_reminder': {
       // Dead code elimination: HAWK_CODE_VERIFY_PLAN='false' in external builds, so === 'true' check allows Bun to eliminate the string
-      /* eslint-disable-next-line custom-rules/no-process-env-top-level */
       const toolName =
         process.env.HAWK_CODE_VERIFY_PLAN === 'true'
           ? 'VerifyPlanExecution'

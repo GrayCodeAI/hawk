@@ -56,7 +56,7 @@ export async function importGithubToken(
 > {
   let accessToken: string, orgUUID: string
   try {
-    ;({ accessToken, orgUUID } = await prepareApiRequest())
+    ({ accessToken, orgUUID } = await prepareApiRequest())
   } catch {
     return { ok: false, error: { kind: 'not_signed_in' } }
   }
@@ -119,7 +119,7 @@ async function hasExistingEnvironment(): Promise<boolean> {
 export async function createDefaultEnvironment(): Promise<boolean> {
   let accessToken: string, orgUUID: string
   try {
-    ;({ accessToken, orgUUID } = await prepareApiRequest())
+    ({ accessToken, orgUUID } = await prepareApiRequest())
   } catch {
     return false
   }

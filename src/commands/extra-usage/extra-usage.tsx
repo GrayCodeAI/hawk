@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { LocalJSXCommandContext } from '../../commands.js';
 import type { LocalJSXCommandOnDone } from '../../types/command.js';
 import { runExtraUsage } from './extra-usage-core.js';

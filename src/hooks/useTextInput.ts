@@ -398,7 +398,6 @@ export function useTextInput({
               // args.text "\\\r\n" to keybindings.json); keep the \r so
               // it becomes \n below (graycodes/hawk-code#31316).
               const text = stripAnsi(input)
-                // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .replace(re, str) on 1-2 char keystrokes: no-match returns same string (Object.is), regex never runs
                 .replace(/(?<=[^\\\r\n])\r$/, '')
                 .replace(/\r/g, '\n')
               if (cursor.isAtStart() && isInputModeCharacter(input)) {

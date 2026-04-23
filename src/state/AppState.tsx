@@ -116,7 +116,6 @@ function _temp(prev) {
   };
 }
 function useAppStore(): AppStateStore {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const store = useContext(AppStoreContext);
   if (!store) {
     throw new ReferenceError('useAppState/useSetAppState cannot be called outside of an <AppStateProvider />');

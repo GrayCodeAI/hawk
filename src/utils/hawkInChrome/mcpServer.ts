@@ -263,7 +263,6 @@ export async function runHawkInChromeMcpServer(): Promise<void> {
     exiting = true
     await shutdown1PEventLogging()
     await shutdownDatadog()
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(0)
   }
   process.stdin.on('end', () => void shutdownAndExit())

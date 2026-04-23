@@ -1,4 +1,3 @@
-/* eslint-disable custom-rules/no-process-exit */
 
 import { feature } from 'bun:bundle'
 import chalk from 'chalk'
@@ -294,7 +293,7 @@ export async function setup(
     initSessionMemory() // Synchronous - registers hook, gate check happens lazily
     if (feature('CONTEXT_COLLAPSE')) {
       /* eslint-disable @typescript-eslint/no-require-imports */
-      ;(
+      (
         require('./services/contextCollapse/index.js') as typeof import('./services/contextCollapse/index.js')
       ).initContextCollapse()
       /* eslint-enable @typescript-eslint/no-require-imports */

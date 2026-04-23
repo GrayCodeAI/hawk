@@ -627,7 +627,9 @@ export function isUnsafeCompoundCommand_DEPRECATED(command: string): boolean {
  * Extracts output redirections from a command if present.
  * Only handles simple string targets (no variables or command substitutions).
  *
- * TODO(inigo): Refactor and simplify once we have AST parsing
+ * NOTE: AST parsing is now available in bashParser.ts. This function could be
+ * refactored to use the AST for more robust redirection extraction.
+ * See bashParser.ts for parseBash() and related utilities.
  *
  * @returns Object containing the command without redirections and the target paths if found
  */

@@ -286,12 +286,10 @@ async function writeHeapSnapshot(filepath: string): Promise<void> {
     // In Bun, heapsnapshots are currently not streaming.
     // Use synchronous I/O despite potentially large filesize so that we avoid cloning the string for cross-thread usage.
     //
-    /* eslint-disable custom-rules/no-sync-fs -- intentionally sync to avoid cloning large heap snapshot string for cross-thread usage */
     // @ts-expect-error 2nd argument is in the next version of Bun
     writeFileSync(filepath, Bun.generateHeapSnapshot('v8', 'arraybuffer'), {
       mode: 0o600,
     })
-    /* eslint-enable custom-rules/no-sync-fs */
 
     // Force GC to try to free that heap snapshot sooner.
     Bun.gc(true)

@@ -1,4 +1,5 @@
-import React, { type RefObject, useEffect, useRef } from 'react';
+import type React from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { useNotifications } from '../context/notifications.js';
 import { useCopyOnSelect, useSelectionBgColor } from '../hooks/useCopyOnSelect.js';
 import type { ScrollBoxHandle } from '../ink/components/ScrollBox.js';
@@ -6,7 +7,6 @@ import { useSelection } from '../ink/hooks/use-selection.js';
 import type { FocusMove, SelectionState } from '../ink/selection.js';
 import { isXtermJs } from '../ink/terminal.js';
 import { getClipboardPath } from '../ink/termio/osc.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- Esc needs conditional propagation based on selection state
 import { type Key, useInput } from '../ink.js';
 import { useKeybindings } from '../keybindings/useKeybinding.js';
 import { logForDebugging } from '../utils/debug.js';

@@ -32,8 +32,8 @@ import { ExpandShellOutputProvider } from './shell/ExpandShellOutputContext.js';
 export type Props = {
   message: NormalizedUserMessage | AssistantMessage | AttachmentMessageType | SystemMessage | GroupedToolUseMessageType | CollapsedReadSearchGroupType;
   lookups: ReturnType<typeof buildMessageLookups>;
-  // TODO: Find a way to remove this, and leave spacing to the consumer
-  /** Absolute width for the container Box. When provided, eliminates a wrapper Box in the caller. */
+  /** Absolute width for the container Box. When provided, eliminates a wrapper Box in the caller.
+   * This allows the Message component to control its own layout without additional wrapper elements. */
   containerWidth?: number;
   addMargin: boolean;
   tools: Tools;

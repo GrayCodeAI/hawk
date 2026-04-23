@@ -53,7 +53,7 @@ export function FileWritePermissionRequest(props) {
   } = parsed;
   let t1;
   if ($[2] !== file_path) {
-    ;
+    
     try {
       t1 = {
         fileExists: true,

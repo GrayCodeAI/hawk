@@ -284,7 +284,6 @@ export function buildMemoryPrompt(params: {
   // Read existing memory entrypoint (sync: prompt building is synchronous)
   let entrypointContent = ''
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs
     entrypointContent = fs.readFileSync(entrypoint, { encoding: 'utf-8' })
   } catch {
     // No memory file yet

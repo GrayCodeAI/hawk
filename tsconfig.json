@@ -17,7 +17,12 @@
       "src/*": ["./src/*"],
       "@hawk/eyrie": ["../eyrie/src/index.ts"],
       "@hawk/eyrie/*": ["../eyrie/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
   },
   "include": ["src/**/*", "src/types/globals.d.ts"],
   "exclude": ["node_modules", "dist"]

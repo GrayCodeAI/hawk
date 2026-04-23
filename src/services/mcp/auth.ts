@@ -150,8 +150,7 @@ const NONSTANDARD_INVALID_GRANT_ALIASES = new Set([
   'token_expired',
 ])
 
-/* eslint-disable eslint-plugin-n/no-unsupported-features/node-builtins --
- * Response has been stable in Node since 18; the rule flags it as
+/** Response has been stable in Node since 18; the rule flags it as
  * experimental-until-21 which is incorrect. Pattern matches existing
  * createAuthFetch suppressions in this file. */
 export async function normalizeOAuthErrorBody(
@@ -188,7 +187,6 @@ export async function normalizeOAuthErrorBody(
     headers: response.headers,
   })
 }
-/* eslint-enable eslint-plugin-n/no-unsupported-features/node-builtins */
 
 /**
  * Creates a fetch function with a fresh 30-second timeout for each OAuth request.
@@ -202,7 +200,6 @@ function createAuthFetch(): FetchLike {
 
     // No existing signal - just use timeout
     if (!init?.signal) {
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const response = await fetch(url, { ...init, signal: timeoutSignal })
       return isPost ? normalizeOAuthErrorBody(response) : response
     }
@@ -225,7 +222,6 @@ function createAuthFetch(): FetchLike {
     }
 
     try {
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const response = await fetch(url, { ...init, signal: controller.signal })
       cleanup()
       return isPost ? normalizeOAuthErrorBody(response) : response
@@ -1761,6 +1757,82 @@ export class HawkAuthProvider implements OAuthClientProvider {
       return undefined
     }
 
+    // Acquire cross-process lock to prevent concurrent XAA refreshes
+    // This prevents race conditions when multiple processes try to refresh
+    // the same token simultaneously (wasted round-trips + keychain write race)
+    const serverKey = getServerKey(this.serverName, this.serverConfig)
+    const hawkDir = getHawkConfigHomeDir()
+    await mkdir(hawkDir, { recursive: true })
+    const sanitizedKey = serverKey.replace(/[^a-zA-Z0-9]/g, '_')
+    const lockfilePath = join(hawkDir, `mcp-xaa-refresh-${sanitizedKey}.lock`)
+
+    let release: (() => Promise<void>) | undefined
+    for (let retry = 0; retry < MAX_LOCK_RETRIES; retry++) {
+      try {
+        logMCPDebug(
+          this.serverName,
+          `XAA: Acquiring refresh lock (attempt ${retry + 1})`,
+        )
+        release = await lockfile.lock(lockfilePath, {
+          realpath: false,
+          onCompromised: () => {
+            logMCPDebug(this.serverName, `XAA: Refresh lock was compromised`)
+          },
+        })
+        logMCPDebug(this.serverName, `XAA: Acquired refresh lock`)
+        break
+      } catch (e: unknown) {
+        const code = getErrnoCode(e)
+        if (code === 'ELOCKED') {
+          logMCPDebug(
+            this.serverName,
+            `XAA: Refresh lock held by another process, waiting (attempt ${retry + 1}/${MAX_LOCK_RETRIES})`,
+          )
+          await sleep(1000 + Math.random() * 1000)
+          continue
+        }
+        logMCPDebug(
+          this.serverName,
+          `XAA: Failed to acquire refresh lock: ${code}, proceeding without lock`,
+        )
+        break
+      }
+    }
+    if (!release) {
+      logMCPDebug(
+        this.serverName,
+        `XAA: Could not acquire refresh lock after ${MAX_LOCK_RETRIES} retries, proceeding without lock`,
+      )
+    }
+
+    try {
+      // Re-read tokens after acquiring lock — another process may have refreshed
+      const refreshedIdToken = getCachedIdpIdToken(idp.issuer)
+      if (!refreshedIdToken) {
+        logMCPDebug(
+          this.serverName,
+          'XAA: id_token cleared by another process, needs interactive re-auth',
+        )
+        return undefined
+      }
+
+      return await this._performXaaRefresh(refreshedIdToken, idp)
+    } finally {
+      if (release) {
+        try {
+          await release()
+          logMCPDebug(this.serverName, `XAA: Released refresh lock`)
+        } catch {
+          // Ignore release errors
+        }
+      }
+    }
+  }
+
+  private async _performXaaRefresh(
+    idToken: string,
+    idp: { issuer: string; clientId: string },
+  ): Promise<OAuthTokens | undefined> {
     const clientId = this.serverConfig.oauth?.clientId
     const clientConfig = getMcpClientConfig(this.serverName, this.serverConfig)
     if (!clientId || !clientConfig?.clientSecret) {

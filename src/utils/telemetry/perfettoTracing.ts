@@ -1056,9 +1056,7 @@ function writePerfettoTraceSync(): void {
 
   try {
     const dir = dirname(tracePath)
-    // eslint-disable-next-line custom-rules/no-sync-fs -- Only called from process.on('exit') handler
     mkdirSync(dir, { recursive: true })
-    // eslint-disable-next-line custom-rules/no-sync-fs, eslint-plugin-n/no-sync -- Required for process 'exit' handler which doesn't support async
     writeFileSync(tracePath, buildTraceDocument())
     traceWritten = true
     logForDebugging(`[Perfetto] Trace finalized synchronously at: ${tracePath}`)

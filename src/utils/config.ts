@@ -173,7 +173,10 @@ export type AccountInfo = {
   subscriptionCreatedAt?: string
 }
 
-// TODO: 'emacs' is kept for backward compatibility - remove after a few releases
+/**
+ * @deprecated 'emacs' mode is deprecated and will be removed in v2.0
+ * Use standard editor modes from EDITOR_MODES instead.
+ */
 export type EditorMode = 'emacs' | (typeof EDITOR_MODES)[number]
 
 export type DiffTool = 'terminal' | 'auto'
@@ -908,7 +911,6 @@ function reportConfigCacheStats(): void {
 }
 
 // Register cleanup to report cache stats at session end
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 registerCleanup(async () => {
   reportConfigCacheStats()
 })

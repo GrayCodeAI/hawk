@@ -630,7 +630,7 @@ const TIMEOUT_FLAG_VALUE_RE = /^[A-Za-z0-9_.+-]+$/
  * Bun's feature() DCE complexity threshold — inlining this breaks
  * feature('BASH_CLASSIFIER') evaluation in classifier tests.
  */
-function skipTimeoutFlags(a: readonly string[]): number {
+export function skipTimeoutFlags(a: readonly string[]): number {
   let i = 1
   while (i < a.length) {
     const arg = a[i]!

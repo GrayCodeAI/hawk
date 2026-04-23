@@ -68,7 +68,7 @@ import {
 } from '../../utils/context.js'
 import { resolveAppliedEffort } from '../../utils/effort.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
-import { errorMessage } from '../../utils/errors.js'
+import { errorMessage, ContentBlockError, StreamTimeoutError } from '../../utils/errors.js'
 import { computeFingerprintFromMessages } from '../../utils/fingerprint.js'
 import { captureAPIRequest, logError } from '../../utils/log.js'
 import {
@@ -175,8 +175,10 @@ import {
 import { returnValue } from 'src/utils/generators.js'
 import { headlessProfilerCheckpoint } from 'src/utils/headlessProfiler.js'
 import { isMcpInstructionsDeltaEnabled } from 'src/utils/mcpInstructionsDelta.js'
+import { getAPIProvider } from 'src/utils/model/providers.js'
 import { calculateUSDCost } from 'src/utils/modelCost.js'
 import { endQueryProfile, queryCheckpoint } from 'src/utils/queryProfiler.js'
+import { estimateOutputTokensFromMessage } from 'src/utils/tokens.js'
 import {
   modelSupportsAdaptiveThinking,
   modelSupportsThinking,
@@ -733,7 +735,7 @@ export async function queryModelWithoutStreaming({
     if (signal.aborted) {
       throw new APIUserAbortError()
     }
-    throw new Error('No assistant message found')
+    throw new ContentBlockError('assistant_message', 'undefined')
   }
   return assistantMessage
 }
@@ -1483,6 +1485,23 @@ async function* queryModel(
     messagesForAPI,
     isFastMode,
   )
+  const requestContainsImages = messagesForAPI.some(message => {
+    const content =
+      typeof message === 'object' && message !== null && 'content' in message
+        ? (message as { content?: unknown }).content
+        : undefined
+
+    return (
+      Array.isArray(content) &&
+      content.some(
+        block =>
+          typeof block === 'object' &&
+          block !== null &&
+          'type' in block &&
+          block.type === 'image',
+      )
+    )
+  })
 
   const startIncludingRetries = Date.now()
   let start = Date.now()
@@ -1491,7 +1510,6 @@ async function* queryModel(
   let stream: Stream<BetaRawMessageStreamEvent> | undefined = undefined
   let streamRequestId: string | null | undefined = undefined
   let clientRequestId: string | undefined = undefined
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins -- Response is available in Node 18+ and is used by the SDK
   let streamResponse: Response | undefined = undefined
 
   // Release all stream resources to prevent native memory leaks.
@@ -1571,12 +1589,6 @@ async function* queryModel(
       thinkingConfig.type !== 'disabled' &&
       !isEnvTruthy(process.env.HAWK_CODE_DISABLE_THINKING)
     let thinking: BetaMessageStreamParams['thinking'] | undefined = undefined
-    
-    // For OpenCodeGO (Moonshot/Kimi), use OpenAI-compatible thinking format
-    let openCodeGOThinking: { type: 'enabled' | 'disabled' } | undefined = undefined
-    if (getAPIProvider() === 'opencodego' && hasThinking) {
-      openCodeGOThinking = { type: 'enabled' }
-    }
 
     // IMPORTANT: Do not change the adaptive-vs-budget thinking selection below
     // without notifying the model launch DRI and research. This is a sensitive
@@ -2056,13 +2068,25 @@ async function* queryModel(
                   actual_type:
                     contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                 })
-                throw new Error('Content block is not a connector_text block')
+                throw new ContentBlockError('connector_text', contentBlock.type)
               }
               contentBlock.connector_text += delta.connector_text
             } else {
               switch (delta.type) {
                 case 'citations_delta':
-                  // TODO: handle citations
+                  // Handle citations - track sources for AI-generated content
+                  if ('citations' in delta && Array.isArray(delta.citations)) {
+                    // Log citations for debugging and potential future use
+                    logForDebugging(
+                      `Received ${delta.citations.length} citation(s) for content`,
+                      { level: 'verbose' }
+                    )
+                    // Store citations on the content block if it supports them
+                    if (contentBlock && typeof contentBlock === 'object') {
+                      const block = contentBlock as Record<string, unknown>
+                      block.citations = [...(block.citations as unknown[] ?? []), ...delta.citations]
+                    }
+                  }
                   break
                 case 'input_json_delta':
                   if (
@@ -2077,7 +2101,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a input_json block')
+                    throw new ContentBlockError('tool_use|server_tool_use', contentBlock.type)
                   }
                   if (typeof contentBlock.input !== 'string') {
                     logEvent('tengu_streaming_error', {
@@ -2086,7 +2110,7 @@ async function* queryModel(
                       input_type:
                         typeof contentBlock.input as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block input is not a string')
+                    throw new ContentBlockError('string_input', typeof contentBlock.input)
                   }
                   contentBlock.input += delta.partial_json
                   break
@@ -2100,7 +2124,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a text block')
+                    throw new ContentBlockError('text', contentBlock.type)
                   }
                   contentBlock.text += delta.text
                   break
@@ -2121,7 +2145,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a thinking block')
+                    throw new ContentBlockError('thinking', contentBlock.type)
                   }
                   contentBlock.signature = delta.signature
                   break
@@ -2135,7 +2159,7 @@ async function* queryModel(
                       actual_type:
                         contentBlock.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                     })
-                    throw new Error('Content block is not a thinking block')
+                    throw new ContentBlockError('thinking', contentBlock.type)
                   }
                   contentBlock.thinking += delta.thinking
                   break
@@ -2167,7 +2191,7 @@ async function* queryModel(
                 part_type:
                   part.type as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
               })
-              throw new Error('Message not found')
+              throw new ContentBlockError('partial_message', 'undefined')
             }
             const m: AssistantMessage = {
               message: {
@@ -2225,6 +2249,29 @@ async function* queryModel(
             if (lastMsg) {
               lastMsg.message.usage = usage
               lastMsg.message.stop_reason = stopReason
+            }
+
+            // Fallback: many OpenAI-compatible providers (OpenCodeGO, OpenRouter,
+            // Grok, some Gemini endpoints) don't return usage in streaming mode.
+            // Estimate output tokens from generated content so cost/token tracking
+            // isn't permanently zero.
+            if (
+              usage.output_tokens === 0 &&
+              usage.input_tokens === 0 &&
+              lastMsg &&
+              lastMsg.message.content.length > 0 &&
+              getAPIProvider() !== 'anthropic'
+            ) {
+              const estimatedOutput = estimateOutputTokensFromMessage(lastMsg)
+              if (estimatedOutput > 0) {
+                usage = {
+                  ...usage,
+                  output_tokens: estimatedOutput,
+                }
+                if (lastMsg) {
+                  lastMsg.message.usage = usage
+                }
+              }
             }
 
             // Update cost
@@ -2311,7 +2358,7 @@ async function* queryModel(
         // Prevent double-emit: this throw lands in the catch block below,
         // whose exit_path='error' probe guards on streamWatchdogFiredAt.
         streamWatchdogFiredAt = null
-        throw new Error('Stream idle timeout - no chunks received')
+        throw new StreamTimeoutError('no chunks received', options.timeout)
       }
 
       // Detect when the stream completed without producing any assistant messages.
@@ -2327,11 +2374,18 @@ async function* queryModel(
       // structured output (--json-schema), the model calls a StructuredOutput tool
       // on turn 1, then on turn 2 responds with end_turn and no content blocks.
       // That's a legitimate empty response, not an incomplete stream.
-      if (!partialMessage || (newMessages.length === 0 && !stopReason)) {
+      if (
+        !partialMessage ||
+        (newMessages.length === 0 &&
+          (!stopReason ||
+            (requestContainsImages && stopReason === 'end_turn')))
+      ) {
         logForDebugging(
           !partialMessage
             ? 'Stream completed without receiving message_start event - triggering non-streaming fallback'
-            : 'Stream completed with message_start but no content blocks completed - triggering non-streaming fallback',
+            : requestContainsImages && stopReason === 'end_turn'
+              ? 'Stream completed with empty end_turn for image input - triggering non-streaming fallback'
+              : 'Stream completed with message_start but no content blocks completed - triggering non-streaming fallback',
           { level: 'error' },
         )
         logEvent('tengu_stream_no_events', {
@@ -2340,7 +2394,7 @@ async function* queryModel(
           request_id: (streamRequestId ??
             'unknown') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         })
-        throw new Error('Stream ended without receiving any events')
+        throw new StreamTimeoutError('stream ended without events')
       }
 
       // Log summary if any stalls occurred during streaming
@@ -2374,7 +2428,6 @@ async function* queryModel(
       // Process fallback percentage header and quota status if available
       // streamResponse is set when the stream is created in the withRetry callback above
       // TypeScript's control flow analysis can't track that streamResponse is set in the callback
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const resp = streamResponse as unknown as Response | undefined
       if (resp) {
         extractQuotaStatusFromHeaders(resp.headers)
@@ -2569,6 +2622,15 @@ async function* queryModel(
           advisorModel,
         }),
       }
+      if (
+        requestContainsImages &&
+        Array.isArray(m.message.content) &&
+        m.message.content.length === 0
+      ) {
+        throw new Error(
+          'Model returned an empty response for an image input in non-streaming mode',
+        )
+      }
       newMessages.push(m)
       fallbackMessage = m
       yield m
@@ -2661,6 +2723,15 @@ async function* queryModel(
           ...(process.env.USER_TYPE === 'ant' &&
             research !== undefined && { research }),
           ...(advisorModel && { advisorModel }),
+        }
+        if (
+          requestContainsImages &&
+          Array.isArray(m.message.content) &&
+          m.message.content.length === 0
+        ) {
+          throw new Error(
+            'Model returned an empty response for an image input in non-streaming mode',
+          )
         }
         newMessages.push(m)
         fallbackMessage = m
@@ -2798,7 +2869,24 @@ async function* queryModel(
     // message_delta handler before any yield. Fallback pushes to newMessages
     // then yields, so tracking must be here to survive .return() at the yield.
     if (fallbackMessage) {
-      const fallbackUsage = fallbackMessage.message.usage
+      let fallbackUsage = fallbackMessage.message.usage
+      // Fallback path for providers that don't return usage in non-streaming
+      // mode either (rare, but handles consistent missing-usage behavior).
+      if (
+        fallbackUsage.output_tokens === 0 &&
+        fallbackUsage.input_tokens === 0 &&
+        fallbackMessage.message.content.length > 0 &&
+        getAPIProvider() !== 'anthropic'
+      ) {
+        const estimatedOutput = estimateOutputTokensFromMessage(fallbackMessage)
+        if (estimatedOutput > 0) {
+          fallbackUsage = {
+            ...fallbackUsage,
+            output_tokens: estimatedOutput,
+          }
+          fallbackMessage.message.usage = fallbackUsage
+        }
+      }
       usage = updateUsage(EMPTY_USAGE, fallbackUsage)
       stopReason = fallbackMessage.message.stop_reason
       const fallbackCost = calculateUSDCost(resolvedModel, fallbackUsage)

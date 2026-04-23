@@ -12,7 +12,6 @@ import { WebFetchTool } from './tools/WebFetchTool/WebFetchTool.js'
 import { TaskStopTool } from './tools/TaskStopTool/TaskStopTool.js'
 import { BriefTool } from './tools/BriefTool/BriefTool.js'
 // Dead code elimination: conditional import for ant-only tools
-/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const REPLTool =
   process.env.USER_TYPE === 'ant'
     ? require('./tools/REPLTool/REPLTool.js').REPLTool
@@ -50,7 +49,6 @@ const PushNotificationTool =
 const SubscribePRTool = feature('KAIROS_GITHUB_WEBHOOKS')
   ? require('./tools/SubscribePRTool/SubscribePRTool.js').SubscribePRTool
   : null
-/* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 import { TaskOutputTool } from './tools/TaskOutputTool/TaskOutputTool.js'
 import { WebSearchTool } from './tools/WebSearchTool/WebSearchTool.js'
 import { TodoWriteTool } from './tools/TodoWriteTool/TodoWriteTool.js'
@@ -87,13 +85,11 @@ import uniqBy from 'lodash-es/uniqBy.js'
 import { isToolSearchEnabledOptimistic } from './utils/toolSearch.js'
 import { isTodoV2Enabled } from './utils/tasks.js'
 // Dead code elimination: conditional import for HAWK_CODE_VERIFY_PLAN
-/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const VerifyPlanExecutionTool =
   process.env.HAWK_CODE_VERIFY_PLAN === 'true'
     ? require('./tools/VerifyPlanExecutionTool/VerifyPlanExecutionTool.js')
         .VerifyPlanExecutionTool
     : null
-/* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 import { SYNTHETIC_OUTPUT_TOOL_NAME } from './tools/SyntheticOutputTool/SyntheticOutputTool.js'
 export {
   ALL_AGENT_DISALLOWED_TOOLS,
@@ -103,7 +99,6 @@ export {
 } from './constants/tools.js'
 import { feature } from 'bun:bundle'
 // Dead code elimination: conditional import for OVERFLOW_TEST_TOOL
-/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const OverflowTestTool = feature('OVERFLOW_TEST_TOOL')
   ? require('./tools/OverflowTestTool/OverflowTestTool.js').OverflowTestTool
   : null
@@ -132,7 +127,6 @@ const WorkflowTool = feature('WORKFLOW_SCRIPTS')
       return require('./tools/WorkflowTool/WorkflowTool.js').WorkflowTool
     })()
   : null
-/* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 import type { ToolPermissionContext } from './Tool.js'
 import { getDenyRuleForTool } from './utils/permissions/permissions.js'
 import { hasEmbeddedSearchTools } from './utils/embeddedTools.js'

@@ -26,21 +26,21 @@ function useBlinkingEyes() {
 
 // Colorful HAWK ASCII art lines with individual character colors
 const COLORFUL_HAWK_LINES = [
-  { text: '                                     .  .', color: '#FF6B6B' },
-  { text: '                                  .  .  .  .', color: '#4ECDC4' },
-  { text: '                                  .  |  |  .', color: '#FFE66D' },
-  { text: '                               .  |        |  .', color: '#95E1D3' },
-  { text: '                               .              .', color: '#C7CEEA' },
-  { text: ' ___     ___    _________    . |  (\\.|\\/|./)  | .   ___   ____', color: '#FF6B6B' },
-  { text: '|   |   |   |  /    _    \\   .   (\\ |||||| /)   .  |   | /   /', color: '#4ECDC4' },
-  { text: '|   |___|   | |    /_\\    |  |  (\\  |/  \\|  /)  |  |   |/   /', color: '#FFE66D' },
-  { text: '|           | |           |    (\\            /)    |       /', color: '#95E1D3' },
-  { text: '|    ___    | |    ___    |   (\\              /)   |       \\', color: '#C7CEEA' },
-  { text: '|   |   |   | |   |   |   |    \\      \\/      /    |   |\\   \\', color: '#FF6B6B' },
-  { text: '|___|   |___| |___|   |___|     \\____/\\/\\____/     |___| \\___\\', color: '#4ECDC4' },
+  { text: '                                     .  .', color: 'hawk' },
+  { text: '                                  .  .  .  .', color: 'hawk' },
+  { text: '                                  .  |  |  .', color: 'hawk' },
+  { text: '                               .  |        |  .', color: 'hawk' },
+  { text: '                               .              .', color: 'hawk' },
+  { text: ' ___     ___    _________    . |  (\\.|\\/|./)  | .   ___   ____', color: 'hawk' },
+  { text: '|   |   |   |  /    _    \\   .   (\\ |||||| /)   .  |   | /   /', color: 'hawk' },
+  { text: '|   |___|   | |    /_\\    |  |  (\\  |/  \\|  /)  |  |   |/   /', color: 'hawk' },
+  { text: '|           | |           |    (\\            /)    |       /', color: 'hawk' },
+  { text: '|    ___    | |    ___    |   (\\              /)   |       \\', color: 'hawk' },
+  { text: '|   |   |   | |   |   |   |    \\      \\/      /    |   |\\   \\', color: 'hawk' },
+  { text: '|___|   |___| |___|   |___|     \\____/\\/\\____/     |___| \\___\\', color: 'hawk' },
   { text: '                                    |0\\/0|', eyeLine: true },
-  { text: '                                     \\/\\/', color: '#FFE66D' },
-  { text: '                                      \\/', color: '#95E1D3' },
+  { text: '                                     \\/\\/', color: 'hawk' },
+  { text: '                                      \\/', color: 'hawk' },
 ];
 
 export function Clawd({ pose = 'default', variant = 'compact' }: Props) {
@@ -51,16 +51,8 @@ export function Clawd({ pose = 'default', variant = 'compact' }: Props) {
       <Box flexDirection="column" alignItems="flex-start">
         {COLORFUL_HAWK_LINES.map((line, i) => {
           if (line.eyeLine) {
-            // Special rendering for eyes with blinking
-            return (
-              <Text key={i}>
-                {'                                    |'}
-                <Text color={eyesOpen ? '#FF6B6B' : '#2C3E50'}>{eyesOpen ? '●' : '○'}</Text>
-                {'\\/'}
-                <Text color={eyesOpen ? '#4ECDC4' : '#2C3E50'}>{eyesOpen ? '●' : '○'}</Text>
-                {'|'}
-              </Text>
-            );
+            const eye = eyesOpen ? '●' : '○';
+            return <Text key={i} color="hawk">{`                                    |${eye}\\/${eye}|`}</Text>;
           }
           return (
             <Text key={i} color={line.color}>

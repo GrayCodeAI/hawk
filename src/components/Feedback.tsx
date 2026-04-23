@@ -76,7 +76,6 @@ export function redactSensitiveInfo(text: string): string {
   redacted = redacted.replace(/"(sk-ant[^\s"']{24,})"/g, '"[REDACTED_API_KEY]"');
   // Then handle the cases without quotes - more general pattern
   redacted = redacted.replace(
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .replace(re, string) on /bug path: no-match returns same string (Object.is)
   /(?<![A-Za-z0-9"'])(sk-ant-?[A-Za-z0-9_-]{10,})(?![A-Za-z0-9"'])/g, '[REDACTED_API_KEY]');
 
   // AWS keys - AWSXXXX format - add the pattern we need for the test
@@ -87,12 +86,10 @@ export function redactSensitiveInfo(text: string): string {
 
   // Google Cloud keys
   redacted = redacted.replace(
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- same as above
   /(?<![A-Za-z0-9])(AIza[A-Za-z0-9_-]{35})(?![A-Za-z0-9])/g, '[REDACTED_GCP_KEY]');
 
   // Vertex AI service account keys
   redacted = redacted.replace(
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- same as above
   /(?<![A-Za-z0-9])([a-z0-9-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com)(?![A-Za-z0-9])/g, '[REDACTED_GCP_SERVICE_ACCOUNT]');
 
   // Generic API keys in headers

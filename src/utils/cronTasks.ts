@@ -146,7 +146,6 @@ export async function readCronTasks(dir?: string): Promise<CronTask[]> {
 export function hasCronTasksSync(dir?: string): boolean {
   let raw: string
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs -- called once from cronScheduler.start()
     raw = readFileSync(getCronFilePath(dir), 'utf-8')
   } catch {
     return false

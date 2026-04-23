@@ -118,13 +118,9 @@ export function LogoV2() {
     t3 = $[4];
   }
   useEffect(t2, t3);
-  let t4;
-  if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
-    t4 = !hasReleaseNotes && !showOnboarding && !isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO);
-    $[5] = t4;
-  } else {
-    t4 = $[5];
-  }
+  const forceFullLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO);
+  const forceCondensedLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_CONDENSED_LOGO);
+  const t4 = forceCondensedLogo && !forceFullLogo;
   const isCondensedMode = t4;
   let t5;
   let t6;
@@ -181,7 +177,7 @@ export function LogoV2() {
     t10 = $[14];
   }
   const modelDisplayName = t10;
-  if (!hasReleaseNotes && !showOnboarding && !isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO)) {
+  if (isCondensedMode) {
     let t11;
     let t12;
     let t13;
@@ -253,8 +249,8 @@ export function LogoV2() {
   }
   const layoutMode = getLayoutMode(columns);
   const userTheme = resolveThemeSetting(getGlobalConfig().theme);
-  const borderTitle = ` ${color("#FF6B6B", userTheme)("Hawk")} ${color("inactive", userTheme)(`v${version}`)} `;
-  const compactBorderTitle = color("#FF6B6B", userTheme)(" Hawk ");
+  const borderTitle = ` ${color("hawk", userTheme)("Hawk")} ${color("inactive", userTheme)(`v${version}`)} `;
+  const compactBorderTitle = color("hawk", userTheme)(" Hawk ");
   if (layoutMode === "compact") {
     let welcomeMessage = formatWelcomeMessage(username);
     if (stringWidth(welcomeMessage) > columns - 4) {
@@ -331,7 +327,7 @@ export function LogoV2() {
       t18 = $[42];
       t19 = $[43];
     }
-    return <><OffscreenFreeze><Box flexDirection="column" borderStyle="round" borderColor="#FF6B6B" borderText={t11} paddingX={1} paddingY={1} alignItems="center" width={columns}><Text bold={true}>{welcomeMessage}</Text>{t12}{t13}<Text dimColor={true}>{billingType}</Text><Text dimColor={true}>{agentName ? `@${agentName} · ${truncatedCwd}` : truncatedCwd}</Text></Box></OffscreenFreeze>{t14}{t15}{t16}{t17}{t18}{t19}</>;
+    return <><OffscreenFreeze><Box flexDirection="column" borderStyle="round" borderColor="hawk" borderText={t11} paddingX={1} paddingY={1} alignItems="center" width={columns}><Text bold={true}>{welcomeMessage}</Text>{t12}{t13}<Text dimColor={true}>{billingType}</Text><Text dimColor={true}>{agentName ? `@${agentName} · ${truncatedCwd}` : truncatedCwd}</Text></Box></OffscreenFreeze>{t14}{t15}{t16}{t17}{t18}{t19}</>;
   }
   const welcomeMessage_0 = formatWelcomeMessage(username);
   const provider = getAPIProvider()
@@ -349,7 +345,7 @@ export function LogoV2() {
   const T1 = Box;
   const t11 = "column";
   const t12 = "round";
-  const t13 = "#FF6B6B";
+  const t13 = "hawk";
   let t14;
   if ($[44] !== borderTitle) {
     t14 = {
@@ -419,7 +415,7 @@ export function LogoV2() {
   }
   let t24;
   if ($[60] !== layoutMode) {
-    t24 = layoutMode === "horizontal" && <Box height="100%" borderStyle="single" borderColor="#FF6B6B" borderDimColor={true} borderTop={false} borderBottom={false} borderLeft={false} />;
+    t24 = layoutMode === "horizontal" && <Box height="100%" borderStyle="single" borderColor="hawk" borderDimColor={true} borderTop={false} borderBottom={false} borderLeft={false} />;
     $[60] = layoutMode;
     $[61] = t24;
   } else {

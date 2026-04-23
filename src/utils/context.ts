@@ -5,6 +5,8 @@ import { isEnvTruthy } from './envUtils.js'
 import { getCanonicalName } from './model/model.js'
 import { getModelCapability } from './model/modelCapabilities.js'
 import { getOpenAIContextWindow, getOpenAIMaxOutputTokens } from './model/openaiContextWindows.js'
+import { getProviderCatalogEntry } from './model/providerCatalog.js'
+import { getAPIProvider } from './model/providers.js'
 
 // Model context window size (200k tokens for all models right now)
 export const MODEL_CONTEXT_WINDOW_DEFAULT = 200_000
@@ -73,6 +75,17 @@ export function getContextWindowForModel(
   // [1m] suffix — explicit client-side opt-in, respected over all detection
   if (has1mContext(model)) {
     return 1_000_000
+  }
+
+  const providerCatalogEntry = getProviderCatalogEntry(getAPIProvider(), model)
+  if (providerCatalogEntry) {
+    if (
+      providerCatalogEntry.context_window > MODEL_CONTEXT_WINDOW_DEFAULT &&
+      is1mContextDisabled()
+    ) {
+      return MODEL_CONTEXT_WINDOW_DEFAULT
+    }
+    return providerCatalogEntry.context_window
   }
 
   // OpenAI-compatible provider — use known context windows for the model
@@ -146,10 +159,10 @@ export function calculateContextPercentages(
     return { used: null, remaining: null }
   }
 
-  const totalInputTokens =
-    currentUsage.input_tokens +
-    currentUsage.cache_creation_input_tokens +
-    currentUsage.cache_read_input_tokens
+  // input_tokens from the API includes cache tokens for providers that report
+  // them (Anthropic). For providers without cache (OpenAI-compatible), cache
+  // fields are 0. So total context window usage is just input_tokens.
+  const totalInputTokens = currentUsage.input_tokens
 
   const usedPercentage = Math.round(
     (totalInputTokens / contextWindowSize) * 100,
@@ -193,6 +206,14 @@ export function getModelMaxOutputTokens(model: string): {
     const openaiMax = getOpenAIMaxOutputTokens(model)
     if (openaiMax !== undefined) {
       return { default: openaiMax, upperLimit: openaiMax }
+    }
+  }
+
+  const providerCatalogEntry = getProviderCatalogEntry(getAPIProvider(), model)
+  if (providerCatalogEntry) {
+    return {
+      default: providerCatalogEntry.max_output,
+      upperLimit: providerCatalogEntry.max_output,
     }
   }
 

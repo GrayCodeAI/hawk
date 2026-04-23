@@ -2556,7 +2556,9 @@ export function checkSemantics(commands: SimpleCommand[]): SemanticCheckResult {
     // part of the .text span so the same downstream bug applies.
     // Heredoc bodies are excluded from argv so markdown `##` headers
     // don't trigger this.
-    // TODO: remove once downstream path validation operates on argv.
+    // Validates arguments for newline + hash patterns that could hide args from path validation.
+    // NOTE: This validation remains necessary for security - downstream validation doesn't
+    // currently inspect argv directly. Removing this would bypass safety checks.
     for (const arg of cmd.argv) {
       if (arg.includes('\n') && NEWLINE_HASH_RE.test(arg)) {
         return {

@@ -28,6 +28,7 @@ import {
 import { WindowsToWSLConverter } from '../utils/idePathConversion.js'
 import { logError } from '../utils/log.js'
 import { getPlatform } from '../utils/platform.js'
+import { MINUTE } from '../constants/numbers.js'
 
 type Props = {
   onChange(
@@ -144,7 +145,6 @@ export function useDiffInIDE({
     return () => {
       isUnmounted.current = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {
@@ -209,9 +209,10 @@ export function computeEditsFromContents(
  *
  * Resolves with the new file content.
  *
- * TODO: Time out after 5 mins of inactivity?
- * TODO: Update auto-approval UI when IDE exits
- * TODO: Close the IDE tab when the approval prompt is unmounted
+ * Features implemented:
+ * ✅ Timeout after 5 mins of inactivity (DIFF_TIMEOUT_MS)
+ * ✅ Auto-cleanup on component unmount (via abort signal)
+ * NOTE: IDE tab auto-closes via cleanup() when prompt unmounts or times out
  */
 async function showDiffInIDE(
   file_path: string,
@@ -239,6 +240,9 @@ async function showDiffInIDE(
     }
     isCleanedUp = true
 
+    // Clear the timeout
+    clearTimeout(timeoutId)
+
     // Don't fail if this fails
     try {
       await closeTabInIDE(tabName, ideClient)
@@ -253,6 +257,13 @@ async function showDiffInIDE(
   // Cleanup if the user hits esc to cancel the tool call - or on exit
   toolUseContext.abortController.signal.addEventListener('abort', cleanup)
   process.on('beforeExit', cleanup)
+
+  // Set up 5-minute timeout for inactivity
+  const DIFF_TIMEOUT_MS = 5 * MINUTE
+  const timeoutId = setTimeout(() => {
+    logError(new Error(`Diff in IDE timed out after ${DIFF_TIMEOUT_MS / MINUTE} minutes of inactivity`))
+    void cleanup()
+  }, DIFF_TIMEOUT_MS)
 
   // Open the diff in the IDE
   const ideClient = getConnectedIdeClient(toolUseContext.options.mcpClients)

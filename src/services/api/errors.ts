@@ -51,7 +51,28 @@ import {
 import { shouldProcessRateLimits } from '../rateLimitMocking.js' // Used for /mock-limits command
 import { extractConnectionErrorDetails, formatAPIError } from './errorUtils.js'
 
-export const API_ERROR_MESSAGE_PREFIX = 'API Error'
+import {
+  API_ERROR_MESSAGE_PREFIX,
+  PROMPT_TOO_LONG_ERROR_MESSAGE,
+  CREDIT_BALANCE_TOO_LOW_ERROR_MESSAGE,
+  INVALID_API_KEY_ERROR_MESSAGE,
+  INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL,
+  ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH,
+  ORG_DISABLED_ERROR_MESSAGE_ENV_KEY,
+  TOKEN_REVOKED_ERROR_MESSAGE,
+  CCR_AUTH_ERROR_MESSAGE,
+  CUSTOM_OFF_SWITCH_MESSAGE,
+  API_TIMEOUT_ERROR_MESSAGE,
+  OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE,
+  ERROR_CATEGORIES,
+  ANALYTICS_EVENTS,
+  type ErrorCategory,
+} from '../../constants/errors.js'
+
+export {
+  API_ERROR_MESSAGE_PREFIX,
+  PROMPT_TOO_LONG_ERROR_MESSAGE,
+}
 
 export function startsWithApiErrorPrefix(text: string): boolean {
   return (
@@ -61,7 +82,6 @@ export function startsWithApiErrorPrefix(text: string): boolean {
     text.startsWith(`Please run /login · ${API_ERROR_MESSAGE_PREFIX}`)
   )
 }
-export const PROMPT_TOO_LONG_ERROR_MESSAGE = 'Prompt is too long'
 
 export function isPromptTooLongMessage(msg: AssistantMessage): boolean {
   if (!msg.isApiErrorMessage) {
@@ -153,21 +173,7 @@ export function isMediaSizeErrorMessage(msg: AssistantMessage): boolean {
     isMediaSizeError(msg.errorDetails)
   )
 }
-export const CREDIT_BALANCE_TOO_LOW_ERROR_MESSAGE = 'Credit balance is too low'
-export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Use /config'
-export const INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL =
-  'Invalid API key · Fix external API key'
-export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH =
-  'Your configured API key belongs to a disabled organization · Unset or replace the key to continue'
-export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY =
-  'Your configured API key belongs to a disabled organization · Update or unset the environment variable'
-export const TOKEN_REVOKED_ERROR_MESSAGE = 'OAuth token revoked · Use /config'
-export const CCR_AUTH_ERROR_MESSAGE =
-  'Authentication error · This may be a temporary network issue, please try again'
 export const REPEATED_529_ERROR_MESSAGE = 'Repeated 529 Overloaded errors'
-export const CUSTOM_OFF_SWITCH_MESSAGE =
-  'Opus is experiencing high load, please use /model to switch to Sonnet'
-export const API_TIMEOUT_ERROR_MESSAGE = 'Request timed out'
 export function getPdfTooLargeErrorMessage(): string {
   const limits = `max ${API_PDF_MAX_PAGES} pages, ${formatFileSize(PDF_TARGET_RAW_SIZE)}`
   return getIsNonInteractiveSession()
@@ -195,9 +201,6 @@ export function getRequestTooLargeErrorMessage(): string {
     ? `Request too large (${limits}). Try with a smaller file.`
     : `Request too large (${limits}). Double press esc to go back and try with a smaller file.`
 }
-export const OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE =
-  'Your account does not have access to Hawk. Please use /config.'
-
 export function getTokenRevokedErrorMessage(): string {
   return getIsNonInteractiveSession()
     ? 'Your account does not have access to Hawk. Please login again or contact your administrator.'
@@ -884,20 +887,6 @@ export function getAssistantMessageFromError(
     })
   }
 
-  if (false && // Bedrock removed
-    error instanceof Error &&
-    error.message.toLowerCase().includes('model id')
-  ) {
-    const switchCmd = getIsNonInteractiveSession() ? '--model' : '/model'
-    const fallbackSuggestion = get3PModelFallbackSuggestion(model)
-    return createAssistantAPIErrorMessage({
-      content: fallbackSuggestion
-        ? `${API_ERROR_MESSAGE_PREFIX} (${model}): ${error.message}. Try ${switchCmd} to switch to ${fallbackSuggestion}.`
-        : `${API_ERROR_MESSAGE_PREFIX} (${model}): ${error.message}. Run ${switchCmd} to pick a different model.`,
-      error: 'invalid_request',
-    })
-  }
-
   // 404 Not Found — usually means the selected model doesn't exist or isn't
   // available. Guide the user to /model so they can pick a valid one.
   // For 3P users, suggest a specific fallback model they can try.
@@ -961,7 +950,7 @@ function get3PModelFallbackSuggestion(model: string): string | undefined {
  * Classifies an API error into a specific error type for analytics tracking.
  * Returns a standardized error type string suitable for Datadog tagging.
  */
-export function classifyAPIError(error: unknown): string {
+export function classifyAPIError(error: unknown): ErrorCategory {
   // Aborted requests
   if (error instanceof Error && error.message === 'Request was aborted.') {
     return 'aborted'
@@ -1196,3 +1185,20 @@ export function getErrorMessageIfRefusal(
     error: 'invalid_request',
   })
 }
+
+// Re-export from centralized constants for backward compatibility
+export {
+  CREDIT_BALANCE_TOO_LOW_ERROR_MESSAGE,
+  INVALID_API_KEY_ERROR_MESSAGE,
+  INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL,
+  ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH,
+  ORG_DISABLED_ERROR_MESSAGE_ENV_KEY,
+  TOKEN_REVOKED_ERROR_MESSAGE,
+  CCR_AUTH_ERROR_MESSAGE,
+  CUSTOM_OFF_SWITCH_MESSAGE,
+  API_TIMEOUT_ERROR_MESSAGE,
+  OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE,
+  ERROR_CATEGORIES,
+  ANALYTICS_EVENTS,
+  type ErrorCategory,
+} from '../../constants/errors.js'

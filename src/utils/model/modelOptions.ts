@@ -87,10 +87,17 @@ function appendProviderCatalogOptions(options: ModelOption[]): void {
     if (options.some(existing => existing.value === entry.id)) {
       continue
     }
+
+    // Use catalog's display_name/description if available, otherwise fall back to ID
+    const label = entry.display_name ?? entry.id
+    const description = entry.description
+      ? `${entry.description} · ${formatContextWindow(entry.context_window)}`
+      : formatContextWindow(entry.context_window)
+
     options.push({
       value: entry.id,
-      label: entry.id,
-      description: formatContextWindow(entry.context_window),
+      label,
+      description,
     })
   }
 }

@@ -67,7 +67,6 @@ function generatePlaceholderSalt(): string {
  * a security issue (could hide commands between << and the delimiter).
  */
 const HEREDOC_START_PATTERN =
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- gated by command.includes('<<') at extractHeredocs() entry
   /(?<!<)<<(?!<)(-)?[ \t]*(?:(['"])(\\?\w+)\2|\\?(\w+))/
 
 export type HeredocInfo = {

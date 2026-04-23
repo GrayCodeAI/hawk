@@ -158,7 +158,6 @@ export class WebSocketTransport implements Transport {
 
     if (typeof Bun !== 'undefined') {
       // Bun's WebSocket supports headers/proxy options but the DOM typings don't
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const ws = new globalThis.WebSocket(this.url.href, {
         headers,
         proxy: getWebSocketProxyUrl(this.url.href),
@@ -170,7 +169,6 @@ export class WebSocketTransport implements Transport {
       ws.addEventListener('open', this.onBunOpen)
       ws.addEventListener('message', this.onBunMessage)
       ws.addEventListener('error', this.onBunError)
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       ws.addEventListener('close', this.onBunClose)
       // 'pong' is Bun-specific — not in DOM typings.
       ws.addEventListener('pong', this.onPong)
@@ -227,7 +225,6 @@ export class WebSocketTransport implements Transport {
     // close event fires after error — let it call handleConnectionError
   }
 
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
   private onBunClose = (event: CloseEvent) => {
     const isClean = event.code === 1000 || event.code === 1001
     logForDebugging(
@@ -363,7 +360,6 @@ export class WebSocketTransport implements Transport {
       nws.removeEventListener('open', this.onBunOpen)
       nws.removeEventListener('message', this.onBunMessage)
       nws.removeEventListener('error', this.onBunError)
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       nws.removeEventListener('close', this.onBunClose)
       // 'pong' is Bun-specific — not in DOM typings
       nws.removeEventListener('pong' as 'message', this.onPong)

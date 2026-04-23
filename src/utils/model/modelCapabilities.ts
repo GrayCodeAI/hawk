@@ -61,7 +61,6 @@ function sortForMatching(models: ModelCapability[]): ModelCapability[] {
 const loadCache = memoize(
   (path: string): ModelCapability[] | null => {
     try {
-      // eslint-disable-next-line custom-rules/no-sync-fs -- memoized; called from sync getContextWindowForModel
       const raw = readFileSync(path, 'utf-8')
       const parsed = CacheFileSchema().safeParse(safeParseJSON(raw, false))
       return parsed.success ? parsed.data.models : null

@@ -38,7 +38,6 @@ export function writeToStderr(data: string): void {
 export function exitWithError(message: string): never {
   // biome-ignore lint/suspicious/noConsole:: intentional console output
   console.error(message)
-  // eslint-disable-next-line custom-rules/no-process-exit
   process.exit(1)
 }
 

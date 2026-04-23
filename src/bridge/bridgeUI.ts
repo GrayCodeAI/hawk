@@ -93,7 +93,6 @@ export function createBridgeLogger(options: {
    * wraps to additional rows.
    */
   function countVisualLines(text: string): number {
-    // eslint-disable-next-line custom-rules/prefer-use-terminal-size
     const cols = process.stdout.columns || 80 // non-React CLI context
     let count = 0
     // Split on newlines to get logical lines

@@ -222,7 +222,6 @@ const DISALLOWED_AUTO_BACKGROUND_COMMANDS = ['sleep' // Sleep should run in fore
 
 // Check if background tasks are disabled at module load time
 const isBackgroundTasksDisabled =
-// eslint-disable-next-line custom-rules/no-process-env-top-level -- Intentional: schema must be defined at module load
 isEnvTruthy(process.env.HAWK_CODE_DISABLE_BACKGROUND_TASKS);
 const fullInputSchema = lazySchema(() => z.strictObject({
   command: z.string().describe('The command to execute'),
@@ -623,8 +622,14 @@ export const BashTool = buildTool({
   },
   async call(input: BashToolInput, toolUseContext, _canUseTool?: CanUseToolFn, parentMessage?: AssistantMessage, onProgress?: ToolCallProgress<BashProgress>) {
     // Handle simulated sed edit - apply directly instead of running sed
-    // This ensures what the user previewed is exactly what gets written
+    // This ensures what the user previewed is exactly what gets written.
+    // _simulatedSedEdit is omitted from the model-facing schema and stripped
+    // from model-provided input in toolExecution.ts — this check confirms it
+    // was only injected by the permission system (SedEditPermissionRequest).
     if (input._simulatedSedEdit) {
+      if (typeof input._simulatedSedEdit.filePath !== 'string' || typeof input._simulatedSedEdit.newContent !== 'string') {
+        throw new Error('Invalid simulated sed edit: filePath and newContent must be strings')
+      }
       return applySedEdit(input._simulatedSedEdit, toolUseContext, parentMessage);
     }
     const {

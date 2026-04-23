@@ -56,7 +56,6 @@ type RemoteHostInfo = {
   sessionCount: number
 }
 
-/* eslint-disable custom-rules/no-process-env-top-level */
 const getRunningRemoteHosts: () => Promise<string[]> =
   process.env.USER_TYPE === 'ant'
     ? async () => {
@@ -219,7 +218,6 @@ const collectAllRemoteHostData: (destDir: string) => Promise<{
         return { hosts: result, totalCopied, totalSkipped }
       }
     : async () => ({ hosts: [], totalCopied: 0, totalSkipped: 0 })
-/* eslint-enable custom-rules/no-process-env-top-level */
 
 // ============================================================================
 // Types
@@ -1675,7 +1673,7 @@ async function generateParallelInsights(
   const insights: InsightResults = {}
   for (const { name, result } of results) {
     if (result) {
-      ;(insights as Record<string, unknown>)[name] = result
+      (insights as Record<string, unknown>)[name] = result
     }
   }
 

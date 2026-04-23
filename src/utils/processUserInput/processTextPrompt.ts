@@ -16,6 +16,17 @@ import {
   matchesNegativeKeyword,
 } from '../userPromptKeywords.js'
 
+const IMAGE_REF_REGEX = /\[Image #\d+\]/g
+
+function stripImageRefsFromPrompt(input: string): string {
+  return input
+    .replace(IMAGE_REF_REGEX, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/^[\s:;,\-–—|>]+/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function processTextPrompt(
   input: string | Array<ContentBlockParam>,
   imageContentBlocks: ContentBlockParam[],
@@ -65,15 +76,22 @@ export function processTextPrompt(
 
   // If we have pasted images, create a message with image content
   if (imageContentBlocks.length > 0) {
-    // Build content: text first, then images below
+    // Strip UI-only [Image #N] placeholders before sending the prompt to the
+    // model. Some OpenAI-compatible providers treat these literally, which can
+    // degrade or break image understanding.
+    const cleanedInput =
+      typeof input === 'string' ? stripImageRefsFromPrompt(input) : input
+
+    // Build content with images first. This matches the documented request
+    // shape for several OpenAI-compatible vision providers.
     const textContent =
-      typeof input === 'string'
-        ? input.trim()
-          ? [{ type: 'text' as const, text: input }]
+      typeof cleanedInput === 'string'
+        ? cleanedInput.trim()
+          ? [{ type: 'text' as const, text: cleanedInput }]
           : []
-        : input
+        : cleanedInput
     const userMessage = createUserMessage({
-      content: [...textContent, ...imageContentBlocks],
+      content: [...imageContentBlocks, ...textContent],
       uuid: uuid,
       imagePasteIds: imagePasteIds.length > 0 ? imagePasteIds : undefined,
       permissionMode,

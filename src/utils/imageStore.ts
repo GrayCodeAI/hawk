@@ -27,6 +27,18 @@ async function ensureImageStoreDir(): Promise<void> {
   await mkdir(dir, { recursive: true })
 }
 
+async function writeImageToDisk(
+  imagePath: string,
+  base64Content: string,
+): Promise<void> {
+  const fh = await open(imagePath, 'w', 0o600)
+  try {
+    await fh.writeFile(base64Content, { encoding: 'base64' })
+  } finally {
+    await fh.close()
+  }
+}
+
 /**
  * Get the file path for an image by ID.
  */
@@ -54,20 +66,14 @@ export function cacheImagePath(content: PastedContent): string | null {
 export async function storeImage(
   content: PastedContent,
 ): Promise<string | null> {
-  if (content.type !== 'image') {
+  if (content.type !== 'image' || content.content.length === 0) {
     return null
   }
 
   try {
     await ensureImageStoreDir()
     const imagePath = getImagePath(content.id, content.mediaType || 'image/png')
-    const fh = await open(imagePath, 'w', 0o600)
-    try {
-      await fh.writeFile(content.content, { encoding: 'base64' })
-      await fh.datasync()
-    } finally {
-      await fh.close()
-    }
+    await writeImageToDisk(imagePath, content.content)
     evictOldestIfAtCap()
     storedImagePaths.set(content.id, imagePath)
     logForDebugging(`Stored image ${content.id} to ${imagePath}`)
@@ -86,14 +92,36 @@ export async function storeImages(
 ): Promise<Map<number, string>> {
   const pathMap = new Map<number, string>()
 
-  for (const [id, content] of Object.entries(pastedContents)) {
-    if (content.type === 'image') {
-      const path = await storeImage(content)
-      if (path) {
-        pathMap.set(Number(id), path)
-      }
-    }
+  const imageContents = Object.values(pastedContents).filter(
+    (content): content is PastedContent =>
+      content.type === 'image' && content.content.length > 0,
+  )
+
+  if (imageContents.length === 0) {
+    return pathMap
   }
+
+  try {
+    await ensureImageStoreDir()
+  } catch (error) {
+    logForDebugging(`Failed to create image cache directory: ${error}`)
+    return pathMap
+  }
+
+  await Promise.all(
+    imageContents.map(async content => {
+      try {
+        const imagePath = getImagePath(content.id, content.mediaType || 'image/png')
+        await writeImageToDisk(imagePath, content.content)
+        evictOldestIfAtCap()
+        storedImagePaths.set(content.id, imagePath)
+        pathMap.set(content.id, imagePath)
+        logForDebugging(`Stored image ${content.id} to ${imagePath}`)
+      } catch (error) {
+        logForDebugging(`Failed to store image ${content.id}: ${error}`)
+      }
+    }),
+  )
 
   return pathMap
 }

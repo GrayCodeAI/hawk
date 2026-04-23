@@ -26,7 +26,7 @@ export function ValidatePlugin(t0) {
           onComplete("Usage: /plugin validate <path>\n\nValidate a plugin or marketplace manifest file or directory.\n\nExamples:\n  /plugin validate .hawk-plugin/plugin.json\n  /plugin validate /path/to/plugin-directory\n  /plugin validate .\n\nWhen given a directory, automatically validates .hawk-plugin/marketplace.json\nor .hawk-plugin/plugin.json (prefers marketplace if both exist).\n\nOr from the command line:\n  hawk plugin validate <path>");
           return;
         }
-        ;
+        
         try {
           const result = await validateManifest(path);
           let output = "";

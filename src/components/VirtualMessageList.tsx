@@ -601,7 +601,6 @@ export function VirtualMessageList({
       pendingStepRef.current = 0;
       stepRef.current(pending);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seekGen]);
 
   // Scroll to message i's top, arm scanPending. scan-effect reads fresh
@@ -817,7 +816,6 @@ export function VirtualMessageList({
   }),
   // Closures over refs + callbacks. scrollRef stable; others are
   // useCallback([]) or prop-drilled from REPL (stable).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   [scrollRef]);
 
   // StickyTracker goes AFTER the list content. It returns null (no DOM node)
@@ -1054,7 +1052,6 @@ function StickyTracker({
     // No deps — must run every render. Suppression state lives in a ref
     // (not idx/estimate), so a deps-gated effect would never see it tick.
     // Body's own guards short-circuit when nothing changed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 
   // Correction: for click-jumps to unmounted items. Click handler scrolled

@@ -25,6 +25,7 @@ export interface SDKSession {
   mutate(input: unknown, opts?: SessionMutationOptions): Promise<unknown>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SDKSessionOptions {}
 
 export type AnyZodRawShape = Record<string, unknown>

@@ -2,6 +2,7 @@
 
 <img src="hawk-cli.png" alt="Hawk CLI" width="850">
 
+[![CI](https://img.shields.io/github/actions/workflow/status/GrayCodeAI/hawk/ci.yml?style=flat-square&logo=github&logoColor=white&label=ci)](https://github.com/GrayCodeAI/hawk/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/GrayCodeAI/hawk?style=flat-square&logo=open-source-initiative&logoColor=white&color=3BD550)](https://github.com/GrayCodeAI/hawk/blob/main/LICENSE)
 [![stars](https://img.shields.io/github/stars/GrayCodeAI/hawk?style=flat-square&logo=github&color=FBBF24)](https://github.com/GrayCodeAI/hawk/stargazers)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Fmq46SN8)
@@ -152,9 +153,10 @@ Configure any compatible provider using the `/config` command inside Hawk, or ed
 
 ```json
 {
+  "active_provider": "openai",
   "openai_api_key": "your-key",
-  "openai_base_url": "https://your-endpoint.com/v1",
-  "active_model": "model-name"
+  "openai_base_url": "https://api.openai.com/v1",
+  "openai_model": "gpt-4o"
 }
 ```
 

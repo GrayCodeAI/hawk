@@ -22,6 +22,8 @@ import {
   getDefaultMainLoopModelSetting,
   type ModelShortName,
 } from './model/model.js'
+import { getProviderCatalogEntry } from './model/providerCatalog.js'
+import { getAPIProvider } from './model/providers.js'
 
 // @see https://platform.hawk.com/docs/en/about-hawk/pricing
 export type ModelCosts = {
@@ -116,6 +118,60 @@ export const COST_GPT4O_MINI = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
+// Pricing for OpenAI GPT-4.1: $2.00 input / $8.00 output per Mtok
+export const COST_GPT4_1 = {
+  inputTokens: 2,
+  outputTokens: 8,
+  promptCacheWriteTokens: 2,
+  promptCacheReadTokens: 1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI GPT-4.1-mini: $0.40 input / $1.60 output per Mtok
+export const COST_GPT4_1_MINI = {
+  inputTokens: 0.4,
+  outputTokens: 1.6,
+  promptCacheWriteTokens: 0.4,
+  promptCacheReadTokens: 0.2,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI GPT-4.1-nano: $0.10 input / $0.50 output per Mtok
+export const COST_GPT4_1_NANO = {
+  inputTokens: 0.1,
+  outputTokens: 0.5,
+  promptCacheWriteTokens: 0.1,
+  promptCacheReadTokens: 0.05,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o3-mini: $1.10 input / $4.40 output per Mtok
+export const COST_O3_MINI = {
+  inputTokens: 1.1,
+  outputTokens: 4.4,
+  promptCacheWriteTokens: 1.1,
+  promptCacheReadTokens: 0.55,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o4-mini: $1.10 input / $4.40 output per Mtok
+export const COST_O4_MINI = {
+  inputTokens: 1.1,
+  outputTokens: 4.4,
+  promptCacheWriteTokens: 1.1,
+  promptCacheReadTokens: 0.55,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenAI o3: $10.00 input / $40.00 output per Mtok
+export const COST_O3 = {
+  inputTokens: 10,
+  outputTokens: 40,
+  promptCacheWriteTokens: 10,
+  promptCacheReadTokens: 5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
 // Pricing for Gemini 2.0 Flash: $0.10 input / $0.40 output per Mtok
 export const COST_GEMINI_FLASH = {
   inputTokens: 0.1,
@@ -143,12 +199,93 @@ export const COST_GROK_2 = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
-// Pricing for OpenCodeGO/Kimi K2.5: $2 input / $8 output per Mtok
+// Pricing for OpenCodeGO/Kimi K2.5: $3 input / $10 output per Mtok (matches Eyrie catalog)
 export const COST_KIMI_K2_5 = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Kimi K2.6: $3 input / $10 output per Mtok (matches Eyrie catalog)
+export const COST_KIMI_K2_6 = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/GLM-5.1: $5 input / $15 output per Mtok (matches Eyrie catalog)
+export const COST_GLM_5_1 = {
+  inputTokens: 5,
+  outputTokens: 15,
+  promptCacheWriteTokens: 5,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/GLM-5: $5 input / $15 output per Mtok (matches Eyrie catalog)
+export const COST_GLM_5 = {
+  inputTokens: 5,
+  outputTokens: 15,
+  promptCacheWriteTokens: 5,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiMo V2 Pro: $3 input / $10 output per Mtok (matches Eyrie catalog)
+export const COST_MIMO_V2_PRO = {
+  inputTokens: 3,
+  outputTokens: 10,
+  promptCacheWriteTokens: 3,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiMo V2 Omni: $2 input / $8 output per Mtok (matches Eyrie catalog)
+export const COST_MIMO_V2_OMNI = {
   inputTokens: 2,
   outputTokens: 8,
   promptCacheWriteTokens: 2,
   promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiniMax M2.7: $1 input / $3 output per Mtok (matches Eyrie catalog)
+export const COST_MINIMAX_M2_7 = {
+  inputTokens: 1,
+  outputTokens: 3,
+  promptCacheWriteTokens: 1,
+  promptCacheReadTokens: 0.5,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/MiniMax M2.5: $0.5 input / $1.5 output per Mtok (matches Eyrie catalog)
+export const COST_MINIMAX_M2_5 = {
+  inputTokens: 0.5,
+  outputTokens: 1.5,
+  promptCacheWriteTokens: 0.5,
+  promptCacheReadTokens: 0.25,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Qwen3.6 Plus: $0.3 input / $1.7 output per Mtok (matches Eyrie catalog)
+export const COST_QWEN_3_6_PLUS = {
+  inputTokens: 0.3,
+  outputTokens: 1.7,
+  promptCacheWriteTokens: 0.3,
+  promptCacheReadTokens: 0.1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for OpenCodeGO/Qwen3.5 Plus: $0.26 input / $1.56 output per Mtok (matches Eyrie catalog)
+export const COST_QWEN_3_5_PLUS = {
+  inputTokens: 0.26,
+  outputTokens: 1.56,
+  promptCacheWriteTokens: 0.26,
+  promptCacheReadTokens: 0.08,
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
@@ -194,6 +331,12 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   'gpt-4o-2024-08-06': COST_GPT4O,
   'gpt-4o-2024-05-13': COST_GPT4O,
   'gpt-4o-mini-2024-07-18': COST_GPT4O_MINI,
+  'gpt-4.1': COST_GPT4_1,
+  'gpt-4.1-mini': COST_GPT4_1_MINI,
+  'gpt-4.1-nano': COST_GPT4_1_NANO,
+  'o3-mini': COST_O3_MINI,
+  'o4-mini': COST_O4_MINI,
+  'o3': COST_O3,
 
   // Gemini models
   'gemini-2.0-flash': COST_GEMINI_FLASH,
@@ -209,6 +352,26 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   // OpenCodeGO / Kimi models
   'kimi-k2.5': COST_KIMI_K2_5,
   'moonshotai/kimi-k2.5': COST_KIMI_K2_5,
+  'kimi-k2.6': COST_KIMI_K2_6,
+  'moonshotai/kimi-k2.6': COST_KIMI_K2_6,
+
+  // OpenCodeGO / GLM models
+  'glm-5.1': COST_GLM_5_1,
+  'glm-5': COST_GLM_5,
+  'zhipuai/glm-5.1': COST_GLM_5_1,
+  'zhipuai/glm-5': COST_GLM_5,
+
+  // OpenCodeGO / MiMo models
+  'mimo-v2-pro': COST_MIMO_V2_PRO,
+  'mimo-v2-omni': COST_MIMO_V2_OMNI,
+
+  // OpenCodeGO / MiniMax models
+  'minimax-m2.7': COST_MINIMAX_M2_7,
+  'minimax-m2.5': COST_MINIMAX_M2_5,
+
+  // OpenCodeGO / Qwen models
+  'qwen3.6-plus': COST_QWEN_3_6_PLUS,
+  'qwen3.5-plus': COST_QWEN_3_5_PLUS,
 
   // Ollama (local) models
   'llama3.1:8b': COST_OLLAMA,
@@ -220,19 +383,49 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
 }
 
 /**
- * Calculates the USD cost based on token usage and model cost configuration
+ * Calculates the USD cost based on token usage and model cost configuration.
+ *
+ * IMPORTANT: For providers that include cache tokens in input_tokens (Anthropic),
+ * we subtract cache tokens from input_tokens before applying the input price
+ * to avoid double-counting cache tokens at both full input price and cache price.
  */
 function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {
+  const cacheRead = usage.cache_read_input_tokens ?? 0
+  const cacheCreation = usage.cache_creation_input_tokens ?? 0
+  // If input_tokens includes cache tokens, subtract them to avoid double-counting.
+  // For providers without cache (OpenAI-compatible), cacheRead/cacheCreation are 0
+  // so this is a no-op.
+  const nonCacheInput = Math.max(0, usage.input_tokens - cacheRead - cacheCreation)
+
   return (
-    (usage.input_tokens / 1_000_000) * modelCosts.inputTokens +
+    (nonCacheInput / 1_000_000) * modelCosts.inputTokens +
     (usage.output_tokens / 1_000_000) * modelCosts.outputTokens +
-    ((usage.cache_read_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheReadTokens +
-    ((usage.cache_creation_input_tokens ?? 0) / 1_000_000) *
-      modelCosts.promptCacheWriteTokens +
+    (cacheRead / 1_000_000) * modelCosts.promptCacheReadTokens +
+    (cacheCreation / 1_000_000) * modelCosts.promptCacheWriteTokens +
     (usage.server_tool_use?.web_search_requests ?? 0) *
       modelCosts.webSearchRequests
   )
+}
+
+/**
+ * Try to get costs from Eyrie catalog (for OpenCodeGO, OpenRouter, CanopyWave)
+ * Falls back to hardcoded MODEL_COSTS for Anthropic and other providers
+ */
+function getCostsFromCatalog(model: string): ModelCosts | null {
+  const provider = getAPIProvider()
+  const entry = getProviderCatalogEntry(provider, model)
+
+  if (entry?.input_price_per_1m !== undefined && entry?.output_price_per_1m !== undefined) {
+    return {
+      inputTokens: entry.input_price_per_1m,
+      outputTokens: entry.output_price_per_1m,
+      promptCacheWriteTokens: entry.input_price_per_1m, // Use input price as default
+      promptCacheReadTokens: entry.input_price_per_1m * 0.1, // Rough estimate
+      webSearchRequests: 0.01,
+    }
+  }
+
+  return null
 }
 
 export function getModelCosts(model: string, usage: Usage): ModelCosts {
@@ -244,6 +437,12 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
   ) {
     const isFastMode = usage.speed === 'fast'
     return getOpus46CostTier(isFastMode)
+  }
+
+  // Try to get costs from Eyrie catalog first (for 3P providers like OpenCodeGO)
+  const catalogCosts = getCostsFromCatalog(model)
+  if (catalogCosts) {
+    return catalogCosts
   }
 
   // Try to find costs by canonical name first
@@ -259,6 +458,17 @@ export function getModelCosts(model: string, usage: Usage): ModelCosts {
     // Handle OpenRouter-style prefixes (e.g., "openai/gpt-4o")
     const withoutPrefix = model.split('/').pop() ?? model
     costs = MODEL_COSTS[withoutPrefix as ModelShortName]
+  }
+
+  // If still not found, try prefix matching for dated variants
+  // (e.g., "gpt-4.1-2025-04-14" → "gpt-4.1")
+  if (!costs) {
+    for (const key of Object.keys(MODEL_COSTS)) {
+      if (model.startsWith(key + '-') || model.startsWith(key + '.')) {
+        costs = MODEL_COSTS[key as ModelShortName]
+        break
+      }
+    }
   }
 
   if (!costs) {

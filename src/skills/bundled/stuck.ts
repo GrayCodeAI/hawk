@@ -2,7 +2,6 @@ import { registerBundledSkill } from '../bundledSkills.js'
 
 // Prompt text contains `ps` commands as instructions for Hawk to run,
 // not commands this file executes.
-// eslint-disable-next-line custom-rules/no-direct-ps-commands
 const STUCK_PROMPT = `# /stuck — diagnose frozen/slow Hawk sessions
 
 The user thinks another Hawk session on this machine is frozen, stuck, or very slow. Investigate and post a report to #hawk-code-feedback.
