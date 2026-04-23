@@ -4,38 +4,166 @@ on:
   push:
     branches: [main, dev]
   pull_request:
+    branches: [main, dev]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  quality:
+    name: Quality Checks
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: hawk
+    timeout-minutes: 10
     steps:
-      - name: Checkout Hawk
+      - name: Checkout
         uses: actions/checkout@v5
-        with:
-          path: hawk
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Install
-        run: bun install
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+  pr-title:
+    name: PR Title Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check PR title follows conventional commits
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: [quality]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
       - name: Build
         run: bun run build
 
-      - name: Provider Tests
+      - name: Provider tests
         run: bun run test:provider
 
-      - name: Full Test Suite
+      - name: Full test suite
         run: bun test
 
-      - name: Smoke
+      - name: Smoke test
         run: bun run smoke
+
+      - name: Upload build artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hawk-build
+          path: dist/cli.mjs
+          retention-days: 7
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: bun audit --production
+        continue-on-error: true
+
+  check-required:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [quality, test, audit]
+    if: always()
+    steps:
+      - name: Verify all required jobs succeeded
+        run: |
+          if [[ "${{ needs.quality.result }}" != "success" ]]; then
+            echo "Quality checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
+            echo "Tests failed"
+            exit 1
+          fi
+          echo "All checks passed"

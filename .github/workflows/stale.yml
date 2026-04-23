@@ -1,0 +1,30 @@
+name: Stale Cleanup
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  stale:
+    name: Close Stale PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Close stale PRs
+        uses: actions/stale@v9
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-pr-message: >
+            This PR has been inactive for 30 days. It will be closed in 7 days
+            if no further activity occurs. Please update if you'd like to keep it open.
+          close-pr-message: >
+            This PR was closed due to inactivity. Feel free to reopen if you'd like
+            to continue working on it.
+          stale-pr-label: stale
+          exempt-pr-labels: keep-open, wip, blocked
+          operations-per-run: 100
