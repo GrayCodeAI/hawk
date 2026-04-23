@@ -378,7 +378,6 @@ export function createHawkAiProxyFetch(innerFetch: FetchLike): FetchLike {
       if (!currentTokens) {
         throw new Error('No hawkai OAuth token available')
       }
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const headers = new Headers(init?.headers)
       headers.set('Authorization', `Bearer ${currentTokens.accessToken}`)
       const response = await innerFetch(url, { ...init, headers })
@@ -504,7 +503,6 @@ export function wrapFetchWithTimeout(baseFetch: FetchLike): FetchLike {
     // accepts HeadersInit | undefined and copies from plain objects, tuple arrays,
     // and existing Headers instances — so whatever shape the SDK handed us, the
     // Accept value survives the spread below as an own property of a concrete object.
-    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
     const headers = new Headers(init?.headers)
     if (!headers.has('accept')) {
       headers.set('accept', MCP_STREAMABLE_HTTP_ACCEPT)
@@ -656,7 +654,6 @@ export const connectToServer = memoizeWithTTL(
             }
 
             const proxyOptions = getProxyFetchOptions()
-            // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
             return fetch(url, {
               ...init,
               ...proxyOptions,
@@ -691,7 +688,6 @@ export const connectToServer = memoizeWithTTL(
             ? {
                 eventSourceInit: {
                   fetch: async (url: string | URL, init?: RequestInit) => {
-                    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
                     return fetch(url, {
                       ...init,
                       ...proxyOptions,
@@ -706,7 +702,6 @@ export const connectToServer = memoizeWithTTL(
             : {
                 eventSourceInit: {
                   fetch: async (url: string | URL, init?: RequestInit) => {
-                    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
                     return fetch(url, {
                       ...init,
                       headers: {
@@ -736,7 +731,6 @@ export const connectToServer = memoizeWithTTL(
         let wsClient: WsClientLike
         if (typeof Bun !== 'undefined') {
           // Bun's WebSocket supports headers/proxy/tls options but the DOM typings don't
-          // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
           wsClient = new globalThis.WebSocket(serverRef.url, {
             protocols: ['mcp'],
             headers: wsHeaders,
@@ -785,7 +779,6 @@ export const connectToServer = memoizeWithTTL(
         let wsClient: WsClientLike
         if (typeof Bun !== 'undefined') {
           // Bun's WebSocket supports headers/proxy/tls options but the DOM typings don't
-          // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
           wsClient = new globalThis.WebSocket(serverRef.url, {
             protocols: ['mcp'],
             headers: wsHeaders,
@@ -900,7 +893,6 @@ export const connectToServer = memoizeWithTTL(
 
         logMCPDebug(name, `Using hawkai proxy at ${proxyUrl}`)
 
-        // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
         const fetchWithAuth = createHawkAiProxyFetch(globalThis.fetch)
 
         const proxyOptions = getProxyFetchOptions()

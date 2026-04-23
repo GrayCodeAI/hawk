@@ -183,7 +183,7 @@ export class WebSocketTransport implements Transport {
         this.ws.send(json)
       } else {
         await new Promise<void>((resolve, reject) => {
-          ;(this.ws as unknown as WsWebSocket).send(json, error => {
+          (this.ws as unknown as WsWebSocket).send(json, error => {
             if (error) {
               reject(error)
             } else {

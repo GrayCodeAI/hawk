@@ -8,18 +8,14 @@
 //    (~65ms on every macOS startup)
 import { profileCheckpoint, profileReport } from './utils/startupProfiler.js';
 
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 profileCheckpoint('main_tsx_entry');
 import { startMdmRawRead } from './utils/settings/mdm/rawRead.js';
 
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 startMdmRawRead();
 import { ensureKeychainPrefetchCompleted, startKeychainPrefetch } from './utils/secureStorage/keychainPrefetch.js';
 import { applyGrayCodeEnvCompat } from './utils/envCompat.js';
 
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 startKeychainPrefetch();
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 applyGrayCodeEnvCompat();
 import { feature } from 'bun:bundle';
 import { Command as CommanderCommand, InvalidArgumentError, Option } from '@commander-js/extra-typings';
@@ -208,7 +204,6 @@ import { shouldEnableThinkingByDefault, type ThinkingConfig } from './utils/thin
 import { initUser, resetUserCache } from './utils/user.js';
 import { getTmuxInstallInstructions, isTmuxAvailable, parsePRReference } from './utils/worktree.js';
 
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 profileCheckpoint('main_tsx_imports_loaded');
 
 /**
@@ -269,7 +264,6 @@ function isBeingDebugged() {
 if ("external" !== 'ant' && isBeingDebugged()) {
   // Use process.exit directly here since we're in the top-level code before imports
   // and gracefulShutdown is not yet available
-  // eslint-disable-next-line custom-rules/no-top-level-side-effects
   process.exit(1);
 }
 

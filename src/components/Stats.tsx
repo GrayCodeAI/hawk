@@ -10,7 +10,6 @@ import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { applyColor } from '../ink/colorize.js';
 import { stringWidth as getStringWidth } from '../ink/stringWidth.js';
 import type { Color } from '../ink/styles.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw j/k/arrow stats navigation
 import { Ansi, Box, Text, useInput } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
 import { getGlobalConfig } from '../utils/config.js';
@@ -367,6 +366,7 @@ function OverviewTab({
   const {
     columns: terminalWidth
   } = useTerminalSize();
+  const theme = getTheme(resolveThemeSetting(getGlobalConfig().theme));
 
   // Calculate favorite model and total tokens
   const modelEntries = Object.entries(stats.modelUsage).sort(([, a], [, b]) => b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens));
@@ -427,9 +427,10 @@ function OverviewTab({
   return <Box flexDirection="column" marginTop={1}>
       {/* Activity Heatmap - always shows all-time data */}
       {allTimeStats.dailyActivity.length > 0 && <Box flexDirection="column" marginBottom={1}>
-          <Ansi>
+        <Ansi>
             {generateHeatmap(allTimeStats.dailyActivity, {
-          terminalWidth
+          terminalWidth,
+          activityColor: theme.hawk
         })}
           </Ansi>
         </Box>}
@@ -1121,7 +1122,8 @@ function renderOverviewToAnsi(stats: HawkCodeStats): string[] {
   // Heatmap - use fixed width for screenshot (56 = 52 weeks + 4 for day labels)
   if (stats.dailyActivity.length > 0) {
     lines.push(generateHeatmap(stats.dailyActivity, {
-      terminalWidth: 56
+      terminalWidth: 56,
+      activityColor: theme.hawk
     }));
     lines.push('');
   }

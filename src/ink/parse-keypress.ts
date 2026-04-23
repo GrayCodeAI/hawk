@@ -196,7 +196,7 @@ export const INITIAL_STATE: KeyParseState = {
 function inputToString(input: Buffer | string): string {
   if (Buffer.isBuffer(input)) {
     if (input[0]! > 127 && input[1] === undefined) {
-      ;(input[0] as unknown as number) -= 128
+      (input[0] as unknown as number) -= 128
       return '\x1b' + String(input)
     } else {
       return String(input)

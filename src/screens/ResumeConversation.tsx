@@ -172,7 +172,6 @@ export function ResumeConversation({
     loadLogs(newValue);
   }, [showAllProjects, loadLogs]);
   function onCancel() {
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(1);
   }
   async function onSelect(log_0: LogOption) {
@@ -263,7 +262,7 @@ export function ResumeConversation({
       }
       if (feature('CONTEXT_COLLAPSE')) {
         /* eslint-disable @typescript-eslint/no-require-imports */
-        ;
+        
         (require('../services/contextCollapse/persist.js') as typeof import('../services/contextCollapse/persist.js')).restoreFromEntries(result_3.contextCollapseCommits ?? [], result_3.contextCollapseSnapshot);
         /* eslint-enable @typescript-eslint/no-require-imports */
       }

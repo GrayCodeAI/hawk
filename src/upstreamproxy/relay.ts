@@ -1,4 +1,3 @@
-/* eslint-disable eslint-plugin-n/no-unsupported-features/node-builtins */
 /**
  * CONNECT-over-WebSocket relay for CCR upstreamproxy.
  *
@@ -185,7 +184,6 @@ function startBunRelay(
   // outlives individual handler calls.
   type BunState = ConnState & { writeBuf: Uint8Array[] }
 
-  // eslint-disable-next-line custom-rules/require-bun-typeof-guard -- caller dispatches on typeof Bun
   const server = Bun.listen<BunState>({
     hostname: '127.0.0.1',
     port: 0,

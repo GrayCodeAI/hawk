@@ -23,13 +23,11 @@ import { getPerformance } from './profilerBase.js'
 import { jsonStringify } from './slowOperations.js'
 
 // Detailed profiling mode - same env var as startupProfiler
-// eslint-disable-next-line custom-rules/no-process-env-top-level
 const DETAILED_PROFILING = isEnvTruthy(process.env.HAWK_CODE_PROFILE_STARTUP)
 
 // Sampling for Statsig logging: 100% ant, 5% external
 // Decision made once at module load - non-sampled users pay no profiling cost
 const STATSIG_SAMPLE_RATE = 0.05
-// eslint-disable-next-line custom-rules/no-process-env-top-level
 const STATSIG_LOGGING_SAMPLED =
   process.env.USER_TYPE === 'ant' || Math.random() < STATSIG_SAMPLE_RATE
 

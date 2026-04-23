@@ -27,7 +27,7 @@ export function useTeleportResume(source) {
         source: source as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         session_id: session.id as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
       });
-      ;
+      
       try {
         const result = await teleportResumeCodeSession(session.id);
         setTeleportedSessionInfo({

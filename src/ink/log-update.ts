@@ -21,6 +21,7 @@ import {
 } from './screen.js'
 import {
   CURSOR_HOME,
+  eraseToEndOfLine,
   scrollDown as csiScrollDown,
   scrollUp as csiScrollUp,
   RESET_SCROLL_REGION,
@@ -400,6 +401,27 @@ export class LogUpdate {
       undefined,
     )
 
+    const rowTailClear = clearFullWidthDamagedRowTails(
+      screen,
+      next.screen,
+      next.screen.damage,
+      stylePool,
+      currentStyleId,
+      currentHyperlink,
+      viewportY,
+      growing ? prev.screen.height : next.screen.height,
+    )
+    if (rowTailClear.needsFullReset) {
+      const y = rowTailClear.resetTriggerY
+      return fullResetSequence_CAUSES_FLICKER(next, 'offscreen', stylePool, {
+        triggerY: y,
+        prevLine: readLine(prev.screen, y),
+        nextLine: readLine(next.screen, y),
+      })
+    }
+    currentStyleId = rowTailClear.currentStyleId
+    currentHyperlink = rowTailClear.currentHyperlink
+
     // Handle growth: render new rows directly (they naturally scroll the terminal)
     if (growing) {
       renderFrameSlice(
@@ -477,6 +499,88 @@ function transitionHyperlink(
     return target
   }
   return current
+}
+
+function clearFullWidthDamagedRowTails(
+  screen: VirtualScreen,
+  next: Screen,
+  damage: Screen['damage'],
+  stylePool: StylePool,
+  currentStyleId: number,
+  currentHyperlink: Hyperlink,
+  viewportY: number,
+  rowLimit: number,
+): {
+  currentStyleId: number
+  currentHyperlink: Hyperlink
+  needsFullReset: boolean
+  resetTriggerY: number
+} {
+  if (
+    !damage ||
+    next.width <= 0 ||
+    damage.x > 0 ||
+    damage.x + damage.width < next.width
+  ) {
+    return {
+      currentStyleId,
+      currentHyperlink,
+      needsFullReset: false,
+      resetTriggerY: -1,
+    }
+  }
+
+  const startY = Math.max(0, damage.y)
+  const endY = Math.min(next.height, rowLimit, damage.y + damage.height)
+
+  for (let y = startY; y < endY; y++) {
+    const clearFrom = firstTrailingEmptyColumn(next, y)
+    if (clearFrom >= next.width) {
+      continue
+    }
+
+    if (y < viewportY) {
+      return {
+        currentStyleId,
+        currentHyperlink,
+        needsFullReset: true,
+        resetTriggerY: y,
+      }
+    }
+
+    moveCursorTo(screen, clearFrom, y)
+    currentStyleId = transitionStyle(
+      screen.diff,
+      stylePool,
+      currentStyleId,
+      stylePool.none,
+    )
+    currentHyperlink = transitionHyperlink(
+      screen.diff,
+      currentHyperlink,
+      undefined,
+    )
+    screen.txn(() => [
+      [{ type: 'stdout', content: eraseToEndOfLine() }],
+      { dx: 0, dy: 0 },
+    ])
+  }
+
+  return {
+    currentStyleId,
+    currentHyperlink,
+    needsFullReset: false,
+    resetTriggerY: -1,
+  }
+}
+
+function firstTrailingEmptyColumn(screen: Screen, y: number): number {
+  for (let x = screen.width - 1; x >= 0; x--) {
+    if (!isEmptyCellAt(screen, x, y)) {
+      return x + 1
+    }
+  }
+  return 0
 }
 
 function transitionStyle(

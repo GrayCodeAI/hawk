@@ -87,7 +87,7 @@ export function buildSystemInitMessage(inputs: SystemInitInputs): SDKMessage {
   // Hidden from public SDK types — ant-only UDS messaging socket path
   if (feature('UDS_INBOX')) {
     /* eslint-disable @typescript-eslint/no-require-imports */
-    ;(initMessage as Record<string, unknown>).messaging_socket_path =
+    (initMessage as Record<string, unknown>).messaging_socket_path =
       require('../udsMessaging.js').getUdsMessagingSocketPath()
     /* eslint-enable @typescript-eslint/no-require-imports */
   }

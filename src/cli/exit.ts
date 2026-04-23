@@ -6,7 +6,6 @@
  * The `: never` return type lets TypeScript narrow control flow at call sites
  * without a trailing `return`.
  */
-/* eslint-disable custom-rules/no-process-exit -- centralized CLI exit point */
 
 // `return undefined as never` (not a post-exit throw) — tests spy on
 // process.exit and let it return. Call sites write `return cliError(...)`

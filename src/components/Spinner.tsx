@@ -208,7 +208,7 @@ function SpinnerWithVerbInner({
   // the ref. The tree is only shown when teammates are running; teammate
   // progress updates to s.tasks trigger re-renders that keep this fresh.
   const leaderTokenCount = Math.round(responseLengthRef.current / 4);
-  const defaultColor = '#FF6B6B';
+  const defaultColor = 'hawk';
   const defaultShimmerColor = 'hawkShimmer';
   const messageColor = overrideColor ?? defaultColor;
   const shimmerColor = overrideShimmerColor ?? defaultShimmerColor;
@@ -252,7 +252,7 @@ function SpinnerWithVerbInner({
   // Time-based tip overrides: coarse thresholds so a stale ref read (we're
   // off the 50ms clock) is fine. Other triggers (mode change, setMessages)
   // cause re-renders that refresh this in practice.
-  let contextTipsActive = false;
+  const contextTipsActive = false;
   const tipsEnabled = settings.spinnerTipsEnabled !== false;
   const showClearTip = tipsEnabled && elapsedSnapshot > 1_800_000;
   const showBtwTip = tipsEnabled && elapsedSnapshot > 30_000 && !getGlobalConfig().btwUseCount;

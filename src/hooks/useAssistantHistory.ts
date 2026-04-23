@@ -136,7 +136,6 @@ export function useAssistantHistory({
         `[useAssistantHistory] ${isInitial ? 'initial' : 'older'} page: ${msgs.length} msgs (raw ${page.events.length}), hasMore=${page.hasMore}`,
       )
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollRef is a stable ref; mkSentinel reads refs only
     [setMessages],
   )
 
@@ -157,7 +156,6 @@ export function useAssistantHistory({
       cancelled = true
     }
     // config identity is stable (created once in main.tsx, never recreated)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled])
 
   const loadOlder = useCallback(async () => {
@@ -188,7 +186,6 @@ export function useAssistantHistory({
     } finally {
       inflightRef.current = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mkSentinel reads refs only
   }, [enabled, prepend, setMessages])
 
   // Scroll-anchor compensation — after React commits the prepended items,

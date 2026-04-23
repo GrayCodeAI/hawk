@@ -94,7 +94,6 @@ export async function runComputerUseMcpServer(): Promise<void> {
     if (exiting) return
     exiting = true
     await Promise.all([shutdown1PEventLogging(), shutdownDatadog()])
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(0)
   }
   process.stdin.on('end', () => void shutdownAndExit())

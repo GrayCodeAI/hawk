@@ -117,7 +117,7 @@ export function dispatchHover(
       hovered.delete(old)
       // Skip handlers on detached nodes (removed between mouse events)
       if (old.parentNode) {
-        ;(old._eventHandlers as EventHandlerProps | undefined)?.onMouseLeave?.()
+        (old._eventHandlers as EventHandlerProps | undefined)?.onMouseLeave?.()
       }
     }
   }

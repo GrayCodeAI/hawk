@@ -2568,7 +2568,6 @@ export async function fetchLogs(limit?: number): Promise<LogOption[]> {
 /**
  * Append an entry to a session file. Creates the parent dir if missing.
  */
-/* eslint-disable custom-rules/no-sync-fs -- sync callers (exit cleanup, materialize) */
 function appendEntryToFile(
   fullPath: string,
   entry: Record<string, unknown>,
@@ -2612,7 +2611,6 @@ function readFileTailSync(fullPath: string): string {
     }
   }
 }
-/* eslint-enable custom-rules/no-sync-fs */
 
 export async function saveCustomTitle(
   sessionId: UUID,

@@ -6,7 +6,6 @@ import { TMUX_COMMAND } from '../constants.js'
  * Captured at module load time to detect if the user started Hawk from within tmux.
  * Shell.ts may override TMUX env var later, so we capture the original value.
  */
-// eslint-disable-next-line custom-rules/no-process-env-top-level
 const ORIGINAL_USER_TMUX = process.env.TMUX
 
 /**
@@ -15,7 +14,6 @@ const ORIGINAL_USER_TMUX = process.env.TMUX
  * We capture this at startup so we always know the leader's original pane, even if
  * the user switches to a different pane later.
  */
-// eslint-disable-next-line custom-rules/no-process-env-top-level
 const ORIGINAL_TMUX_PANE = process.env.TMUX_PANE
 
 /** Cached result for isInsideTmux */

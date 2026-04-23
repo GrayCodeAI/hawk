@@ -31,7 +31,6 @@ export function getSymbolAtPosition(
     // targets are near recent edits; 64KB covers ~1000 lines of typical code.
     // If the target line is past this window we fall back to null (the UI
     // already handles that by showing `position: line:char`).
-    // eslint-disable-next-line custom-rules/no-sync-fs -- called from sync React render (renderToolUseMessage)
     const { buffer, bytesRead } = fs.readSync(absolutePath, {
       length: MAX_READ_BYTES,
     })

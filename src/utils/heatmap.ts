@@ -1,10 +1,12 @@
 import chalk from 'chalk'
+import { colorize } from '../ink/colorize.js'
 import type { DailyActivity } from './stats.js'
 import { toDateString } from './statsCache.js'
 
 export type HeatmapOptions = {
   terminalWidth?: number // Terminal width in characters
   showMonthLabels?: boolean
+  activityColor?: string
 }
 
 type Percentiles = {
@@ -40,7 +42,9 @@ export function generateHeatmap(
   dailyActivity: DailyActivity[],
   options: HeatmapOptions = {},
 ): string {
-  const { terminalWidth = 80, showMonthLabels = true } = options
+  const { terminalWidth = 80, showMonthLabels = true, activityColor } = options
+  const heatmapColor = (text: string) =>
+    colorize(text, activityColor, 'foreground')
 
   // Day labels take 4 characters ("Mon "), calculate weeks that fit
   // Cap at 52 weeks (1 year) to match GitHub style
@@ -101,7 +105,7 @@ export function generateHeatmap(
 
       // Determine intensity level based on message count
       const intensity = getIntensity(activity?.messageCount || 0, percentiles)
-      grid[day]![week] = getHeatmapChar(intensity)
+      grid[day]![week] = getHeatmapChar(intensity, heatmapColor)
 
       currentDate.setDate(currentDate.getDate() + 1)
     }
@@ -154,10 +158,10 @@ export function generateHeatmap(
   lines.push(
     '    Less ' +
       [
-        hawkOrange('░'),
-        hawkOrange('▒'),
-        hawkOrange('▓'),
-        hawkOrange('█'),
+        heatmapColor('░'),
+        heatmapColor('▒'),
+        heatmapColor('▓'),
+        heatmapColor('█'),
       ].join(' ') +
       ' More',
   )
@@ -177,21 +181,21 @@ function getIntensity(
   return 1
 }
 
-// Hawk orange color (hex #da7756)
-const hawkOrange = chalk.hex('#da7756')
-
-function getHeatmapChar(intensity: number): string {
+function getHeatmapChar(
+  intensity: number,
+  heatmapColor: (text: string) => string,
+): string {
   switch (intensity) {
     case 0:
       return chalk.gray('·')
     case 1:
-      return hawkOrange('░')
+      return heatmapColor('░')
     case 2:
-      return hawkOrange('▒')
+      return heatmapColor('▒')
     case 3:
-      return hawkOrange('▓')
+      return heatmapColor('▓')
     case 4:
-      return hawkOrange('█')
+      return heatmapColor('█')
     default:
       return chalk.gray('·')
   }

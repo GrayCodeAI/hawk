@@ -1,4 +1,3 @@
-/* eslint-disable eslint-plugin-n/no-unsupported-features/node-builtins */
 
 import { errorMessage } from '../utils/errors.js'
 import { jsonStringify } from '../utils/slowOperations.js'

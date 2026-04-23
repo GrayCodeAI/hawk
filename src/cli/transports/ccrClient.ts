@@ -325,7 +325,6 @@ export class CCRClient {
     this.onEpochMismatch =
       opts?.onEpochMismatch ??
       (() => {
-        // eslint-disable-next-line custom-rules/no-process-exit
         process.exit(1)
       })
     this.heartbeatIntervalMs =

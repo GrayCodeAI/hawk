@@ -204,7 +204,6 @@ export async function discoverOidc(
 ): Promise<OpenIdProviderDiscoveryMetadata> {
   const base = idpIssuer.endsWith('/') ? idpIssuer : idpIssuer + '/'
   const url = new URL('.well-known/openid-configuration', base)
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
     signal: AbortSignal.timeout(IDP_REQUEST_TIMEOUT_MS),
@@ -457,7 +456,6 @@ export async function acquireIdpIdToken(
     codeVerifier,
     redirectUri,
     fetchFn: (url, init) =>
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       fetch(url, {
         ...init,
         signal: AbortSignal.timeout(IDP_REQUEST_TIMEOUT_MS),

@@ -150,8 +150,7 @@ const NONSTANDARD_INVALID_GRANT_ALIASES = new Set([
   'token_expired',
 ])
 
-/* eslint-disable eslint-plugin-n/no-unsupported-features/node-builtins --
- * Response has been stable in Node since 18; the rule flags it as
+/** Response has been stable in Node since 18; the rule flags it as
  * experimental-until-21 which is incorrect. Pattern matches existing
  * createAuthFetch suppressions in this file. */
 export async function normalizeOAuthErrorBody(
@@ -188,7 +187,6 @@ export async function normalizeOAuthErrorBody(
     headers: response.headers,
   })
 }
-/* eslint-enable eslint-plugin-n/no-unsupported-features/node-builtins */
 
 /**
  * Creates a fetch function with a fresh 30-second timeout for each OAuth request.
@@ -202,7 +200,6 @@ function createAuthFetch(): FetchLike {
 
     // No existing signal - just use timeout
     if (!init?.signal) {
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const response = await fetch(url, { ...init, signal: timeoutSignal })
       return isPost ? normalizeOAuthErrorBody(response) : response
     }
@@ -225,7 +222,6 @@ function createAuthFetch(): FetchLike {
     }
 
     try {
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const response = await fetch(url, { ...init, signal: controller.signal })
       cleanup()
       return isPost ? normalizeOAuthErrorBody(response) : response

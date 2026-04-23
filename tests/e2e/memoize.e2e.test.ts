@@ -64,7 +64,7 @@ describe('Memoization E2E', () => {
   })
 
   it('should implement LRU eviction', () => {
-    let evictions = 0
+    const evictions = 0
     const fn = (key: string) => {
       return `value-${key}`
     }

@@ -161,7 +161,7 @@ export function AgentsMenu(t0) {
   let t12;
   if ($[26] !== setAppState) {
     t12 = async agent => {
-      ;
+      
       try {
         await deleteAgentFromFile(agent);
         setAppState(state => {

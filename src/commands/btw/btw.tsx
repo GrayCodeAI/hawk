@@ -86,7 +86,7 @@ function BtwSideQuestion(t0) {
     t3 = () => {
       const abortController = createAbortController();
       const fetchResponse = async function fetchResponse() {
-        ;
+        
         try {
           const cacheSafeParams = await buildCacheSafeParams(context);
           const result = await runSideQuestion({

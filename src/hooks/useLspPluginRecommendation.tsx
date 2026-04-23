@@ -73,7 +73,7 @@ export function useLspPluginRecommendation() {
           }
         }
         for (const filePath of newFiles) {
-          ;
+          
           try {
             const matches = await getMatchingLspPlugins(filePath);
             const match = matches[0];

@@ -319,8 +319,7 @@ export function LogSelector(t0) {
   }
   React.useEffect(t17, t18);
   const searchableTextByLog = new Map(logs.map(_temp));
-  let t19;
-  t19 = null;
+  const t19 = null;
   let t20;
   if ($[19] !== logs) {
     t20 = getUniqueTags(logs);
@@ -801,7 +800,7 @@ export function LogSelector(t0) {
       logEvent("tengu_agentic_search_started", {
         query_length: searchQuery.length
       });
-      ;
+      
       try {
         const results_0 = await onAgenticSearch(searchQuery, logs, abortController.signal);
         if (abortController.signal.aborted) {

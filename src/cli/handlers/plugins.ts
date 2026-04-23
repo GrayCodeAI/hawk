@@ -2,7 +2,6 @@
  * Plugin and marketplace subcommand handlers — extracted from main.tsx for lazy loading.
  * These are dynamically imported only when `hawk plugin *` or `hawk plugin marketplace *` runs.
  */
-/* eslint-disable custom-rules/no-process-exit -- CLI subcommand handlers intentionally exit */
 import figures from 'figures'
 import { basename, dirname } from 'path'
 import { setUseCoworkPlugins } from '../../bootstrap/state.js'

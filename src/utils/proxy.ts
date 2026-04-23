@@ -380,7 +380,7 @@ export function configureGlobalAgents(): void {
     const mtlsOptions = getTLSFetchOptions()
     if (mtlsOptions.dispatcher) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      ;(require('undici') as typeof undici).setGlobalDispatcher(
+      (require('undici') as typeof undici).setGlobalDispatcher(
         mtlsOptions.dispatcher,
       )
     }

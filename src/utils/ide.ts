@@ -967,7 +967,6 @@ function getVSCodeIDECommandByParentProcess(): string | null {
       // Get the command for this PID
       // this function already returned if not running on macos
       const command = execSyncWithDefaults_DEPRECATED(
-        // eslint-disable-next-line custom-rules/no-direct-ps-commands
         `ps -o command= -p ${pid}`,
       )?.trim()
 
@@ -1000,7 +999,6 @@ function getVSCodeIDECommandByParentProcess(): string | null {
       // Get parent PID
       // this function already returned if not running on macos
       const ppidStr = execSyncWithDefaults_DEPRECATED(
-        // eslint-disable-next-line custom-rules/no-direct-ps-commands
         `ps -o ppid= -p ${pid}`,
       )?.trim()
       if (!ppidStr) {

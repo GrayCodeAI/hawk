@@ -38,7 +38,7 @@ function MarketplaceList(t0) {
   if ($[0] !== onComplete) {
     t1 = () => {
       const loadList = async function loadList() {
-        ;
+        
         try {
           const config = await loadKnownMarketplacesConfig();
           const names = Object.keys(config);
@@ -464,7 +464,7 @@ function ErrorsTabContent(t0) {
       case "remove-installed-marketplace":
         {
           (async () => {
-            ;
+            
             try {
               await removeMarketplaceSource(action.name);
               clearAllCaches();

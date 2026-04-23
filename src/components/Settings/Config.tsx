@@ -7,7 +7,7 @@ import * as React from 'react';
 import { useState, useCallback } from 'react';
 import { useKeybinding, useKeybindings } from '../../keybindings/useKeybinding.js';
 import figures from 'figures';
-import { type GlobalConfig, saveGlobalConfig, getCurrentProjectConfig, type OutputStyle } from '../../utils/config.js';
+import { type AutoUpdaterDisabledReason, type GlobalConfig, saveGlobalConfig, getCurrentProjectConfig, type OutputStyle } from '../../utils/config.js';
 import { normalizeApiKeyForConfig } from '../../utils/authPortable.js';
 import { getGlobalConfig, getAutoUpdaterDisabledReason, formatAutoUpdaterDisabledReason, getRemoteControlAtStartup } from '../../utils/config.js';
 import chalk from 'chalk';
@@ -87,6 +87,9 @@ type Setting = (SettingBase & {
   onChange(value: string): void;
   type: 'managedEnum';
 });
+// Skipped by terminal output, but changes text identity when selection-only
+// color changes would otherwise be reused from a previous render.
+const SETTINGS_ROW_REPAINT_TOKEN = '\x00';
 type SubMenu = 'Theme' | 'Model' | 'TeammateModel' | 'ExternalIncludes' | 'OutputStyle' | 'ChannelDowngrade' | 'Language' | 'EnableAutoUpdates' | 'ProviderConfig';
 export function Config({
   onClose,
@@ -1443,26 +1446,27 @@ export function Config({
       }
       return;
     }
-    // List mode: left/right cycle the selected option's value. Tab switches
-    // between Settings tabs (Status/Config/Usage) — handled by the Tabs
-    // component's keybinding when navFromContent is enabled.
-    if (e.key === 'left' || e.key === 'right') {
+    // List mode: tab and arrows switch Settings tabs via the parent Tabs
+    // keybindings. Slash enters search here too so the visible shortcut remains
+    // robust even when input-hook ordering changes.
+    if (e.key === '/') {
       e.preventDefault();
-      toggleSetting();
+      setIsSearchMode(true);
+      setSearchQuery('');
       return;
     }
     // Fallback: printable characters (other than those bound to actions)
-    // enter search mode. Carve out j/k// — useKeybindings (still on the
+    // enter search mode. Carve out j/k — useKeybindings (still on the
     // useInput path) consumes these via stopImmediatePropagation, but
     // onKeyDown dispatches independently so we must skip them explicitly.
     if (e.ctrl || e.meta) return;
-    if (e.key === 'j' || e.key === 'k' || e.key === '/') return;
+    if (e.key === 'j' || e.key === 'k') return;
     if (e.key.length === 1 && e.key !== ' ') {
       e.preventDefault();
       setIsSearchMode(true);
       setSearchQuery(e.key);
     }
-  }, [showSubmenu, headerFocused, isSearchMode, searchQuery, setSearchQuery, toggleSetting]);
+  }, [showSubmenu, headerFocused, isSearchMode, searchQuery, setSearchQuery]);
   return <Box flexDirection="column" width="100%" tabIndex={0} autoFocus onKeyDown={handleKeyDown}>
       {showSubmenu === 'Theme' ? <>
           <ThemePicker onThemeSelect={setting_1 => {
@@ -1708,44 +1712,7 @@ export function Config({
             const actualIndex = scrollOffset + i;
             const isSelected = actualIndex === selectedIndex && !headerFocused && !isSearchMode;
             return <React.Fragment key={setting_2.id}>
-                        <Box>
-                          <Box width={44}>
-                            <Text color={isSelected ? 'suggestion' : undefined}>
-                              {isSelected ? figures.pointer : ' '}{' '}
-                              {setting_2.label}
-                            </Text>
-                          </Box>
-                          <Box key={isSelected ? 'selected' : 'unselected'}>
-                            {setting_2.type === 'boolean' ? <>
-                                <Text color={isSelected ? 'suggestion' : undefined}>
-                                  {setting_2.value.toString()}
-                                </Text>
-                                {showThinkingWarning && setting_2.id === 'thinkingEnabled' && <Text color="warning">
-                                      {' '}
-                                      Changing thinking mode mid-conversation
-                                      will increase latency and may reduce
-                                      quality.
-                                    </Text>}
-                              </> : setting_2.id === 'theme' ? <Text color={isSelected ? 'suggestion' : undefined}>
-                                {THEME_LABELS[setting_2.value.toString()] ?? setting_2.value.toString()}
-                              </Text> : setting_2.id === 'notifChannel' ? <Text color={isSelected ? 'suggestion' : undefined}>
-                                <NotifChannelLabel value={setting_2.value.toString()} />
-                              </Text> : setting_2.id === 'defaultPermissionMode' ? <Text color={isSelected ? 'suggestion' : undefined}>
-                                {permissionModeTitle(setting_2.value as PermissionMode)}
-                              </Text> : setting_2.id === 'autoUpdatesChannel' && autoUpdaterDisabledReason ? <Box flexDirection="column">
-                                <Text color={isSelected ? 'suggestion' : undefined}>
-                                  disabled
-                                </Text>
-                                <Text dimColor>
-                                  (
-                                  {formatAutoUpdaterDisabledReason(autoUpdaterDisabledReason)}
-                                  )
-                                </Text>
-                              </Box> : <Text color={isSelected ? 'suggestion' : undefined}>
-                                {setting_2.value.toString()}
-                              </Text>}
-                          </Box>
-                        </Box>
+                        <SettingsListRow setting={setting_2} isSelected={isSelected} showThinkingWarning={showThinkingWarning} autoUpdaterDisabledReason={autoUpdaterDisabledReason} />
                       </React.Fragment>;
           })}
                 {scrollOffset + maxVisible < filteredSettingsItems.length && <Text dimColor>
@@ -1765,19 +1732,77 @@ export function Config({
               <Byline>
                 <Text>Type to filter</Text>
                 <KeyboardShortcutHint shortcut="Enter/↓" action="select" />
-                <KeyboardShortcutHint shortcut="Tab" action="switch tab" />
+                <KeyboardShortcutHint shortcut="←/→/Tab" action="switch tab" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="clear" />
               </Byline>
             </Text> : <Text dimColor>
               <Byline>
                 <ConfigurableShortcutHint action="select:accept" context="Settings" fallback="Space" description="change" />
                 <ConfigurableShortcutHint action="settings:close" context="Settings" fallback="Enter" description="save" />
-                <KeyboardShortcutHint shortcut="Tab" action="switch tab" />
+                <KeyboardShortcutHint shortcut="←/→/Tab" action="switch tab" />
                 <ConfigurableShortcutHint action="settings:search" context="Settings" fallback="/" description="search" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
               </Byline>
             </Text>}
         </Box>}
+    </Box>;
+}
+type SettingsListRowProps = {
+  setting: Setting;
+  isSelected: boolean;
+  showThinkingWarning: boolean;
+  autoUpdaterDisabledReason: AutoUpdaterDisabledReason | null;
+};
+export function SettingsListRow({
+  setting,
+  isSelected,
+  showThinkingWarning,
+  autoUpdaterDisabledReason
+}: SettingsListRowProps): React.ReactNode {
+  const selectionColor = isSelected ? 'suggestion' : undefined;
+  const selectionKey = isSelected ? 'selected' : 'unselected';
+  const repaintToken = isSelected ? SETTINGS_ROW_REPAINT_TOKEN : '';
+  return <Box>
+      <Box key={`label-${selectionKey}`} width={44}>
+        <Text color={selectionColor}>
+          {isSelected ? figures.pointer : ' '}{' '}
+          {setting.label}
+          {repaintToken}
+        </Text>
+      </Box>
+      <Box key={`value-${selectionKey}`}>
+        {setting.type === 'boolean' ? <>
+            <Text color={selectionColor}>
+              {setting.value.toString()}
+              {repaintToken}
+            </Text>
+            {showThinkingWarning && setting.id === 'thinkingEnabled' && <Text color="warning">
+                  {' '}
+                  Changing thinking mode mid-conversation will increase latency
+                  and may reduce quality.
+                </Text>}
+          </> : setting.id === 'theme' ? <Text color={selectionColor}>
+            {THEME_LABELS[setting.value.toString()] ?? setting.value.toString()}
+            {repaintToken}
+          </Text> : setting.id === 'notifChannel' ? <Text color={selectionColor}>
+            <NotifChannelLabel value={setting.value.toString()} />
+            {repaintToken}
+          </Text> : setting.id === 'defaultPermissionMode' ? <Text color={selectionColor}>
+            {permissionModeTitle(setting.value as PermissionMode)}
+            {repaintToken}
+          </Text> : setting.id === 'autoUpdatesChannel' && autoUpdaterDisabledReason ? <Box flexDirection="column">
+            <Text color={selectionColor}>
+              disabled
+              {repaintToken}
+            </Text>
+            <Text dimColor>
+              ({formatAutoUpdaterDisabledReason(autoUpdaterDisabledReason)})
+            </Text>
+          </Box> : <Text color={selectionColor}>
+            {setting.value.toString()}
+            {repaintToken}
+          </Text>}
+      </Box>
     </Box>;
 }
 function teammateModelDisplayString(value: string | null | undefined): string {

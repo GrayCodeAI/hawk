@@ -286,7 +286,6 @@ function StatusLineInner({
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   }, []); // Only run once on mount - settings stable for initial logging
 
@@ -299,7 +298,6 @@ function StatusLineInner({
         clearTimeout(debounceTimerRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   }, []); // Only run once on mount, not when doUpdate changes
 

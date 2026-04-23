@@ -872,7 +872,6 @@ function isLocalHost(host: string): boolean {
  *
  * @returns true if the cwd looks like a bare/exploited git directory
  */
-/* eslint-disable custom-rules/no-sync-fs -- sync permission-eval check */
 export function isCurrentDirectoryBareGitRepo(): boolean {
   const fs = getFsImplementation()
   const cwd = getCwd()
@@ -923,4 +922,3 @@ export function isCurrentDirectoryBareGitRepo(): boolean {
   }
   return false
 }
-/* eslint-enable custom-rules/no-sync-fs */
