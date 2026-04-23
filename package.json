@@ -1,6 +1,6 @@
 {
   "name": "hawk",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Hawk opened to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {
