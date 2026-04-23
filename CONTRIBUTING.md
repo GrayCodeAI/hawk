@@ -1,109 +1,198 @@
 # Contributing to Hawk
 
-Thank you for your interest in contributing to Hawk! This document outlines the workflow, conventions, and expectations for contributors.
+Thank you for your interest in contributing to Hawk! This guide will help you get started.
 
-## Branch Strategy
+## Code of Conduct
 
-We use a two-branch model:
+Be respectful, inclusive, and helpful. We're building something great together.
 
-| Branch | Purpose | Protection |
-|--------|---------|------------|
-| `main` | Production-ready releases | PR required + 1 approval + CI passing |
-| `dev` | Active development, integration | Direct push allowed + CI must pass |
+## Getting Started
 
-### Workflow
+### Prerequisites
 
-1. **Branch from `dev`**
-   ```bash
-   git checkout dev
-   git pull origin dev
-   git checkout -b feature/your-feature-name
-   ```
+- [Bun](https://bun.sh/) (latest version)
+- Node.js 18+ (for npm compatibility)
+- Git
 
-2. **Make changes** following our coding conventions (see [ARCHITECTURE.md](ARCHITECTURE.md))
+### Setup
 
-3. **Run tests locally**
-   ```bash
-   bun install
-   bun run build
-   bun test
-   bun run smoke
-   ```
+```bash
+git clone https://github.com/GrayCodeAI/hawk.git
+cd hawk
+bun install
+bun run build
+```
 
-4. **Open a Pull Request to `dev`**
-   - Use clear commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
-   - Reference any related issues
-   - Ensure CI passes (200+ tests)
+### Development Workflow
 
-5. **Merge to `main`** is done by maintainers from `dev` only
+```bash
+# Run in development mode
+bun run dev
+
+# Run with a specific provider
+bun run dev:openai
+bun run dev:ollama
+bun run dev:anthropic
+
+# Run tests
+bun test
+
+# Type check
+bun run typecheck
+
+# Lint
+bun run lint
+
+# Build
+bun run build
+```
+
+## Adding a New Model
+
+Hawk is **model-agnostic** — model names are resolved dynamically from `@hawk/eyrie`. To add a new model:
+
+### 1. Add to `@hawk/eyrie`
+
+In the `@hawk/eyrie` package, add your model config to `ALL_MODEL_CONFIGS`:
+
+```javascript
+export const HAWK_NEW_MODEL_CONFIG = {
+    anthropic: 'claude-new-model-20260101',
+    openai: 'gpt-new',
+    gemini: 'gemini-new-pro',
+    ollama: 'llama-new:70b',
+    // ... other providers
+};
+
+export const ALL_MODEL_CONFIGS = {
+    // ... existing models
+    newmodel: HAWK_NEW_MODEL_CONFIG,
+};
+```
+
+### 2. That's It
+
+Hawk automatically:
+- ✅ Derives display names from the model key (e.g., `newmodel` → `Newmodel`)
+- ✅ Generates canonical names (strips date suffixes)
+- ✅ Includes it in the model selector
+- ✅ Credits it correctly in commit/PR attribution
+
+**No changes needed in Hawk CLI** — the dynamic resolution handles everything.
 
 ## Commit Message Convention
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/) for automated changelog generation:
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-<type>(<scope>): <description>
+type(scope): description
 
-[optional body]
-
-[optional footer]
+feat: add support for new provider
+fix: resolve race condition in file watcher
+docs: update README with new features
+test: add unit tests for model resolution
+ci: add GitHub Actions workflow
 ```
 
-**Types:**
-- `feat` — New feature
-- `fix` — Bug fix
-- `docs` — Documentation only
-- `style` — Formatting, missing semi-colons, etc.
-- `refactor` — Code change that neither fixes a bug nor adds a feature
-- `perf` — Performance improvement
-- `test` — Adding or correcting tests
-- `chore` — Build process, dependencies, tooling
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-**Examples:**
+## Pull Request Process
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run the full test suite: `bun test`
+5. Ensure type checks pass: `bun run typecheck`
+6. Ensure linting passes: `bun run lint`
+7. Commit with a conventional commit message
+8. Push to your branch
+9. Open a Pull Request
+
+### PR Requirements
+
+- [ ] All tests pass (`bun test`)
+- [ ] Type checks pass (`bun run typecheck`)
+- [ ] Linting passes (`bun run lint`)
+- [ ] Build succeeds (`bun run build`)
+- [ ] PR title follows conventional commits format
+
+## Architecture Overview
+
 ```
-feat: add OpenCodeGO provider support
-fix(cost): deduplicate cache tokens in cost calculation
-docs: update ARCHITECTURE.md with provider flow diagram
+hawk/
+├── src/
+│   ├── utils/
+│   │   ├── model/
+│   │   │   ├── model.ts          # Model name resolution (dynamic)
+│   │   │   └── modelStrings.ts   # Provider-specific model IDs
+│   │   ├── attribution.ts        # Commit/PR attribution messages
+│   │   └── commitAttribution.ts  # Model sanitization (pass-through)
+│   ├── services/api/             # Provider implementations
+│   └── tools/                    # Built-in tools
+├── .github/workflows/            # CI/CD pipelines
+└── package.json
 ```
+
+### Key Files for Model-agnostic Features
+
+| File | Purpose |
+|------|---------|
+| `src/utils/model/model.ts` | Dynamic model name resolution from `ALL_MODEL_CONFIGS` |
+| `src/utils/attribution.ts` | Generates commit/PR attribution with model name |
+| `src/utils/commitAttribution.ts` | Pass-through model sanitization |
 
 ## Testing
 
-All changes must include tests. We use Bun's built-in test runner:
+### Running Tests
 
 ```bash
-# Run all tests
+# All tests
 bun test
 
-# Run specific test file
-bun test src/cost-tracker.test.ts
+# Specific test file
+bun test src/utils/model/model.test.ts
 
-# Run with watch mode
-bun test --watch
+# Provider-specific tests
+bun run test:provider
+
+# Smoke test (build + version check)
+bun run smoke
 ```
 
-### Test Coverage Areas
+### Writing Tests
 
-- **Provider tests** (`src/services/api/*.test.ts`) — API shims, runtime resolution
-- **Cost tests** (`src/cost-tracker.test.ts`, `src/modelCost.test.ts`) — Token counting, pricing
-- **Context tests** (`src/utils/context.test.ts`) — Context window resolution
+Place tests next to the source file with `.test.ts` suffix:
 
-## Code Review
+```typescript
+// src/utils/model/model.test.ts
+import { describe, expect, test } from 'bun:test'
+import { getPublicModelDisplayName } from './model.js'
 
-- All PRs to `main` require 1 approval
-- CODEOWNERS automatically assigns `@GrayCodeAI/core` for critical files
-- CI must pass before merge
-- Linear history is enforced (no merge commits)
+describe('getPublicModelDisplayName', () => {
+  test('returns display name for known models', () => {
+    expect(getPublicModelDisplayName('claude-opus-4-6')).toBe('Opus 4.6')
+  })
+})
+```
+
+## CI/CD
+
+Hawk uses GitHub Actions:
+
+- **CI**: Runs on every push/PR — typecheck, lint, tests on 3 OSes, security audit
+- **Version Bump**: Auto-increments version on merge to `dev`/`main`
+- **Release**: Creates GitHub release + npm publish on tag push
+- **Stale Cleanup**: Closes inactive PRs after 30 days
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
-- Include provider, model, and reproduction steps
-- Tag with appropriate labels (`bug`, `feature`, `provider`, etc.)
+- 🐛 **Bugs**: [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
+- 💡 **Features**: [GitHub Issues](https://github.com/GrayCodeAI/hawk/issues)
+- 🔒 **Security**: See [SECURITY.md](SECURITY.md)
 
-## Security
+## Questions?
 
-See [SECURITY.md](SECURITY.md) for vulnerability disclosure.
+- 💬 [Discord](https://discord.gg/Fmq46SN8)
+- 🐦 [X/Twitter](https://x.com/GrayCodeAI)
 
-## License
-
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+Thank you for contributing! 🦅

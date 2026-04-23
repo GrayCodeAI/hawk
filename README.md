@@ -37,6 +37,14 @@ hawk
 ### 🤖 Universal LLM Support
 Connect to any OpenAI-compatible API. From GPT-4o to local Ollama models — you choose the brain.
 
+### 🧠 Model-Agnostic Attribution
+Every commit and PR automatically credits Hawk and the model used:
+```
+Co-Authored-By: Hawk (model: gpt-4o)
+Co-Authored-By: Hawk (model: claude-sonnet-4-6)
+```
+No hardcoded model names — works with any provider, any model, including future ones.
+
 ### 🛠️ Complete Tool Suite
 25+ built-in tools for real-world development:
 - **Bash** — Execute commands securely
@@ -210,6 +218,8 @@ bun run dev:fast
 
 This is the **1.x branch** of Hawk with:
 - ✅ Provider-agnostic architecture
+- ✅ Model-agnostic attribution (auto-credits Hawk + model in commits/PRs)
+- ✅ Dynamic model name resolution (no hardcoded model names)
 - ✅ 25+ production-ready tools
 - ✅ Smart provider routing with failover
 - ✅ Real-time cost tracking
@@ -217,6 +227,27 @@ This is the **1.x branch** of Hawk with:
 - ✅ LSP integration
 
 Check [releases](https://github.com/GrayCodeAI/hawk/releases) for the latest updates.
+
+## CI/CD
+
+Hawk uses GitHub Actions for automated testing and releases:
+
+| Workflow | Description |
+|----------|-------------|
+| **CI** | Type checking, linting, tests on Linux/macOS/Windows, security audit |
+| **Version Bump** | Auto-increments version based on conventional commits |
+| **Release** | Creates GitHub release + publishes to npm on tag push |
+| **Stale Cleanup** | Closes inactive PRs after 30 days |
+
+### Creating a Release
+
+```bash
+# Tag the release (version auto-bumped on merge, or manual)
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+This triggers the release workflow which builds, tests, creates a GitHub release with changelog, and publishes to npm.
 
 ## Sponsors
 
