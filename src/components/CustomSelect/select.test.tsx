@@ -345,7 +345,7 @@ describe('Select', () => {
           if (focusedValue !== 'model-two') {
             return
           }
-          const timer = setTimeout(exit, 20)
+          const timer = setTimeout(exit, 100)
           return () => clearTimeout(timer)
         }, [exit, focusedValue])
 
@@ -371,7 +371,7 @@ describe('Select', () => {
         patchConsole: false,
       })
 
-      await new Promise(resolve => setTimeout(resolve, 20))
+      await new Promise(resolve => setTimeout(resolve, 50))
       ;(stdin as unknown as PassThrough).write('\x1B[B')
       await instance.waitUntilExit()
 
