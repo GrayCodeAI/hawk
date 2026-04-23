@@ -208,7 +208,7 @@ function SpinnerWithVerbInner({
   // the ref. The tree is only shown when teammates are running; teammate
   // progress updates to s.tasks trigger re-renders that keep this fresh.
   const leaderTokenCount = Math.round(responseLengthRef.current / 4);
-  const defaultColor = '#FF6B6B';
+  const defaultColor = 'hawk';
   const defaultShimmerColor = 'hawkShimmer';
   const messageColor = overrideColor ?? defaultColor;
   const shimmerColor = overrideShimmerColor ?? defaultShimmerColor;
