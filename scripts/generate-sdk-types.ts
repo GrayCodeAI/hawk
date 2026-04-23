@@ -17,6 +17,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
+import { fileURLToPath } from 'url'
 
 interface SchemaInfo {
   name: string
@@ -107,7 +108,7 @@ ${typeExports}
 }
 
 async function main() {
-  const projectRoot = join(new URL('.', import.meta.url).pathname, '..')
+  const projectRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..')
   const sdkDir = join(projectRoot, 'src', 'entrypoints', 'sdk')
 
   // Read schema files

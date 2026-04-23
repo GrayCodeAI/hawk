@@ -25,8 +25,11 @@ export interface SDKSession {
   mutate(input: unknown, opts?: SessionMutationOptions): Promise<unknown>
 }
 
+// biome-ignore lint/suspicious/noEmptyInterface: Generated type - reserved for future expansion
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface SDKSessionOptions {}
+export interface SDKSessionOptions {
+  // Reserved for future configuration options
+}
 
 export type AnyZodRawShape = Record<string, unknown>
 export type InferShape<T> = unknown

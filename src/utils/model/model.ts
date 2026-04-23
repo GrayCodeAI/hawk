@@ -29,6 +29,7 @@ import { isModelAllowed } from './modelAllowlist.js'
 import { type ModelAlias, isModelAlias } from './aliases.js'
 import { capitalize } from '../stringUtils.js'
 import {
+  ALL_MODEL_CONFIGS,
   getPreferredProviderModel,
   getProviderDefaultModel,
 } from '@hawk/eyrie'
@@ -41,6 +42,34 @@ import {
 export type ModelShortName = string
 export type ModelName = string
 export type ModelSetting = ModelName | ModelAlias | null
+
+/**
+ * Derive a human-readable display name from a model key.
+ * e.g. "opus46" → "Opus 4.6", "sonnet35" → "Sonnet 3.5", "haiku45" → "Haiku 4.5"
+ */
+function keyToDisplayName(key: string): string {
+  const match = key.match(/^(opus|sonnet|haiku)(\d+)$/)
+  if (!match) return capitalize(key)
+  const [, family, version] = match
+  const formattedVersion = version.length > 1
+    ? `${version.slice(0, -1)}.${version.slice(-1)}`
+    : version
+  return `${capitalize(family)} ${formattedVersion}`
+}
+
+// Eagerly built dynamic mappings from ALL_MODEL_CONFIGS.
+// These are computed at module load time so they're available for
+// top-level calls (e.g. from modelCost.ts).
+const CANONICAL_TO_DISPLAY_NAME = new Map<string, string>()
+const CANONICAL_TO_SHORT_NAME = new Map<string, string>()
+
+for (const [key, config] of Object.entries(ALL_MODEL_CONFIGS)) {
+  const displayName = keyToDisplayName(key)
+  const canonicalId = config.anthropic
+  CANONICAL_TO_DISPLAY_NAME.set(canonicalId, displayName)
+  const shortName = canonicalId.replace(/-\d{8}$/, '')
+  CANONICAL_TO_SHORT_NAME.set(canonicalId, shortName)
+}
 
 function getOpenAICompatibleProviderModelEnv(provider: ReturnType<typeof getAPIProvider>): string | undefined {
   if (provider === 'canopywave') {
@@ -282,65 +311,34 @@ export function getDefaultMainLoopModel(): ModelName {
   return parseUserSpecifiedModel(getDefaultMainLoopModelSetting())
 }
 
-// @[MODEL LAUNCH]: Add a canonical name mapping for the new model below.
 /**
  * Pure string-match that strips date/provider suffixes from a first-party model
  * name. Input must already be a 1P-format ID (e.g. 'claude-3-7-sonnet-20250219',
  * 'us.graycode.claude-opus-4-6-v1:0'). Does not touch settings, so safe at
  * module top-level (see MODEL_COSTS in modelCost.ts).
+ *
+ * Self-contained: does not depend on runtime-initialized maps so it works
+ * during module load.
  */
 export function anthropicNameToCanonical(name: ModelName): ModelShortName {
   name = name.toLowerCase()
-  // Special cases for Hawk 4+ models to differentiate versions
-  // Order matters: check more specific versions first (4-5 before 4)
-  if (name.includes('claude-opus-4-6')) {
-    return 'claude-opus-4-6'
+
+  // Strip [1m] or [2m] context suffix
+  name = name.replace(/\[(1|2)m\]$/i, '')
+
+  // Strip Bedrock/provider suffixes: us.graycode.claude-opus-4-6-v1:0 → claude-opus-4-6
+  // Also strips date suffixes: claude-opus-4-5-20251101 → claude-opus-4-5
+  const claudeMatch = name.match(/(claude-[\w-]+?)(?:-\d{8})?(?:-v\d+:\d+)?$/)
+  if (claudeMatch) {
+    return claudeMatch[1]!
   }
-  if (name.includes('claude-opus-4-5')) {
-    return 'claude-opus-4-5'
-  }
-  if (name.includes('claude-opus-4-1')) {
-    return 'claude-opus-4-1'
-  }
-  if (name.includes('claude-opus-4')) {
-    return 'claude-opus-4'
-  }
-  if (name.includes('claude-sonnet-4-6')) {
-    return 'claude-sonnet-4-6'
-  }
-  if (name.includes('claude-sonnet-4-5')) {
-    return 'claude-sonnet-4-5'
-  }
-  if (name.includes('claude-sonnet-4')) {
-    return 'claude-sonnet-4'
-  }
-  if (name.includes('claude-haiku-4-5')) {
-    return 'claude-haiku-4-5'
-  }
-  // Claude 3.x models use a different naming scheme (claude-3-{family})
-  if (name.includes('claude-3-7-sonnet')) {
-    return 'claude-3-7-sonnet'
-  }
-  if (name.includes('claude-3-5-sonnet')) {
-    return 'claude-3-5-sonnet'
-  }
-  if (name.includes('claude-3-5-haiku')) {
-    return 'claude-3-5-haiku'
-  }
-  if (name.includes('claude-3-opus')) {
-    return 'claude-3-opus'
-  }
-  if (name.includes('claude-3-sonnet')) {
-    return 'claude-3-sonnet'
-  }
-  if (name.includes('claude-3-haiku')) {
-    return 'claude-3-haiku'
-  }
+
+  // Fallback: extract claude-{family} pattern
   const match = name.match(/(claude-(\d+-\d+-)?\w+)/)
   if (match && match[1]) {
     return match[1]
   }
-  // Fall back to the original name if no pattern matches
+
   return name
 }
 
@@ -357,17 +355,24 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   return anthropicNameToCanonical(resolveOverriddenModel(fullModelName))
 }
 
-// @[MODEL LAUNCH]: Update the default model description strings shown to users.
+/**
+ * Returns a description of the default model for the current user tier.
+ *
+ * Dynamic: derives model names from the current default models.
+ */
 export function getHawkAiUserDefaultModelDescription(
   fastMode = false,
 ): string {
+  const opusName = getPublicModelDisplayName(getDefaultOpusModel()) ?? 'Opus'
+  const sonnetName = getPublicModelDisplayName(getDefaultSonnetModel()) ?? 'Sonnet'
+
   if (isMaxSubscriber() || isTeamPremiumSubscriber()) {
     if (isOpus1mMergeEnabled()) {
-      return `Opus 4.6 with 1M context · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
+      return `${opusName} with 1M context · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
     }
-    return `Opus 4.6 · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
+    return `${opusName} · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
   }
-  return 'Sonnet 4.6 · Best for everyday tasks'
+  return `${sonnetName} · Best for everyday tasks`
 }
 
 export function renderDefaultModelSetting(
@@ -416,50 +421,36 @@ export function renderModelSetting(setting: ModelName | ModelAlias): string {
   return renderModelName(setting)
 }
 
-// @[MODEL LAUNCH]: Add display name cases for the new model (base + [1m] variant if applicable).
 /**
  * Returns a human-readable display name for known public models, or null
  * if the model is not recognized as a public model.
+ *
+ * Dynamic: derives display names from ALL_MODEL_CONFIGS model keys.
+ * New models are automatically included without code changes.
  */
 export function getPublicModelDisplayName(model: ModelName): string | null {
-  // For non-anthropic providers, show the actual model name, not a Hawk alias.
-  if (getAPIProvider() !== 'anthropic') {
-    return null
+  const has1m = model.toLowerCase().endsWith('[1m]')
+  const baseModel = has1m ? model.slice(0, -4) : model
+
+  // Check against canonical Anthropic IDs first (works in all environments)
+  for (const [key, config] of Object.entries(ALL_MODEL_CONFIGS)) {
+    const canonicalId = config.anthropic
+    if (baseModel === canonicalId || baseModel.startsWith(canonicalId + '-')) {
+      const displayName = CANONICAL_TO_DISPLAY_NAME.get(key) ?? keyToDisplayName(key)
+      return has1m ? `${displayName} (1M context)` : displayName
+    }
   }
-  switch (model) {
-    case getModelStrings().opus46:
-      return 'Opus 4.6'
-    case getModelStrings().opus46 + '[1m]':
-      return 'Opus 4.6 (1M context)'
-    case getModelStrings().opus45:
-      return 'Opus 4.5'
-    case getModelStrings().opus41:
-      return 'Opus 4.1'
-    case getModelStrings().opus40:
-      return 'Opus 4'
-    case getModelStrings().sonnet46 + '[1m]':
-      return 'Sonnet 4.6 (1M context)'
-    case getModelStrings().sonnet46:
-      return 'Sonnet 4.6'
-    case getModelStrings().sonnet45 + '[1m]':
-      return 'Sonnet 4.5 (1M context)'
-    case getModelStrings().sonnet45:
-      return 'Sonnet 4.5'
-    case getModelStrings().sonnet40:
-      return 'Sonnet 4'
-    case getModelStrings().sonnet40 + '[1m]':
-      return 'Sonnet 4 (1M context)'
-    case getModelStrings().sonnet37:
-      return 'Sonnet 3.7'
-    case getModelStrings().sonnet35:
-      return 'Sonnet 3.5'
-    case getModelStrings().haiku45:
-      return 'Haiku 4.5'
-    case getModelStrings().haiku35:
-      return 'Haiku 3.5'
-    default:
-      return null
+
+  // Also check against provider-specific model strings
+  const modelStrings = getModelStrings()
+  for (const [key, providerModel] of Object.entries(modelStrings)) {
+    if (providerModel === baseModel) {
+      const displayName = CANONICAL_TO_DISPLAY_NAME.get(key) ?? keyToDisplayName(key)
+      return has1m ? `${displayName} (1M context)` : displayName
+    }
   }
+
+  return null
 }
 
 function maskModelCodename(baseName: string): string {
@@ -645,43 +636,35 @@ export function modelDisplayString(model: ModelSetting): string {
   return model === resolvedModel ? resolvedModel : `${model} (${resolvedModel})`
 }
 
-// @[MODEL LAUNCH]: Add a marketing name mapping for the new model below.
+/**
+ * Returns a marketing-friendly name for a model.
+ *
+ * Dynamic: derives names from ALL_MODEL_CONFIGS model keys.
+ * New models are automatically included without code changes.
+ */
 export function getMarketingNameForModel(modelId: string): string | undefined {
   const has1m = modelId.toLowerCase().includes('[1m]')
   const canonical = getCanonicalName(modelId)
 
-  if (canonical.includes('claude-opus-4-6')) {
-    return has1m ? 'Opus 4.6 (with 1M context)' : 'Opus 4.6'
-  }
-  if (canonical.includes('claude-opus-4-5')) {
-    return 'Opus 4.5'
-  }
-  if (canonical.includes('claude-opus-4-1')) {
-    return 'Opus 4.1'
-  }
-  if (canonical.includes('claude-opus-4')) {
-    return 'Opus 4'
-  }
-  if (canonical.includes('claude-sonnet-4-6')) {
-    return has1m ? 'Sonnet 4.6 (with 1M context)' : 'Sonnet 4.6'
-  }
-  if (canonical.includes('claude-sonnet-4-5')) {
-    return has1m ? 'Sonnet 4.5 (with 1M context)' : 'Sonnet 4.5'
-  }
-  if (canonical.includes('claude-sonnet-4')) {
-    return has1m ? 'Sonnet 4 (with 1M context)' : 'Sonnet 4'
-  }
-  if (canonical.includes('claude-3-7-sonnet')) {
-    return 'Hawk 3.7 Sonnet'
-  }
-  if (canonical.includes('claude-3-5-sonnet')) {
-    return 'Hawk 3.5 Sonnet'
-  }
-  if (canonical.includes('claude-haiku-4-5')) {
-    return 'Haiku 4.5'
-  }
-  if (canonical.includes('claude-3-5-haiku')) {
-    return 'Hawk 3.5 Haiku'
+  // Sort by shortName length descending so more specific matches take priority
+  // (e.g. "claude-opus-4-6" before "claude-opus-4")
+  const sortedEntries = [...CANONICAL_TO_SHORT_NAME.entries()].sort(
+    (a, b) => b[1].length - a[1].length,
+  )
+
+  for (const [canonicalId, shortName] of sortedEntries) {
+    // Exact match or starts-with match at segment boundary
+    if (
+      canonical === shortName ||
+      canonical === canonicalId ||
+      canonical.startsWith(shortName + '-') ||
+      canonical.startsWith(canonicalId + '-')
+    ) {
+      const displayName = CANONICAL_TO_DISPLAY_NAME.get(canonicalId)
+        ?? CANONICAL_TO_DISPLAY_NAME.get(shortName)
+        ?? keyToDisplayName(canonicalId.replace('claude-', ''))
+      return has1m ? `${displayName} (with 1M context)` : displayName
+    }
   }
 
   return undefined

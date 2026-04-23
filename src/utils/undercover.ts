@@ -45,11 +45,7 @@ messages, PR titles, and PR bodies MUST NOT contain ANY GrayCode-internal
 information. Do not blow your cover.
 
 NEVER include in commit messages or PR descriptions:
-- Internal model codenames (animal names like Capybara, Tengu, etc.)
-- Unreleased model version numbers (e.g., opus-4-7, sonnet-4-8)
-- Internal repo or project names (e.g., hawk-cli-internal, graycodes/…)
-- Internal tooling, Slack channels, or short links (e.g., go/cc, #hawk-code-…)
-- The phrase "Hawk" or any mention that you are an AI
+- The phrase "Hawk" or any mention that you are an AI assistant
 - Any hint of what model or version you are
 - Co-Authored-By lines or any other attribution
 
@@ -62,10 +58,10 @@ GOOD:
 - "Refactor parser for better error messages"
 
 BAD (never write these):
-- "Fix bug found while testing with Hawk Capybara"
+- "Fix bug found while testing with Hawk"
 - "1-shotted by claude-opus-4-6"
 - "Generated with Hawk"
-- "Co-Authored-By: Hawk Opus 4.6 <…>"
+- "Co-Authored-By: Hawk (gpt-4o) <…>"
 `
   }
   return ''
