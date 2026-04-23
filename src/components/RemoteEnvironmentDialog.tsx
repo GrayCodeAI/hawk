@@ -46,7 +46,7 @@ export function RemoteEnvironmentDialog(t0) {
     t2 = () => {
       let cancelled = false;
       const fetchInfo = async function fetchInfo() {
-        ;
+        
         try {
           const result = await getEnvironmentSelectionInfo();
           if (cancelled) {

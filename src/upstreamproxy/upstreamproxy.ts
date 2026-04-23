@@ -257,7 +257,6 @@ async function downloadCaBundle(
   outPath: string,
 ): Promise<boolean> {
   try {
-    // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
     const resp = await fetch(`${baseUrl}/v1/code/upstreamproxy/ca-cert`, {
       // Bun has no default fetch timeout — a hung endpoint would block CLI
       // startup forever. 5s is generous for a small PEM.

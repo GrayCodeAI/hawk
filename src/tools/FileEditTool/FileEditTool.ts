@@ -605,7 +605,6 @@ function readFileForEdit(absoluteFilePath: string): {
   lineEndings: LineEndingType
 } {
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs
     const meta = readFileSyncWithMetadata(absoluteFilePath)
     return {
       content: meta.content,

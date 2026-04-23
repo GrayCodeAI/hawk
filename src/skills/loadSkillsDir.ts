@@ -1079,7 +1079,6 @@ export function clearDynamicSkills(): void {
 // indirection exists (a literal dynamic import from mcpSkills.ts fans a single
 // edge out into many cycle violations; a variable-specifier dynamic import
 // passes dep-cruiser but fails to resolve in Bun-bundled binaries at runtime).
-// eslint-disable-next-line custom-rules/no-top-level-side-effects -- write-once registration, idempotent
 registerMCPSkillBuilders({
   createSkillCommand,
   parseSkillFrontmatterFields,

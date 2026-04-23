@@ -920,7 +920,6 @@ function validateNewlines(context: ValidationContext): PermissionResult {
   // follows whitespace (e.g., `cmd \<newline>--flag`). Mid-word continuations
   // like `tr\<newline>aceroute` are still flagged because they can hide
   // dangerous command names from allowlist checks.
-  // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .test() + gated by /[\n\r]/.test() above
   const looksLikeCommand = /(?<![\s]\\)[\n\r]\s*\S/.test(fullyUnquotedPreStrip)
   if (looksLikeCommand) {
     logEvent('tengu_bash_security_check_triggered', {
@@ -1944,9 +1943,7 @@ function validateMidWordHash(context: ValidationContext): PermissionResult {
     return backslashCount % 2 === 1 ? '\\'.repeat(backslashCount - 1) : match
   })
   if (
-    // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .test() with atom search: fast when # absent
     /\S(?<!\$\{)#/.test(unquotedKeepQuoteChars) ||
-    // eslint-disable-next-line custom-rules/no-lookbehind-regex -- same as above
     /\S(?<!\$\{)#/.test(joined)
   ) {
     logEvent('tengu_bash_security_check_triggered', {

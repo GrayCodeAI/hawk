@@ -100,7 +100,6 @@ export function primeKeychainCacheFromPrefetch(stdout: string | null): void {
   let data: SecureStorageData | null = null
   if (stdout) {
     try {
-      // eslint-disable-next-line custom-rules/no-direct-json-operations -- jsonParse() pulls slowOperations (lodash-es/cloneDeep) into the early-startup import chain; see file header
       data = JSON.parse(stdout)
     } catch {
       // malformed prefetch result — let sync read() re-fetch

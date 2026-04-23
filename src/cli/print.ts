@@ -496,7 +496,6 @@ export async function runHeadless(
     process.stderr.write(
       `\nStartup time: ${Math.round(process.uptime() * 1000)}ms\n`,
     )
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(0)
   }
 

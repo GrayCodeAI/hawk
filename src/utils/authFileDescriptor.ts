@@ -36,9 +36,7 @@ export function maybePersistTokenForSubprocesses(
     return
   }
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs -- one-shot startup write in CCR, caller is sync
     mkdirSync(CCR_TOKEN_DIR, { recursive: true, mode: 0o700 })
-    // eslint-disable-next-line custom-rules/no-sync-fs -- one-shot startup write in CCR, caller is sync
     writeFileSync(path, token, { encoding: 'utf8', mode: 0o600 })
     logForDebugging(`Persisted ${tokenName} to ${path} for subprocess access`)
   } catch (error) {
@@ -60,7 +58,6 @@ export function readTokenFromWellKnownFile(
 ): string | null {
   try {
     const fsOps = getFsImplementation()
-    // eslint-disable-next-line custom-rules/no-sync-fs -- fallback read for CCR subprocess path, one-shot at startup, caller is sync
     const token = fsOps.readFileSync(path, { encoding: 'utf8' }).trim()
     if (!token) {
       return null
@@ -139,7 +136,6 @@ function getCredentialFromFd({
         ? `/dev/fd/${fd}`
         : `/proc/self/fd/${fd}`
 
-    // eslint-disable-next-line custom-rules/no-sync-fs -- legacy FD path, read once at startup, caller is sync
     const token = fsOps.readFileSync(fdPath, { encoding: 'utf8' }).trim()
     if (!token) {
       logForDebugging(`File descriptor contained empty ${label}`, {

@@ -86,7 +86,6 @@ export function PowerShellPermissionRequest(props: PermissionRequestProps): Reac
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [command]);
   const onEditablePrefixChange = useCallback((value: string) => {
     hasUserEditedPrefix.current = true;

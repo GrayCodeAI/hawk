@@ -52,7 +52,6 @@ const BLOCK_PATTERN = /```!\s*\n?([\s\S]*?)\n?```/g
 // Uses a positive lookbehind to require whitespace or start-of-line before !
 // This prevents false matches inside markdown inline code spans like `!!` or
 // adjacent spans like `foo`!`bar`, and shell variables like $!
-// eslint-disable-next-line custom-rules/no-lookbehind-regex -- gated by text.includes('!`') below (PR#22986)
 const INLINE_PATTERN = /(?<=^|\s)!`([^`]+)`/gm
 
 /**

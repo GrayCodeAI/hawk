@@ -80,7 +80,6 @@ function processChunk(str: string): void {
     // early stage of startup, the shutdown machinery isn't initialized yet.
     if (code === 3) {
       stopCapturingEarlyInput()
-      // eslint-disable-next-line custom-rules/no-process-exit
       process.exit(130) // Standard exit code for Ctrl+C
       return
     }

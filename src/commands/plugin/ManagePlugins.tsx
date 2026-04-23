@@ -14,7 +14,6 @@ import type { HawkAIServerInfo, HTTPServerInfo, SSEServerInfo, StdioServerInfo }
 import { SearchBox } from '../../components/SearchBox.js';
 import { useSearchInput } from '../../hooks/useSearchInput.js';
 import { useTerminalSize } from '../../hooks/useTerminalSize.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- useInput needed for raw search mode text input
 import { Box, Text, useInput, useTerminalFocus } from '../../ink.js';
 import { useKeybinding, useKeybindings } from '../../keybindings/useKeybinding.js';
 import { getBuiltinPluginDefinition } from '../../plugins/builtinPlugins.js';
@@ -1545,7 +1544,6 @@ export function ManagePlugins({
   // advertise; (2) unlike confirm-project-uninstall (which uses useKeybindings
   // where n and escape both map to confirm:no), here n and escape are DIFFERENT
   // actions (keep-data vs cancel), so this deliberately stays on raw useInput.
-  // eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw y/n/esc; Enter must not trigger destructive delete
   useInput((input, key) => {
     if (!selectedPlugin) return;
     const pluginId_9 = `${selectedPlugin.plugin.name}@${selectedPlugin.marketplace}`;
@@ -1589,7 +1587,6 @@ export function ManagePlugins({
   }, [searchQuery]);
 
   // Handle input for entering search mode (text input handled by useSearchInput hook)
-  // eslint-disable-next-line custom-rules/prefer-use-keybindings -- useInput needed for raw search mode text input
   useInput((input_0, key_0) => {
     const keyIsNotCtrlOrMeta = !key_0.ctrl && !key_0.meta;
     if (isSearchMode) {

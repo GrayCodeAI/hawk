@@ -120,8 +120,7 @@ export function LogoV2() {
   useEffect(t2, t3);
   const forceFullLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_FULL_LOGO);
   const forceCondensedLogo = isEnvTruthy(process.env.HAWK_CODE_FORCE_CONDENSED_LOGO);
-  let t4;
-  t4 = forceCondensedLogo && !forceFullLogo;
+  const t4 = forceCondensedLogo && !forceFullLogo;
   const isCondensedMode = t4;
   let t5;
   let t6;

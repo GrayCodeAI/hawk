@@ -18,7 +18,6 @@ async function whichNodeAsync(command: string): Promise<string | null> {
 
   // On POSIX systems (macOS, Linux, WSL), use which
   // Cross-platform safe: Windows is handled above
-  // eslint-disable-next-line custom-rules/no-cross-platform-process-issues
   const result = await execa(`which ${command}`, {
     shell: true,
     stderr: 'ignore',

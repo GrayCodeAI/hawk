@@ -160,7 +160,6 @@ export function logError(error: unknown): void {
   if (feature('HARD_FAIL') && isHardFailMode()) {
     // biome-ignore lint/suspicious/noConsole:: intentional crash output
     console.error('[HARD FAIL] logError called with:', err.stack || err.message)
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(1)
   }
   try {

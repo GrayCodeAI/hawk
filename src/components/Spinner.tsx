@@ -252,7 +252,7 @@ function SpinnerWithVerbInner({
   // Time-based tip overrides: coarse thresholds so a stale ref read (we're
   // off the 50ms clock) is fine. Other triggers (mode change, setMessages)
   // cause re-renders that refresh this in practice.
-  let contextTipsActive = false;
+  const contextTipsActive = false;
   const tipsEnabled = settings.spinnerTipsEnabled !== false;
   const showClearTip = tipsEnabled && elapsedSnapshot > 1_800_000;
   const showBtwTip = tipsEnabled && elapsedSnapshot > 30_000 && !getGlobalConfig().btwUseCount;

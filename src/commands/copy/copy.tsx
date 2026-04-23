@@ -227,7 +227,7 @@ function CopyPicker(t0) {
         message_age: messageAge,
         write_shortcut: true
       });
-      ;
+      
       try {
         const filePath = await writeToFile(content_0.text, content_0.filename);
         onDone(`Written to ${filePath}`);

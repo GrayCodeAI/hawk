@@ -551,7 +551,6 @@ export function ExitPlanModePermissionRequest({
       </Box>);
     return () => setStickyFooter(null);
     // onImagePaste/onRemoveImage are stable (useCallback/useRef-backed above)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useStickyFooter, setStickyFooter, options, pastedContents, editorName, isV2, planFilePath, showSaveMessage]);
 
   // Simplified UI for empty plans

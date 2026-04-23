@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
 import { KeyboardEvent } from '../ink/events/keyboard-event.js'
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- backward-compat bridge until consumers wire handleKeyDown to <Box onKeyDown>
 import { useInput } from '../ink.js'
 import {
   Cursor,
@@ -236,7 +235,7 @@ export function useSearchInput({
           return
         case 'd': {
           if (query.length === 0) {
-            ;(onCancel ?? onExit)()
+            (onCancel ?? onExit)()
             return
           }
           const newCursor = cursor.del()

@@ -10,7 +10,6 @@ import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { applyColor } from '../ink/colorize.js';
 import { stringWidth as getStringWidth } from '../ink/stringWidth.js';
 import type { Color } from '../ink/styles.js';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- raw j/k/arrow stats navigation
 import { Ansi, Box, Text, useInput } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
 import { getGlobalConfig } from '../utils/config.js';

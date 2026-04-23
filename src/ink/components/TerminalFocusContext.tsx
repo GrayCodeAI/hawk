@@ -11,7 +11,6 @@ const TerminalFocusContext = createContext<TerminalFocusContextProps>({
   terminalFocusState: 'unknown'
 });
 
-// eslint-disable-next-line custom-rules/no-top-level-side-effects
 TerminalFocusContext.displayName = 'TerminalFocusContext';
 
 // Separate component so App.tsx doesn't re-render on focus changes.

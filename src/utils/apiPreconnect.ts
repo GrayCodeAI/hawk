@@ -66,7 +66,6 @@ export function preconnectGrayCodeApi(): void {
   // for keep-alive pool reuse immediately after headers arrive. 10s timeout
   // so a slow network doesn't hang the process; abort is fine since the real
   // request will handshake fresh if needed.
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
   void fetch(baseUrl, {
     method: 'HEAD',
     signal: AbortSignal.timeout(10_000),

@@ -271,7 +271,6 @@ export class SSETransport implements Transport {
     this.abortController = new AbortController()
 
     try {
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       const response = await fetch(sseUrl.href, {
         headers,
         signal: this.abortController.signal,
@@ -335,7 +334,6 @@ export class SSETransport implements Transport {
   /**
    * Read and process the SSE stream body.
    */
-  // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
   private async readStream(body: ReadableStream<Uint8Array>): Promise<void> {
     const reader = body.getReader()
     const decoder = new TextDecoder()

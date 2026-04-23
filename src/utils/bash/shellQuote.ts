@@ -163,12 +163,10 @@ export function hasMalformedTokens(
     // Check for unbalanced double quotes
     // Count quotes that aren't escaped (preceded by backslash)
     // A token with an odd number of unescaped quotes is malformed
-    // eslint-disable-next-line custom-rules/no-lookbehind-regex -- gated by hasCommandSeparator check at caller, runs on short per-token strings
     const doubleQuotes = entry.match(/(?<!\\)"/g) || []
     if (doubleQuotes.length % 2 !== 0) return true
 
     // Check for unbalanced single quotes
-    // eslint-disable-next-line custom-rules/no-lookbehind-regex -- same as above
     const singleQuotes = entry.match(/(?<!\\)'/g) || []
     if (singleQuotes.length % 2 !== 0) return true
   }

@@ -104,7 +104,6 @@ export const findGitBashPath = memoize((): string => {
     console.error(
       `Hawk was unable to find HAWK_CODE_GIT_BASH_PATH path "${process.env.HAWK_CODE_GIT_BASH_PATH}"`,
     )
-    // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(1)
   }
 
@@ -120,7 +119,6 @@ export const findGitBashPath = memoize((): string => {
   console.error(
     'Hawk on Windows requires git-bash (https://git-scm.com/downloads/win). If installed but not in PATH, set environment variable pointing to your bash.exe, similar to: HAWK_CODE_GIT_BASH_PATH=C:\\Program Files\\Git\\bin\\bash.exe',
   )
-  // eslint-disable-next-line custom-rules/no-process-exit
   process.exit(1)
 })
 

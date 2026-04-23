@@ -200,7 +200,6 @@ function ScrollBox({
   // notify/scrollMutated are inline (no useCallback) but only close over
   // refs + imports — stable. Empty deps avoids rebuilding the handle on
   // every render (which re-registers the ref = churn).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   []);
 
   // Structure: outer viewport (overflow:scroll, constrained height) >

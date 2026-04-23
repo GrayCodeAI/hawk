@@ -399,7 +399,7 @@ export const markDirty = (node?: DOMNode): void => {
 
   while (current) {
     if (current.nodeName !== '#text') {
-      ;(current as DOMElement).dirty = true
+      (current as DOMElement).dirty = true
       // Only mark yoga dirty on leaf nodes that have measure functions
       if (
         !markedYoga &&

@@ -65,7 +65,6 @@ export function useKickOffCheckAndDisableBypassPermissionsIfNeeded(): void {
       toolPermissionContext,
       setAppState,
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }
 
@@ -150,6 +149,5 @@ export function useKickOffCheckAndDisableAutoModeIfNeeded(): void {
       setAppState,
       fastMode,
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainLoopModel, mainLoopModelForSession, fastMode])
 }

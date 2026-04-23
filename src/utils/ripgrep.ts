@@ -562,7 +562,6 @@ const testRipgrepOnFirstUse = memoize(async (): Promise<void> => {
     // For embedded ripgrep, use Bun.spawn with argv0
     if (config.argv0) {
       // Only Bun embeds ripgrep.
-      // eslint-disable-next-line custom-rules/require-bun-typeof-guard
       const proc = Bun.spawn([config.command, '--version'], {
         argv0: config.argv0,
         stderr: 'ignore',

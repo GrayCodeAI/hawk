@@ -509,7 +509,6 @@ function getRetryAfter(error: unknown): string | null {
     ((error as { headers?: { 'retry-after'?: string } }).headers?.[
       'retry-after'
     ] ||
-      // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
       ((error as APIError).headers as Headers)?.get?.('retry-after')) ??
     null
   )

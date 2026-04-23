@@ -270,7 +270,6 @@ export function convertToSandboxRuntimeConfig(
     for (const gitFile of bareGitRepoFiles) {
       const p = resolve(dir, gitFile)
       try {
-        // eslint-disable-next-line custom-rules/no-sync-fs -- refreshConfig() must be sync
         statSync(p)
         denyWrite.push(p)
       } catch {
@@ -404,7 +403,6 @@ const bareGitRepoScrubPaths: string[] = []
 function scrubBareGitRepoFiles(): void {
   for (const p of bareGitRepoScrubPaths) {
     try {
-      // eslint-disable-next-line custom-rules/no-sync-fs -- cleanupAfterCommand must be sync (Shell.ts:367)
       rmSync(p, { recursive: true })
       logForDebugging(`[Sandbox] scrubbed planted bare-repo file: ${p}`)
     } catch {

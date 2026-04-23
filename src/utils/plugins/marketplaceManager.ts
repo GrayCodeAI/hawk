@@ -2162,7 +2162,7 @@ export const getMarketplace = memoize(
     // Cache doesn't exist or is invalid, fetch from source
     let marketplace: PluginMarketplace
     try {
-      ;({ marketplace } = await loadAndCacheMarketplace(entry.source))
+      ({ marketplace } = await loadAndCacheMarketplace(entry.source))
     } catch (error) {
       throw new Error(
         `Failed to load marketplace "${name}" from source (${entry.source.source}): ${errorMessage(error)}`,

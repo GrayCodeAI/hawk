@@ -16,7 +16,7 @@ import { Spinner } from './Spinner.js';
 // are inside callbacks, so the lazy require never sees an undefined import.
 function recordWorktreeExit(): void {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  ;
+  
   (require('../utils/sessionStorage.js') as typeof import('../utils/sessionStorage.js')).saveWorktreeState(null);
   /* eslint-enable @typescript-eslint/no-require-imports */
 }
@@ -77,7 +77,6 @@ export function WorktreeExitDialog({
       }
     }
     void loadChanges();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   }, [worktreeSession]);
   useEffect(() => {

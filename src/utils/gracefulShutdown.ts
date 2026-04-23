@@ -55,7 +55,6 @@ import { profileReport } from './startupProfiler.js'
  * 2. These sequences are no-ops on terminals that don't support them
  * 3. Failing to disable leaves the terminal in a broken state
  */
-/* eslint-disable custom-rules/no-sync-fs -- must be sync to flush before process.exit */
 function cleanupTerminalModes(): void {
   if (!process.stdout.isTTY) {
     return
@@ -182,7 +181,6 @@ function printResumeHint(): void {
     }
   }
 }
-/* eslint-enable custom-rules/no-sync-fs */
 
 /**
  * Force process exit, handling the case where the terminal is gone.
@@ -512,7 +510,6 @@ export async function gracefulShutdown(
 
   if (options?.finalMessage) {
     try {
-      // eslint-disable-next-line custom-rules/no-sync-fs -- must flush before forceExit
       writeSync(2, options.finalMessage + '\n')
     } catch {
       // stderr may be closed (e.g., SSH disconnect). Ignore write errors.

@@ -8,7 +8,6 @@ import { count } from '../utils/array.js';
 import { dirname, join } from 'path';
 import { tmpdir } from 'os';
 import figures from 'figures';
-// eslint-disable-next-line custom-rules/prefer-use-keybindings -- / n N Esc [ v are bare letters in transcript modal context, same class as g/G/j/k in ScrollKeybindingHandler
 import { useInput } from '../ink.js';
 import { useSearchInput } from '../hooks/useSearchInput.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
@@ -94,7 +93,6 @@ import { errorMessage } from '../utils/errors.js';
 import { isHumanTurn } from '../utils/messagePredicates.js';
 import { logError } from '../utils/log.js';
 // Dead code elimination: conditional imports
-/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const useVoiceIntegration: typeof import('../hooks/useVoiceIntegration.js').useVoiceIntegration = feature('VOICE_MODE') ? require('../hooks/useVoiceIntegration.js').useVoiceIntegration : () => ({
   stripTrailing: () => 0,
   handleKeyEvent: () => {},
@@ -117,7 +115,6 @@ const getCoordinatorUserContext: (mcpClients: ReadonlyArray<{
 }>, scratchpadDir?: string) => {
   [k: string]: string;
 } = feature('COORDINATOR_MODE') ? require('../coordinator/coordinatorMode.js').getCoordinatorUserContext : () => ({});
-/* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 import useCanUseTool from '../hooks/useCanUseTool.js';
 import type { ToolPermissionContext, Tool } from '../Tool.js';
 import { applyPermissionUpdate, applyPermissionUpdates, persistPermissionUpdate } from '../utils/permissions/PermissionUpdate.js';
@@ -218,11 +215,9 @@ import { EffortCallout, shouldShowEffortCallout } from '../components/EffortCall
 import type { EffortValue } from '../utils/effort.js';
 import { RemoteCallout } from '../components/RemoteCallout.js';
 import { getAPIProvider } from '../utils/model/providers.js';
-/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const AntModelSwitchCallout = "external" === 'ant' ? require('../components/AntModelSwitchCallout.js').AntModelSwitchCallout : null;
 const shouldShowAntModelSwitch = "external" === 'ant' ? require('../components/AntModelSwitchCallout.js').shouldShowModelSwitchCallout : (): boolean => false;
 const UndercoverAutoCallout = "external" === 'ant' ? require('../components/UndercoverAutoCallout.js').UndercoverAutoCallout : null;
-/* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 import { activityManager } from '../utils/activityManager.js';
 import { createAbortController } from '../utils/abortController.js';
 import { MCPConnectionManager } from 'src/services/mcp/MCPConnectionManager.js';
@@ -434,7 +429,6 @@ function TranscriptSearchBar({
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // mount-only: bar opens once per /
   // Gate the query effect on warm completion. setHighlight stays instant
   // (screen-space overlay, no indexing). setSearchQuery (the scan) waits.
@@ -443,7 +437,6 @@ function TranscriptSearchBar({
     if (!warmDone) return;
     jumpRef.current?.setSearchQuery(query);
     setHighlight(query);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, warmDone]);
   const off = cursorOffset;
   const cursorChar = off < query.length ? query[off] : ' ';
@@ -1003,7 +996,6 @@ export function REPL({
         }
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [showUndercoverCallout, setShowUndercoverCallout] = useState(false);
   useEffect(() => {
@@ -1022,7 +1014,6 @@ export function REPL({
         }
       })();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [toolJSX, setToolJSXInternal] = useState<{
     jsx: React.ReactNode | null;
@@ -1246,7 +1237,6 @@ export function REPL({
   const cursorNavRef = useRef<MessageActionsNav | null>(null);
   // Memoized so Messages' React.memo holds.
   const unseenDivider = useMemo(() => computeUnseenDivider(messages, dividerIndex),
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- length change covers appends; useUnseenDivider's count-drop guard clears dividerIndex on replace/rewind
   [dividerIndex, messages.length]);
   // Re-pin scroll to bottom and clear the unseen-messages baseline. Called
   // on any user-driven return-to-live action (submit, type-into-empty,
@@ -1984,7 +1974,6 @@ export function REPL({
       });
     }
     // Only run on mount - initialMessages shouldn't change during component lifetime
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const {
     status: apiKeyStatus,
@@ -3677,7 +3666,7 @@ export function REPL({
       // everything. The ctx-agent will re-stage on the next
       // threshold crossing.
       /* eslint-disable @typescript-eslint/no-require-imports */
-      ;
+      
       (require('../services/contextCollapse/index.js') as typeof import('../services/contextCollapse/index.js')).resetContextCollapse();
       /* eslint-enable @typescript-eslint/no-require-imports */
     }
@@ -4060,7 +4049,6 @@ export function REPL({
 
   if ("external" === 'ant') {
     // Tasks mode: watch for tasks and auto-process them
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     // biome-ignore lint/correctness/useHookAtTopLevel: conditional for dead code elimination in external builds
     useTaskListWatcher({
       taskListId,
@@ -4069,7 +4057,6 @@ export function REPL({
     });
 
     // Loop mode: auto-tick when enabled (via /job command)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     // biome-ignore lint/correctness/useHookAtTopLevel: conditional for dead code elimination in external builds
     useProactive?.({
       // Suppress ticks while an initial message is pending — the initial
@@ -4107,7 +4094,6 @@ export function REPL({
       void diagnosticTracker.shutdown();
     };
     // NOTE: Diagnostic tracker initialization is intentionally run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for suspend/resume events
@@ -4306,7 +4292,6 @@ export function REPL({
           // space + slack). Floor at 80. PassThrough has no .columns so
           // without this Ink defaults to 80. Trailing-space strip: right-
           // aligned timestamps still leave a flexbox spacer run at EOL.
-          // eslint-disable-next-line custom-rules/prefer-use-terminal-size -- one-shot at keypress time, not a reactive render dep
           const w = Math.max(80, (process.stdout.columns ?? 80) - 6);
           const raw = await renderMessagesToPlainText(deferredMessages, tools, w);
           const text = raw.replace(/[ \t]+$/gm, '');
