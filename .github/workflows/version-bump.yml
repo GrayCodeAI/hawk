@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   version-bump:
@@ -27,7 +28,6 @@ jobs:
       - name: Determine version bump type
         id: bump
         run: |
-          # Check commit messages since last tag
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%s" --no-merges)
@@ -35,7 +35,6 @@ jobs:
             COMMITS=$(git log --pretty=format:"%s" --no-merges -20)
           fi
 
-          # Determine bump type from conventional commits
           if echo "$COMMITS" | grep -qE "^feat!:" || echo "$COMMITS" | grep -qE "^BREAKING CHANGE"; then
             echo "type=major" >> "$GITHUB_OUTPUT"
           elif echo "$COMMITS" | grep -qE "^feat:"; then
@@ -68,11 +67,21 @@ jobs:
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-      - name: Commit and tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore: bump version to ${{ steps.version.outputs.new }}"
-          git tag -a "v${{ steps.version.outputs.new }}" -m "Release v${{ steps.version.outputs.new }}"
-          git push origin HEAD --tags
+      - name: Create version bump PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump version to ${{ steps.version.outputs.new }}"
+          branch: "chore/bump-version-${{ steps.version.outputs.new }}"
+          base: ${{ github.ref_name }}
+          title: "chore: bump version to ${{ steps.version.outputs.new }}"
+          body: |
+            Auto-generated version bump based on commits since last release.
+
+            **Bump type:** ${{ steps.bump.outputs.type }}
+            **Previous version:** ${{ steps.version.outputs.current }}
+            **New version:** ${{ steps.version.outputs.new }}
+
+            This PR will auto-merge if CI passes.
+          labels: chore, automated
+          delete-branch: true
