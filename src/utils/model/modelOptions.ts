@@ -17,6 +17,11 @@ import { checkOpus1mAccess, checkSonnet1mAccess } from './check1mAccess.js'
 import { getAPIProvider } from './providers.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import {
+  ALL_MODEL_CONFIGS,
+  getProviderDefaultModel,
+  getPreferredProviderModel,
+} from '@hawk/eyrie'
+import {
   getCanonicalName,
   getHawkAiUserDefaultModelDescription,
   getDefaultSonnetModel,
@@ -416,42 +421,37 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
  * Map a full model name to its family alias and the marketing name of the
  * version the alias currently resolves to. Used to detect when a user has
  * a specific older version pinned and a newer one is available.
+ *
+ * Dynamic: derives family from ALL_MODEL_CONFIGS model keys.
  */
 function getModelFamilyInfo(
   model: string,
 ): { alias: string; currentVersionName: string } | null {
   const canonical = getCanonicalName(model)
 
-  // Sonnet family
-  if (
-    canonical.includes('claude-sonnet-4-6') ||
-    canonical.includes('claude-sonnet-4-5') ||
-    canonical.includes('claude-sonnet-4-') ||
-    canonical.includes('claude-3-7-sonnet') ||
-    canonical.includes('claude-3-5-sonnet')
-  ) {
-    const currentName = getMarketingNameForModel(getDefaultSonnetModel())
-    if (currentName) {
-      return { alias: 'Sonnet', currentVersionName: currentName }
-    }
-  }
+  // Find the matching model key from ALL_MODEL_CONFIGS
+  for (const [key, config] of Object.entries(ALL_MODEL_CONFIGS)) {
+    const canonicalId = config.anthropic
+    const shortId = canonicalId.replace(/-\d{8}$/, '')
+    if (canonical.includes(shortId) || canonical.includes(canonicalId)) {
+      // Extract family from key: opus46 → opus, sonnet35 → sonnet
+      const familyMatch = key.match(/^(opus|sonnet|haiku)/)
+      if (!familyMatch) continue
+      const family = familyMatch[1]!
 
-  // Opus family
-  if (canonical.includes('claude-opus-4')) {
-    const currentName = getMarketingNameForModel(getDefaultOpusModel())
-    if (currentName) {
-      return { alias: 'Opus', currentVersionName: currentName }
-    }
-  }
+      const getDefaultForFamily = (f: string) => {
+        if (f === 'opus') return getDefaultOpusModel()
+        if (f === 'sonnet') return getDefaultSonnetModel()
+        if (f === 'haiku') return getDefaultHaikuModel()
+        return null
+      }
+      const defaultModel = getDefaultForFamily(family)
+      if (!defaultModel) continue
 
-  // Haiku family
-  if (
-    canonical.includes('claude-haiku') ||
-    canonical.includes('claude-3-5-haiku')
-  ) {
-    const currentName = getMarketingNameForModel(getDefaultHaikuModel())
-    if (currentName) {
-      return { alias: 'Haiku', currentVersionName: currentName }
+      const currentName = getMarketingNameForModel(defaultModel)
+      if (currentName) {
+        return { alias: family.charAt(0).toUpperCase() + family.slice(1), currentVersionName: currentName }
+      }
     }
   }
 

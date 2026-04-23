@@ -4,7 +4,6 @@ import { getClientType } from '../bootstrap/state.js'
 import {
   getRemoteSessionUrl,
   isRemoteSessionLocal,
-  PRODUCT_URL,
 } from '../constants/product.js'
 import { TERMINAL_OUTPUT_TAGS } from '../constants/xml.js'
 import type { AppState } from '../state/AppState.js'
@@ -18,8 +17,6 @@ import {
   type AttributionData,
   calculateCommitAttribution,
   isInternalModelRepo,
-  isInternalModelRepoCached,
-  sanitizeModelName,
 } from './commitAttribution.js'
 import { logForDebugging } from './debug.js'
 import { parseJSONL } from './json.js'
@@ -27,7 +24,6 @@ import { logError } from './log.js'
 import {
   getCanonicalName,
   getMainLoopModel,
-  getPublicModelDisplayName,
   getPublicModelName,
 } from './model/model.js'
 import { isMemoryFileAccess } from './sessionFileAccessHooks.js'
@@ -67,17 +63,12 @@ export function getAttributionTexts(): AttributionTexts {
     return { commit: '', pr: '' }
   }
 
-  // @[MODEL LAUNCH]: Update the hardcoded fallback model name below (guards against codename leaks).
-  // For internal repos, use the real model name. For external repos,
-  // fall back to "Hawk Opus 4.6" for unrecognized models to avoid leaking codenames.
+  // Model-agnostic attribution: always credit Hawk (the CLI) and the actual model used.
   const model = getMainLoopModel()
-  const isKnownPublicModel = getPublicModelDisplayName(model) !== null
-  const modelName =
-    isInternalModelRepoCached() || isKnownPublicModel
-      ? getPublicModelName(model)
-      : 'Hawk Opus 4.6'
-  const defaultAttribution = `🤖 Generated with [Hawk](${PRODUCT_URL})`
-  const defaultCommit = `Co-Authored-By: ${modelName} <noreply@graycode.com>`
+  const shortModelName = getCanonicalName(model)
+
+  const defaultAttribution = `Assisted by Hawk (model: ${shortModelName})`
+  const defaultCommit = `Co-Authored-By: Hawk (model: ${shortModelName})`
 
   const settings = getInitialSettings()
 
@@ -325,7 +316,7 @@ export async function getEnhancedPRAttribution(
     return ''
   }
 
-  const defaultAttribution = `🤖 Generated with [Hawk](${PRODUCT_URL})`
+  const defaultAttribution = `Assisted by Hawk`
 
   // Get AppState first
   const appState = getAppState()
@@ -354,11 +345,8 @@ export async function getEnhancedPRAttribution(
     `PR Attribution: hawkPercent: ${hawkPercent}, promptCount: ${promptCount}, memoryAccessCount: ${memoryAccessCount}`,
   )
 
-  // Get short model name, sanitized for non-internal repos
-  const rawModelName = getCanonicalName(getMainLoopModel())
-  const shortModelName = isInternal
-    ? rawModelName
-    : sanitizeModelName(rawModelName)
+  // Get short model name for attribution (model-agnostic: use actual model name)
+  const shortModelName = getCanonicalName(getMainLoopModel())
 
   // If no attribution data, return default
   if (hawkPercent === 0 && promptCount === 0 && memoryAccessCount === 0) {
@@ -366,12 +354,12 @@ export async function getEnhancedPRAttribution(
     return defaultAttribution
   }
 
-  // Build the enhanced attribution: "🤖 Generated with Hawk (93% 3-shotted by claude-opus-4-5, 2 memories recalled)"
+  // Build the enhanced attribution: "Assisted by Hawk — 93% AI, 3 prompts via gpt-4o"
   const memSuffix =
     memoryAccessCount > 0
       ? `, ${memoryAccessCount} ${memoryAccessCount === 1 ? 'memory' : 'memories'} recalled`
       : ''
-  const summary = `🤖 Generated with [Hawk](${PRODUCT_URL}) (${hawkPercent}% ${promptCount}-shotted by ${shortModelName}${memSuffix})`
+  const summary = `Assisted by Hawk — ${hawkPercent}% AI, ${promptCount} prompt${promptCount === 1 ? '' : 's'} via ${shortModelName}${memSuffix}`
 
   // Append trailer lines for squash-merge survival. Only for allowlisted repos
   // (INTERNAL_MODEL_REPOS) and only in builds with COMMIT_ATTRIBUTION enabled —
