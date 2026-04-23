@@ -16,7 +16,7 @@ jobs:
         working-directory: hawk
     steps:
       - name: Checkout Hawk
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: hawk
 
