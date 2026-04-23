@@ -96,6 +96,15 @@ If the user chose personal HAWK.local.md or both: ask about them, not the codeba
 
 Write a minimal HAWK.md at the project root. Every line must pass this test: "Would removing this cause Hawk to make mistakes?" If no, cut it.
 
+If the repo is fresh, sparse, or lacks meaningful existing conventions, you may seed a tiny starter behavior block in HAWK.md. Keep it to 3-5 short lines max, and only include defaults that materially reduce agent mistakes across codebases:
+- ask before coding when the request or repo intent is ambiguous
+- prefer the smallest change that fully solves the task
+- avoid unrelated refactors, formatting churn, or cleanup
+- define a concrete verification target for bugs and risky refactors
+- run and report the smallest relevant checks before marking work complete
+
+Treat this as a fallback for fresh projects, not boilerplate. If the repo or user gives a more specific rule, use that instead. Do not duplicate a rule already covered by Phase 2 findings or user answers.
+
 **Consume \`note\` entries from the Phase 3 preference queue whose target is HAWK.md** (team-level notes) — add each as a concise line in the most relevant section. These are the behaviors the user wants Hawk to follow but didn't need guaranteed (e.g., "propose a plan before implementing", "explain the tradeoffs when refactoring"). Leave personal-targeted notes for Phase 5.
 
 Include:
@@ -110,7 +119,7 @@ Include:
 Exclude:
 - File-by-file structure or component lists (Hawk can discover these by reading the codebase)
 - Standard language conventions Hawk already knows
-- Generic advice ("write clean code", "handle errors")
+- Generic advice ("write clean code", "handle errors"), except for the tiny starter behavior block above when the repo is genuinely fresh/sparse
 - Detailed API docs or long references — use \`@path/to/import\` syntax instead (e.g., \`@docs/api-reference.md\`) to inline content on demand without bloating HAWK.md
 - Information that changes frequently — reference the source with \`@path/to/import\` so Hawk always reads the current version
 - Long tutorials or walkthroughs (move to a separate file and reference with \`@path/to/import\`, or put in a skill)
