@@ -113,7 +113,7 @@ jobs:
 
       - name: Upload build artifact
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hawk-build
           path: dist/cli.mjs
