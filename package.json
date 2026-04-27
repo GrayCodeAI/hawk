@@ -50,7 +50,7 @@
   "dependencies": {
     "@alcalzone/ansi-tokenize": "^0.3.0",
     "@aws-sdk/credential-provider-node": "^3.972.33",
-    "@commander-js/extra-typings": "^12.0.0",
+    "@commander-js/extra-typings": "^14.0.0",
     "@growthbook/growthbook": "^1.3.0",
     "@hawk/eyrie": "github:GrayCodeAI/eyrie.git#bcb4b945b146ff69c556fc10790ecc21549f9df0",
     "@modelcontextprotocol/sdk": "^1.12.0",
