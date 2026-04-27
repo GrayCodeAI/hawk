@@ -108,7 +108,7 @@
     "tree-kill": "^1.2.2",
     "turndown": "^7.2.0",
     "type-fest": "^4.30.0",
-    "undici": "^7.3.0",
+    "undici": "^8.1.0",
     "usehooks-ts": "^3.1.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "wrap-ansi": "^9.0.0",
