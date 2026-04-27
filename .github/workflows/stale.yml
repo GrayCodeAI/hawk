@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Close stale PRs
-        uses: actions/stale@v9
+        uses: actions/stale@v10
         with:
           days-before-stale: 30
           days-before-close: 7
