@@ -71,7 +71,7 @@
     "axios": "^1.14.0",
     "bidi-js": "^1.0.3",
     "chalk": "^5.4.0",
-    "chokidar": "^4.0.0",
+    "chokidar": "^5.0.0",
     "cli-boxes": "^3.0.0",
     "cli-highlight": "^2.1.0",
     "code-excerpt": "^4.0.0",
